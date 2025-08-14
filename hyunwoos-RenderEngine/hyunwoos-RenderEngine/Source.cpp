@@ -20,9 +20,10 @@ private:
 	int   lastFps     = 0;
 	float totalTime   = 0.f;
 
-	float     degree = 0.f;
+	float     speed  = 5.f;
 	Vector2   pos    = Vector2::Zero;
 	Vector2   pos2   = Vector2::Zero;
+	Vector2   pos3   = Vector2::Zero;
 
 
 
@@ -33,9 +34,10 @@ private:
 protected:
 	virtual void OnStart() override final
 	{
-		Renderer& renderer    = GetRenderer();
-		renderer.UseAutoClear = true;
-		renderer.ClearColor   = LinearColor::White;
+		Renderer& renderer        = GetRenderer();
+		renderer.UseAutoClear     = true;
+		renderer.UseWireFrameMode = false;
+		renderer.ClearColor       = LinearColor::Black;
 		SetTargetFrameRate(60);
 	}
 
@@ -57,7 +59,35 @@ protected:
 		}
 
 		renderer.DrawTextField(w$(L"fps: ", lastFps), Vector2Int::Zero);
+
+
+		/********************************************
+		 *   삼각형을 그린다...
+		 *******/
+		pos += Vector2(
+			input.GetAxis(KeyCode::A, KeyCode::D) * speed,
+			input.GetAxis(KeyCode::S, KeyCode::W) * speed
+		);
+
+		pos2 += Vector2(
+			input.GetAxis(KeyCode::Left, KeyCode::Right) * speed,
+			input.GetAxis(KeyCode::Down, KeyCode::Up) * speed
+		);
+
+		pos3 += Vector2(
+			input.GetAxis(KeyCode::J, KeyCode::L) * speed,
+			input.GetAxis(KeyCode::K, KeyCode::I) * speed
+		);
+
+		const Vector2 p1 = renderer.WorldToScreen(pos);
+		const Vector2 p2 = renderer.WorldToScreen(pos2);
+		const Vector2 p3 = renderer.WorldToScreen(pos3);
+
+		renderer.DrawTextField(w$(L"pos1: ", p1, L"\npos2: ", p2, L"\npos3: ", p3), Vector2Int(0.f, 100.f));
+		renderer.DrawTriangle(LinearColor::White, p1, p2, p3);
 	}
+
+
 
 
 	//=========================================================

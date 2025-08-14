@@ -1,6 +1,7 @@
 #include "Renderer.h"
 #include <cstdint>
 #include <emmintrin.h>
+#include "../UtilityModule/StringLamda.h"
 
 /*=====================================================================
  *    좌표계 변환 메소드...
@@ -432,18 +433,59 @@ void hyunwoo::Renderer::DrawTriangle(const LinearColor& color, const Vector2& sc
         return;
     }
 
-    const int xMin = Math::Min(screenPos1.x, screenPos2.x, screenPos3.x);
-    const int xMax = Math::Max(screenPos1.x, screenPos2.x, screenPos3.x);
-    const int yMin = Math::Min(screenPos1.y, screenPos2.y, screenPos3.y);
-    const int yMax = Math::Max(screenPos1.y, screenPos2.y, screenPos3.y);
+
+    /*******************************************************
+     *    컨벡스 결합을 위한 값들을 모두 구한다....
+     *******/
+    const Vector2 u = (screenPos1 - screenPos3);
+    const Vector2 v = (screenPos2 - screenPos3);
+
+    const float uv   = Vector2::Dot(u, v);
+    const float uu   = Vector2::Dot(u, u);
+    const float vv   = Vector2::Dot(v, v);
+    const float deno = (uv * uv - uu * vv);
 
 
     
+    /******************************************************
+     *     퇴화 삼각형인가? 맞다면 함수를 종료한다...
+     **********/
+    if (deno==0.0f) {
+        return;
+    }
 
+
+
+    /*********************************************************
+     *   세 점의 크기를 구한 후, 해당 범위에 있는 점들을 순회한다..
+     ********/
+    const int   xMin = Math::Min(screenPos1.x, screenPos2.x, screenPos3.x);
+    const int   xMax = Math::Max(screenPos1.x, screenPos2.x, screenPos3.x);
+    const int   yMin = Math::Min(screenPos1.y, screenPos2.y, screenPos3.y);
+    const int   yMax = Math::Max(screenPos1.y, screenPos2.y, screenPos3.y);
+    const float div  = (1.f / deno);
+
+    for (int y = yMin; y <= yMax; y++)
+    {
+        for (int x = xMin; x <= xMax; x++) 
+        {
+            const Vector2 p   = {float(x),float(y)};
+            const Vector2 w   = (p - screenPos3);
+            const float   wu  = Vector2Int::Dot(w, u);
+            const float   wv  = Vector2Int::Dot(w, v);
+            const float   s   = (wv*uv - wu*vv) * div;
+            const float   t   = (wu*uv - wv*uu) * div;
+            const float   r   = (1.f - s - t);
+
+            /*-----------------------------------------
+             *   삼각형 범위 안에 있다면 점을 찍는다..
+             *-----*/
+            if ((s >= 0.f && s <= 1.f) && (t >= 0.f && t <= 1.f) && (r >= 0.f && r <= 1.f)) {
+                SetPixel(color, p);
+            }
+        }
+    }
 }
-
-
-
 
 
 

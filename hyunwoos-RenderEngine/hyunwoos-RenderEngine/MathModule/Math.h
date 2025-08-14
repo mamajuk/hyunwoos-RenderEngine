@@ -96,14 +96,14 @@ public:
 	}
 
 	template<typename T, typename...Tn>
-	static const float Max(const T lhs, Tn... args) {
+	static const T Max(const T lhs, Tn... args) {
 		float max = lhs;
 		(((args>max) && (max=args)),...);
 		return max;
 	}
 
 	template<typename T, typename...Tn>
-	static const float Min(const T lhs, Tn... args) {
+	static const T Min(const T lhs, Tn... args) {
 		float min = lhs;
 		(((args < min) && (min = args)), ...);
 		return min;

@@ -171,7 +171,7 @@ struct hyunwoo::Vector2Int
 	//===========================================================
 	constexpr Vector2Int(int x = 0, int y = 0) :x(x), y(y) {}
 	constexpr Vector2Int(const Vector2Int&) = default;
-	constexpr ~Vector2Int() = default;
+	constexpr ~Vector2Int()				    = default;
 
 
 

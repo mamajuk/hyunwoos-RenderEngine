@@ -12,7 +12,7 @@ namespace hyunwoo {
 
 
 /*=======================================================================
- *    C++에서 유니코드 String 조합을 만드는 유틸리티 클래스입니다...
+ *    C++에서 멀티바이트 String 조합을 만드는 유틸리티 클래스입니다...
  *=============*/
 class hyunwoo::StringLamda final
 {
@@ -23,7 +23,7 @@ private:
 	template <typename T>
 	struct has_add_string_method : std::false_type {};
 
-	template<typename T> requires std::is_same_v<decltype(&std::decay_t<T>::AddString), void(std::decay_t<T>::*)(std::string&)>
+	template<typename T> requires std::is_same_v<decltype(&std::decay_t<T>::AddString), void(std::decay_t<T>::*)(std::string&) const>
 	struct has_add_string_method<T> : std::true_type {};
 
 	template<typename T>
@@ -104,7 +104,7 @@ public:
 
 
 /*=======================================================================
- *    C++에서 멀티바이트 String 조합을 만드는 유틸리티 클래스입니다...
+ *    C++에서 유니코드 String 조합을 만드는 유틸리티 클래스입니다...
  *=============*/
 class hyunwoo::WStringLamda final
 {

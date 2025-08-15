@@ -90,8 +90,8 @@ public:
 		const Matrix2x2 transpose = GetTranspose();
 
 		return Vector2{
-			Vector2::Dot(BasisX, rhs),
-			Vector2::Dot(BasisY, rhs)
+			Vector2::Dot(transpose.BasisX, rhs),
+			Vector2::Dot(transpose.BasisY, rhs)
 		};
 	}
 
@@ -224,9 +224,9 @@ public:
 		const Matrix3x3 transpose = GetTranspose();
 
 		return Vector3{
-			Vector3::Dot(BasisX, rhs),
-			Vector3::Dot(BasisY, rhs),
-			Vector3::Dot(BasisZ, rhs)
+			Vector3::Dot(transpose.BasisX, rhs),
+			Vector3::Dot(transpose.BasisY, rhs),
+			Vector3::Dot(transpose.BasisZ, rhs)
 		};
 	}
 
@@ -368,10 +368,10 @@ public:
 		const Matrix4x4 transpose = GetTranspose();
 
 		return Vector4{
-			Vector4::Dot(BasisX, rhs),
-			Vector4::Dot(BasisY, rhs),
-			Vector4::Dot(BasisZ, rhs),
-			Vector4::Dot(BasisW, rhs)
+			Vector4::Dot(transpose.BasisX, rhs),
+			Vector4::Dot(transpose.BasisY, rhs),
+			Vector4::Dot(transpose.BasisZ, rhs),
+			Vector4::Dot(transpose.BasisW, rhs)
 		};
 	}
 

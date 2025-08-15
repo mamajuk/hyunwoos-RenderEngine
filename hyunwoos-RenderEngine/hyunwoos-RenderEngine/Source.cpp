@@ -20,11 +20,12 @@ private:
 	int   lastFps     = 0;
 	float totalTime   = 0.f;
 
-	float     speed  = 5.f;
-	Vector2   pos    = Vector2::Zero;
-	Vector2   pos2   = Vector2::Zero;
-	Vector2   pos3   = Vector2::Zero;
-
+	float     degree   = 0.f;
+	float     speed    = 100.f;
+	float     rotSpeed = 50.f;
+	Vector2   pos      = Vector2(100.f ,100.f);
+	Vector2   pos2     = Vector2::Zero;
+	Vector2   pos3     = Vector2::Zero;
 
 
 
@@ -44,47 +45,13 @@ protected:
 
 	virtual void OnEnterFrame(float deltaTime) override final
 	{
-		Renderer& renderer        = GetRenderer();
-		const InputManager& input = GetInputManager();
+		Renderer&			renderer = GetRenderer();
+		const InputManager& input    = GetInputManager();
+		const float         speedSec = (deltaTime * speed);
 
-
-		/*********************************************
-		 *    측정한 초당 프레임을 표시한다....
-		 *******/
-		frameCount++;
-		if ((totalTime += deltaTime) >= 1.f) {
-			lastFps = frameCount;
-			frameCount = 0;
-			totalTime = 0.f;
-		}
-
-		renderer.DrawTextField(w$(L"fps: ", lastFps), Vector2Int::Zero);
-
-
-		/********************************************
-		 *   삼각형을 그린다...
-		 *******/
-		pos += Vector2(
-			input.GetAxis(KeyCode::A, KeyCode::D) * speed,
-			input.GetAxis(KeyCode::S, KeyCode::W) * speed
-		);
-
-		pos2 += Vector2(
-			input.GetAxis(KeyCode::Left, KeyCode::Right) * speed,
-			input.GetAxis(KeyCode::Down, KeyCode::Up) * speed
-		);
-
-		pos3 += Vector2(
-			input.GetAxis(KeyCode::J, KeyCode::L) * speed,
-			input.GetAxis(KeyCode::K, KeyCode::I) * speed
-		);
-
-		const Vector2 p1 = renderer.WorldToScreen(pos);
-		const Vector2 p2 = renderer.WorldToScreen(pos2);
-		const Vector2 p3 = renderer.WorldToScreen(pos3);
-
-		renderer.DrawTextField(w$(L"pos1: ", p1, L"\npos2: ", p2, L"\npos3: ", p3), Vector2Int(0.f, 100.f));
-		renderer.DrawTriangle(LinearColor::White, p1, p2, p3);
+		//DrawTriangle(deltaTime, speed, pos, pos2, pos3);
+		DrawRectangle(degree, pos, speed, rotSpeed, deltaTime, Vector2Int(100, 100), LinearColor::White);
+		DrawFps(deltaTime, frameCount, lastFps, totalTime);
 	}
 
 
@@ -94,28 +61,107 @@ protected:
 	////////			  Private methods..			  /////////
 	//=========================================================
 private:
-	void DrawRectangle(float degree, Vector2 worldPos, const LinearColor& color)
+	void DrawRectangle(float& degree, Vector2& worldPos, float moveSpeed, float rotSpeed, float deltaTime, Vector2Int size, const LinearColor& color)
 	{
-		/***************************************************
-		 *    주어진 인자의 위치에 회전된 사각형을 그립니다..
-		 ********/
-		Renderer& renderer = GetRenderer();
+		const InputManager& input        = GetInputManager();
+		Renderer&			renderer     = GetRenderer();
+		const float         moveSpeedSec = (moveSpeed * deltaTime);
+		const float         rotSpeedSec  = (rotSpeed * deltaTime);
 
+		/****************************************************
+		 *   사각형의 회전과 이동을 조작한다...
+		 ********/
+		worldPos += Vector2(
+			input.GetAxis(KeyCode::Left, KeyCode::Right) * moveSpeedSec,
+			input.GetAxis(KeyCode::Down, KeyCode::Up) * moveSpeedSec
+		);
+
+		degree += input.GetAxis(KeyCode::S, KeyCode::W) * rotSpeedSec;
+
+
+
+		/****************************************************
+		 *    사각형의 회전과 위치를 구성하는 행렬을 만든다....
+		 ********/
 		float c = Math::Cos(Math::Angle2Rad * degree);
 		float s = Math::Sin(Math::Angle2Rad * degree);
 
-		Matrix3x3 rotMat = Matrix3x3(Vector3(c, s), Vector3(-s, c), Vector3(worldPos.x, worldPos.y, 1));
-		for (float i = 0; i < 100; i+=1.f) 
-		{
-			for (int j = 0; j < 100; j+=1.f) {
-				renderer.SetPixel(
-					color, 
-					renderer.WorldToScreen(rotMat * Vector3(i, j, 1))
-				);
+		Matrix3x3 rotMat = Matrix3x3(
+			Vector3(c, s, 0.f), 
+			Vector3(-s, c, 0.f),
+			Vector3(worldPos.x, worldPos.y, 1.f)
+		);
+
+
+
+		/***************************************************
+		 *    주어진 위치에 회전된 사각형을 그립니다..
+		 ********/
+		const int goalY = size.y / 2;
+		const int goalX = size.x / 2;
+
+		for (int y = -goalY; y <= goalY; y++) {
+			for (int x = -goalX; x <= goalX; x++) {
+
+				const Vector3 finalVec = renderer.WorldToScreen(rotMat * Vector3(x, y, 1.f));
+				renderer.SetPixel(color, finalVec);
 			}
 		}
 
-		renderer.DrawTextField(w$(L"rotMat\n", rotMat), renderer.WorldToScreen(Vector2(-300)));
+		renderer.DrawTextField(w$(L"rotMat\n", rotMat), Vector2Int(0, 500));
+	}
+	void DrawFps(float deltaTime, int& frameCount, int& lastFps, float& totalTime) 
+	{
+		/*********************************************
+		 *    측정한 초당 프레임을 표시한다....
+		 *******/
+		Renderer& renderer = GetRenderer();
+
+		frameCount++;
+		if ((totalTime += deltaTime) >= 1.f) {
+			lastFps = frameCount;
+			frameCount = 0;
+			totalTime = 0.f;
+		}
+
+		renderer.DrawTextField(w$(L"fps: ", lastFps), Vector2Int::Zero);
+	}
+	void DrawTriangle(float deltaTime, float speed, Vector2& pos, Vector2& pos2, Vector2& pos3) 
+	{
+		const InputManager& input	 = GetInputManager();
+		Renderer&			renderer = GetRenderer();
+		const float         speedSec = (speed * deltaTime);
+
+		/*********************************************
+		 *   삼각형을 구성하는 세 점들의 이동....
+		 *******/
+		pos += Vector2(
+			input.GetAxis(KeyCode::A, KeyCode::D) * speedSec,
+			input.GetAxis(KeyCode::S, KeyCode::W) * speedSec
+		);
+
+		pos2 += Vector2(
+			input.GetAxis(KeyCode::Left, KeyCode::Right) * speedSec,
+			input.GetAxis(KeyCode::Down, KeyCode::Up) * speedSec
+		);
+
+		pos3 += Vector2(
+			input.GetAxis(KeyCode::J, KeyCode::L) * speedSec,
+			input.GetAxis(KeyCode::K, KeyCode::I) * speedSec
+		);
+
+
+		/********************************************
+		 *   삼각형을 그린다...
+		 *******/
+		const Vector2 p1 = renderer.WorldToScreen(pos);
+		const Vector2 p2 = renderer.WorldToScreen(pos2);
+		const Vector2 p3 = renderer.WorldToScreen(pos3);
+
+		renderer.DrawTriangle(LinearColor::Red, p1, p2, p3);
+		renderer.DrawTextField(w$(L"p1: ", p1), p1);
+		renderer.DrawTextField(w$(L"p2: ", p2), p2);
+		renderer.DrawTextField(w$(L"p3: ", p3), p3);
 	}
 };
 

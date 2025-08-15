@@ -9,7 +9,7 @@
 hyunwoo::Vector2 hyunwoo::Renderer::WorldToScreen(const hyunwoo::Vector2& cartesianPos)
 {
     return Vector2(
-        (cartesianPos.x + m_widthf_half), 
+        (cartesianPos.x  + m_widthf_half), 
         (-cartesianPos.y + m_heightf_half)
     );
 }
@@ -181,6 +181,7 @@ void hyunwoo::Renderer::ClearScreen()
         *i = clearColor;
     }
 }
+
 
 
 
@@ -373,6 +374,7 @@ void hyunwoo::Renderer::DrawLine(const LinearColor& color, const Vector2& startS
 
 
 
+
 /*=============================================================================
  *   백버퍼의 특정 위치의 픽셀을, 지정한 색깔로 바꿉니다.
  *================*/
@@ -388,6 +390,7 @@ void hyunwoo::Renderer::SetPixel(const LinearColor& color, const Vector2Int& scr
 
     m_backBufferBitmapPtr[idx] = color.ToDWORD_rgba(2, 1, 0, 3);
 }
+
 
 
 
@@ -435,7 +438,7 @@ void hyunwoo::Renderer::DrawTriangle(const LinearColor& color, const Vector2& sc
 
 
     /*******************************************************
-     *    컨벡스 결합을 위한 값들을 모두 구한다....
+     *    컨벡스 결합을 위해 필요한 값들을 계산한다...
      *******/
     const Vector2 u = (screenPos1 - screenPos3);
     const Vector2 v = (screenPos2 - screenPos3);
@@ -447,8 +450,8 @@ void hyunwoo::Renderer::DrawTriangle(const LinearColor& color, const Vector2& sc
 
 
     
-    /******************************************************
-     *     퇴화 삼각형인가? 맞다면 함수를 종료한다...
+    /**********************************************************
+     *     퇴화 삼각형인가? ( 분모가 0 ) 맞다면 함수를 종료한다...
      **********/
     if (deno==0.0f) {
         return;
@@ -465,14 +468,13 @@ void hyunwoo::Renderer::DrawTriangle(const LinearColor& color, const Vector2& sc
     const int   yMax = Math::Max(screenPos1.y, screenPos2.y, screenPos3.y);
     const float div  = (1.f / deno);
 
-    for (int y = yMin; y <= yMax; y++)
-    {
-        for (int x = xMin; x <= xMax; x++) 
-        {
-            const Vector2 p   = {float(x),float(y)};
+    for (int y = yMin; y <= yMax; y++){
+        for (int x = xMin; x <= xMax; x++) {
+
+            const Vector2 p   = Vector2(x, y);
             const Vector2 w   = (p - screenPos3);
-            const float   wu  = Vector2Int::Dot(w, u);
-            const float   wv  = Vector2Int::Dot(w, v);
+            const float   wu  = Vector2::Dot(w, u);
+            const float   wv  = Vector2::Dot(w, v);
             const float   s   = (wv*uv - wu*vv) * div;
             const float   t   = (wu*uv - wv*uu) * div;
             const float   r   = (1.f - s - t);
@@ -493,7 +495,6 @@ void hyunwoo::Renderer::DrawTriangle(const LinearColor& color, const Vector2& sc
 
 
 
-
 /*====================================================================
  *   랜더러가 생성한 비트맵의 크기를 반환합니다...
  *=============*/
@@ -504,6 +505,8 @@ UINT hyunwoo::Renderer::GetWidth()  const {
 UINT hyunwoo::Renderer::GetHeight() const {
     return m_height;
 }
+
+
 
 
 

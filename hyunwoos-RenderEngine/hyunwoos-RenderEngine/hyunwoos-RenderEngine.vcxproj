@@ -142,11 +142,13 @@
   <ItemGroup>
     <ClInclude Include="EngineModule\InputManager.h" />
     <ClInclude Include="EngineModule\RenderEngine.h" />
+    <ClInclude Include="ImportModule\PngImporter.h" />
     <ClInclude Include="MathModule\Color.h" />
     <ClInclude Include="MathModule\Math.h" />
     <ClInclude Include="MathModule\Matrix.h" />
     <ClInclude Include="MathModule\Vector.h" />
     <ClInclude Include="RenderModule\Renderer.h" />
+    <ClInclude Include="UtilityModule\BitStream.h" />
     <ClInclude Include="UtilityModule\StringLamda.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

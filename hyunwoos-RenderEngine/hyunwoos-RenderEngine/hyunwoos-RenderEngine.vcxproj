@@ -131,13 +131,17 @@
   <ItemGroup>
     <ClCompile Include="EngineModule\InputManager.cpp" />
     <ClCompile Include="EngineModule\RenderEngine.cpp" />
+    <ClCompile Include="ImportModule\PngImporter.cpp" />
     <ClCompile Include="MathModule\Color.cpp" />
     <ClCompile Include="MathModule\Math.cpp" />
     <ClCompile Include="MathModule\Matrix.cpp" />
     <ClCompile Include="MathModule\Vector.cpp" />
     <ClCompile Include="RenderModule\Renderer.cpp" />
+    <ClCompile Include="RenderModule\RenderResources.cpp" />
     <ClCompile Include="Source.cpp" />
+    <ClCompile Include="UtilityModule\BitStream.cpp" />
     <ClCompile Include="UtilityModule\StringLamda.cpp" />
+    <ClCompile Include="UtilityModule\Zlib.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="EngineModule\InputManager.h" />
@@ -148,8 +152,15 @@
     <ClInclude Include="MathModule\Matrix.h" />
     <ClInclude Include="MathModule\Vector.h" />
     <ClInclude Include="RenderModule\Renderer.h" />
+    <ClInclude Include="RenderModule\RenderResources.h" />
     <ClInclude Include="UtilityModule\BitStream.h" />
     <ClInclude Include="UtilityModule\StringLamda.h" />
+    <ClInclude Include="UtilityModule\Zlib.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <Image Include="test1.png" />
+    <Image Include="test2.png" />
+    <Image Include="test3.png" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

@@ -1,5 +1,7 @@
 #pragma once
 #include <cstdInt>
+#include <string>
+#include "../RenderModule/RenderResources.h"
 
 namespace hyunwoo {
 	class PngImporter;
@@ -7,14 +9,14 @@ namespace hyunwoo {
 
 
 
-/*==============================================================================
+/*=================================================================================================
  *    Png파일을 로드하는 기능이 구현된 클래스입니다....
  *=========*/
 class hyunwoo::PngImporter final
 {
-	//=====================================================
-	///////					Defines...			    ///////
-	//=====================================================
+	//=================================================================
+	///////						  Defines...					///////
+	//=================================================================
 
 	/************************************
 	 *   Png 파일의 매직해더를 나타내는 
@@ -29,10 +31,15 @@ class hyunwoo::PngImporter final
 	 ********/
 	struct ImportResult
 	{
-		bool Success		   : 1;
-		bool Failed_OpenFile   : 1;
-		bool Invalid_Signature : 1;
-		bool Invalid_File	   : 1;
+		bool Success					   : 1;
+		bool Failed_OpenFile			   : 1;
+		bool Invalid_Signature			   : 1;
+		bool Invalid_File				   : 1;
+		bool CompressionMethodIsNotDeflate : 1;
+		bool FilterMethodIsNotAdative	   : 1;
+		bool Failed_Deflate				   : 1;
+		bool Invalid_Interlace			   : 1;
+		bool Invalid_FilterType			   : 1;
 	};
 
 
@@ -98,21 +105,21 @@ class hyunwoo::PngImporter final
 		IsLast = 0b1,
 	};
 
-	struct ChunkHeader
+	struct Chunk
 	{
-		uint32_t   Length;
-		ChunkType  Type;
-		uint32_t   crc32;
+		uint32_t  Length;
+		ChunkType Type;
+		uint32_t  CRC32;
 	};
 
-	struct Chunk_IHDR
+	struct IHDR_Data
 	{
-		uint32_t	      width;
-		uint32_t		  height;
-		uint8_t		      bitDepth;
-		ColorType         colorType;
-		CompressionMethod compressionMethod;
-		FilterMethod      filterMethod;
+		uint32_t	      Width;
+		uint32_t		  Height;
+		uint8_t		      BitDepth;
+		ColorType         ColorType;
+		CompressionMethod CompressionMethod;
+		FilterMethod      FilterMethod;
 		InterlaceMethod   InterlaceMethod;
 	};
 
@@ -121,4 +128,21 @@ class hyunwoo::PngImporter final
 		int8_t r, g, b;
 	};
 
+
+
+
+	//=========================================================================
+	///////						  Public methods.....					///////
+	//=========================================================================
+public:
+	static ImportResult Import( Texture2D& outTexture, const std::wstring& path );
+
+
+
+	//=========================================================================
+	/////////					   Private methods...				///////////
+	//=========================================================================
+private:
+	static uint32_t SwapBytesOrder(uint32_t value);
+	static uint32_t GetColorDimension(ColorType colorType);
 };

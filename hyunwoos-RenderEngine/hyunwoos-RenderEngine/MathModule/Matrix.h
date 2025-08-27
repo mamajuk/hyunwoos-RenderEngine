@@ -77,8 +77,8 @@ public:
 		const Matrix2x2 transpose = GetTranspose();
 
 		return Matrix2x2{
-			(Vector2::Dot(transpose.BasisX, rhs.BasisX) + Vector2::Dot(transpose.BasisX, rhs.BasisY)),
-			(Vector2::Dot(transpose.BasisY, rhs.BasisX) + Vector2::Dot(transpose.BasisY, rhs.BasisY))
+			(Vector2::Dot(transpose.BasisX, rhs.BasisX) + Vector2::Dot(transpose.BasisY, rhs.BasisX)),
+			(Vector2::Dot(transpose.BasisX, rhs.BasisY) + Vector2::Dot(transpose.BasisY, rhs.BasisY))
 		};
 	}
 
@@ -210,9 +210,9 @@ public:
 		const Matrix3x3 transpose = GetTranspose();
 
 		return Matrix3x3{
-			(Vector3::Dot(transpose.BasisX, rhs.BasisX) + Vector3::Dot(transpose.BasisX, rhs.BasisY) + Vector3::Dot(transpose.BasisX, rhs.BasisZ)),
-			(Vector3::Dot(transpose.BasisY, rhs.BasisX) + Vector3::Dot(transpose.BasisY, rhs.BasisY) + Vector3::Dot(transpose.BasisY, rhs.BasisZ)),
-			(Vector3::Dot(transpose.BasisZ, rhs.BasisX) + Vector3::Dot(transpose.BasisZ, rhs.BasisY) + Vector3::Dot(transpose.BasisZ, rhs.BasisZ))
+			Vector3(Vector3::Dot(transpose.BasisX, rhs.BasisX), Vector3::Dot(transpose.BasisY, rhs.BasisX), Vector3::Dot(transpose.BasisZ, rhs.BasisX)),
+			Vector3(Vector3::Dot(transpose.BasisX, rhs.BasisY), Vector3::Dot(transpose.BasisY, rhs.BasisY), Vector3::Dot(transpose.BasisZ, rhs.BasisY)),
+			Vector3(Vector3::Dot(transpose.BasisX, rhs.BasisZ), Vector3::Dot(transpose.BasisY, rhs.BasisZ), Vector3::Dot(transpose.BasisZ, rhs.BasisZ))
 		};
 	}
 
@@ -353,10 +353,10 @@ public:
 		const Matrix4x4 transpose = GetTranspose();
 
 		return Matrix4x4{
-			(Vector4::Dot(transpose.BasisX, rhs.BasisX) + Vector4::Dot(transpose.BasisX, rhs.BasisY) + Vector4::Dot(transpose.BasisX, rhs.BasisZ) + Vector4::Dot(transpose.BasisX, rhs.BasisW)),
-			(Vector4::Dot(transpose.BasisY, rhs.BasisX) + Vector4::Dot(transpose.BasisY, rhs.BasisY) + Vector4::Dot(transpose.BasisY, rhs.BasisZ) + Vector4::Dot(transpose.BasisY, rhs.BasisW)),
-			(Vector4::Dot(transpose.BasisZ, rhs.BasisX) + Vector4::Dot(transpose.BasisZ, rhs.BasisY) + Vector4::Dot(transpose.BasisZ, rhs.BasisZ) + Vector4::Dot(transpose.BasisZ, rhs.BasisW)),
-			(Vector4::Dot(transpose.BasisW, rhs.BasisX) + Vector4::Dot(transpose.BasisW, rhs.BasisY) + Vector4::Dot(transpose.BasisW, rhs.BasisZ) + Vector4::Dot(transpose.BasisW, rhs.BasisW))
+			(Vector4::Dot(transpose.BasisX, rhs.BasisX) + Vector4::Dot(transpose.BasisY, rhs.BasisX) + Vector4::Dot(transpose.BasisZ, rhs.BasisX) + Vector4::Dot(transpose.BasisW, rhs.BasisX)),
+			(Vector4::Dot(transpose.BasisX, rhs.BasisY) + Vector4::Dot(transpose.BasisY, rhs.BasisY) + Vector4::Dot(transpose.BasisZ, rhs.BasisY) + Vector4::Dot(transpose.BasisW, rhs.BasisY)),
+			(Vector4::Dot(transpose.BasisX, rhs.BasisZ) + Vector4::Dot(transpose.BasisY, rhs.BasisZ) + Vector4::Dot(transpose.BasisZ, rhs.BasisZ) + Vector4::Dot(transpose.BasisW, rhs.BasisZ)),
+			(Vector4::Dot(transpose.BasisX, rhs.BasisW) + Vector4::Dot(transpose.BasisY, rhs.BasisW) + Vector4::Dot(transpose.BasisZ, rhs.BasisW) + Vector4::Dot(transpose.BasisW, rhs.BasisW))
 		};
 	}
 

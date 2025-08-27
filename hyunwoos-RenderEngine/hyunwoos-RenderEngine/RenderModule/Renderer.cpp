@@ -26,6 +26,10 @@ hyunwoo::Vector2 hyunwoo::Renderer::ScreenToWorld(const Vector2& screenPos)
 
 
 
+
+
+
+
 /*=====================================================================
  *   랜더러를 초기화하는 메소드.
  *===========*/
@@ -108,6 +112,8 @@ hyunwoo::Renderer::InitResult hyunwoo::Renderer::Init(HWND renderTargetHwnd, UIN
 
 
 
+
+
 /*============================================================================
  *   가공한 비트맵을 화면 DC에 최종 제출합니다....
  *=============*/
@@ -133,6 +139,9 @@ void hyunwoo::Renderer::Present()
     StretchBlt(hdc, 0, 0, rect.right, rect.bottom, m_memDC, 0, 0, m_width, m_height, SRCCOPY);
     EndPaint(m_renderTargetHWND, &ps);
 }
+
+
+
 
 
 
@@ -181,6 +190,9 @@ void hyunwoo::Renderer::ClearScreen()
         *i = clearColor;
     }
 }
+
+
+
 
 
 
@@ -421,8 +433,10 @@ void hyunwoo::Renderer::DrawTextField(const std::wstring& out, const hyunwoo::Ve
 
 
 
+
+
 /*==============================================================================
- *    삼각형을 그리는 메소드들.....
+ *    지정된 색상으로 삼각형을 그립니다....
  *=============*/
 void hyunwoo::Renderer::DrawTriangle(const LinearColor& color, const Vector2& screenPos1, const Vector2& screenPos2, const Vector2& screenPos3)
 {
@@ -488,6 +502,95 @@ void hyunwoo::Renderer::DrawTriangle(const LinearColor& color, const Vector2& sc
         }
     }
 }
+
+
+
+
+
+
+
+
+
+
+/*==============================================================================
+ *    지정된 텍스쳐로 삼각형을 그립니다....
+ *=============*/
+void hyunwoo::Renderer::DrawTriangleWithTexture(const Texture2D& texture, const Vector2& screenPos1, const Vector2& uvPos1, const Vector2& screenPos2, const Vector2& uvPos2, const Vector2& screenPos3, const Vector2& uvPos3)
+{
+    /*****************************************************
+     *    와이어 프레임 모드일 경우, 선만 그리고 종료한다...
+     *******/
+    if (UseWireFrameMode) {
+        DrawLine(WireFrameColor, screenPos1, screenPos2);
+        DrawLine(WireFrameColor, screenPos1, screenPos3);
+        DrawLine(WireFrameColor, screenPos2, screenPos3);
+        return;
+    }
+
+
+    /*******************************************************
+     *    컨벡스 결합을 위해 필요한 값들을 계산한다...
+     *******/
+    const Vector2 u = (screenPos1 - screenPos3);
+    const Vector2 v = (screenPos2 - screenPos3);
+
+    const float uv = Vector2::Dot(u, v);
+    const float uu = Vector2::Dot(u, u);
+    const float vv = Vector2::Dot(v, v);
+    const float deno = (uv * uv - uu * vv);
+
+
+
+    /**********************************************************
+     *     퇴화 삼각형인가? ( 분모가 0 ) 맞다면 함수를 종료한다...
+     **********/
+    if (deno == 0.0f) {
+        return;
+    }
+
+
+
+    /*********************************************************
+     *   세 점의 크기를 구한 후, 해당 범위에 있는 점들을 순회한다..
+     ********/
+    const int   xMin = Math::Min(screenPos1.x, screenPos2.x, screenPos3.x);
+    const int   xMax = Math::Max(screenPos1.x, screenPos2.x, screenPos3.x);
+    const int   yMin = Math::Min(screenPos1.y, screenPos2.y, screenPos3.y);
+    const int   yMax = Math::Max(screenPos1.y, screenPos2.y, screenPos3.y);
+    const float div = (1.f / deno);
+
+    for (int y = yMin; y <= yMax; y++) {
+        for (int x = xMin; x <= xMax; x++) {
+
+            const Vector2 p = Vector2(x, y);
+            const Vector2 w = (p - screenPos3);
+            const float   wu = Vector2::Dot(w, u);
+            const float   wv = Vector2::Dot(w, v);
+            const float   s = (wv * uv - wu * vv) * div;
+            const float   t = (wu * uv - wv * uu) * div;
+            const float   r = (1.f - s - t);
+
+            /*-----------------------------------------
+             *   삼각형 범위 안에 있다면 점을 찍는다..
+             *-----*/
+            if ((s >= 0.f && s <= 1.f) && (t >= 0.f && t <= 1.f) && (r >= 0.f && r <= 1.f)) {
+                SetPixel(texture.GetPixel((uvPos1 * s) + (uvPos2 * t) + (uvPos3 * r)), p);
+            }
+        }
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 

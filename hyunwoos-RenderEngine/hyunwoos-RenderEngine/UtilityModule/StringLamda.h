@@ -27,7 +27,7 @@ private:
 	struct has_add_string_method<T> : std::true_type {};
 
 	template<typename T>
-	static constexpr bool has_add_string_method_v = has_add_string_method<T>::value;
+	static constexpr bool has_add_string_method_v = has_add_string_method<T>::Symbol;
 
 
 

@@ -2,20 +2,21 @@
 #include <windows.h>
 #include "../MathModule/Color.h"
 #include "../MathModule/Vector.h"
+#include "RenderResources.h"
 
 namespace hyunwoo {
 	class Renderer;
 }
 
 
-/*===========================================================================
+/*====================================================================================================
  *    그래픽 출력에 관한 메소드들을 제공하는 클래스입니다....
  *==============*/
 class hyunwoo::Renderer final
 {
-	//==========================================================
-	///////					   Defines..				////////
-	//==========================================================
+	//====================================================================
+	///////							Defines..				      ////////
+	//====================================================================
 public:
 	/********************************************
 	 *   랜더러의 초기화 결과가 담긴 구조체입니다..
@@ -30,9 +31,9 @@ public:
 
 
 
-	//==========================================================
-	////////				Properties..			   /////////
-	//==========================================================
+	//===================================================================
+	////////					 Properties..				    /////////
+	//===================================================================
 public:
 	/****************************************
 	 *   랜더러 상태 관련 프로퍼티...
@@ -59,9 +60,9 @@ public:
 
 
 
-	//===========================================================
-	/////////				  Fields...					/////////
-	//===========================================================
+	//==========================================================================
+	/////////							Fields...					   /////////
+	//==========================================================================
 private:
 	HDC     m_memDC      = NULL;
 	bool    m_isInit : 1 = false;
@@ -109,4 +110,5 @@ public:
 	void SetPixel(const LinearColor& color, const Vector2Int& screenPos);
 	void DrawLine(const LinearColor& color, const Vector2& startScreenPos, const Vector2& endScreenPos, bool useClipping = true);
 	void DrawTriangle(const LinearColor& color, const Vector2& screenPos1, const Vector2& screenPos2, const Vector2& screenPos3);
+	void DrawTriangleWithTexture(const Texture2D& texture, const Vector2& screenPos1, const Vector2& uvPos1, const Vector2& screenPos2, const Vector2& uvPos2, const Vector2& screenPos3, const Vector2& uvPos3);
 };

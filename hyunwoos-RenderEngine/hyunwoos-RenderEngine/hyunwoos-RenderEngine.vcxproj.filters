@@ -42,6 +42,18 @@
     <ClCompile Include="MathModule\Matrix.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="UtilityModule\BitStream.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="UtilityModule\Zlib.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="ImportModule\PngImporter.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="RenderModule\RenderResources.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="EngineModule\RenderEngine.h">
@@ -74,5 +86,22 @@
     <ClInclude Include="UtilityModule\BitStream.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="UtilityModule\Zlib.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="RenderModule\RenderResources.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <Image Include="test2.png">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="test1.png">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="test3.png">
+      <Filter>Resource Files</Filter>
+    </Image>
   </ItemGroup>
 </Project>

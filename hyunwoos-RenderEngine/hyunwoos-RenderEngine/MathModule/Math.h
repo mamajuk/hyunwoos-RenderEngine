@@ -83,16 +83,24 @@ public:
 		return labs(rhs);
 	}
 
-	static const float Range(const float value, const float min, const float max) {
-		if (value < min) return min;
-		if (value > max) return max;
-		return value;
+	static const int Floor(const int rhs) {
+		return floorl(rhs);
 	}
 
-	static const float Range01(const float value) {
-		if (value < 0.f) return 0.f;
-		if (value > 1.f) return 1.f;
-		return value;
+	static const int Floor(const float rhs) {
+		return floorf(rhs);
+	}
+
+	static const float Range(const float Symbol, const float min, const float max) {
+		if (Symbol < min) return min;
+		if (Symbol > max) return max;
+		return Symbol;
+	}
+
+	static const float Range01(const float Symbol) {
+		if (Symbol < 0.f) return 0.f;
+		if (Symbol > 1.f) return 1.f;
+		return Symbol;
 	}
 
 	template<typename T, typename...Tn>

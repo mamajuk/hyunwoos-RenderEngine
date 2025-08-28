@@ -46,8 +46,8 @@ public:
 	 ******/
 	bool        UseAutoClear     : 1 = true;
 	bool		UseWireFrameMode : 1 = false;
-	LinearColor WireFrameColor       = LinearColor::Black;
-	LinearColor ClearColor           = LinearColor::White;
+	Color		WireFrameColor       = LinearColor::Black;
+	Color		ClearColor           = LinearColor::White;
 
 
 	/*************************************
@@ -74,6 +74,7 @@ private:
 	 ******/
 	UINT m_width         = 0;
 	UINT m_height        = 0;
+	UINT m_totalPixelNum = 0;
 	float m_widthf	     = 0.f;
 	float m_heightf      = 0.f;
 	float m_widthf_half  = 0;
@@ -107,8 +108,8 @@ public:
 	void Present();
 	void ClearScreen();
 	void DrawTextField(const std::wstring& out, const Vector2Int& screenPos);
-	void SetPixel(const LinearColor& color, const Vector2Int& screenPos);
-	void DrawLine(const LinearColor& color, const Vector2& startScreenPos, const Vector2& endScreenPos, bool useClipping = true);
-	void DrawTriangle(const LinearColor& color, const Vector2& screenPos1, const Vector2& screenPos2, const Vector2& screenPos3);
+	void SetPixel(const Color& color, const Vector2Int& screenPos);
+	void DrawLine(const Color& color, const Vector2& startScreenPos, const Vector2& endScreenPos, bool useClipping = true);
+	void DrawTriangle(const Color& color, const Vector2& screenPos1, const Vector2& screenPos2, const Vector2& screenPos3);
 	void DrawTriangleWithTexture(const Texture2D& texture, const Vector2& screenPos1, const Vector2& uvPos1, const Vector2& screenPos2, const Vector2& uvPos2, const Vector2& screenPos3, const Vector2& uvPos3);
 };

@@ -10,7 +10,7 @@ using namespace hyunwoo;
 using KeyCode = hyunwoo::InputManager::KeyCode;
 
 
-/*=========================================================================
+/*=======================================================================================================
  *    사용자 정의 랜더 엔진을 정의한다...
  *==========*/
 class MyRenderEngine final : public RenderEngine
@@ -19,16 +19,6 @@ class MyRenderEngine final : public RenderEngine
 	////////			    Fields..				 ////////
 	//=======================================================
 private:
-	int   frameCount  = 0;
-	int   lastFps     = 0;
-	float totalTime   = 0.f;
-
-	float     degree          = 0.f;
-	Vector2   size			  = (Vector2::One);
-	Vector2   pos             = Vector2(100.f ,100.f);
-	Vector2   pos2            = Vector2::Zero;
-	Vector2   pos3            = Vector2::Zero;
-
 	Texture2D tex;
 
 
@@ -37,23 +27,20 @@ private:
 	////////			 Override methods..				////////
 	//==========================================================
 protected:
-	virtual void OnStart() override final
-	{
+	virtual void OnStart() override final{
+
 		Renderer& renderer        = GetRenderer();
 		renderer.UseAutoClear     = true;
-		renderer.WireFrameColor   = LinearColor::White;
-		renderer.ClearColor       = LinearColor::Black;
+		renderer.WireFrameColor   = Color::White;
+		renderer.ClearColor       = Color::Black;
 		SetTargetFrameRate(60);
 
-		if (PngImporter::Import(tex, L"test2.png").Success == false) {
-			uint32_t sibal = 5;
-			sibal++;
-		}
+		PngImporter::Import(tex, L"test1.png");
 	}
 
 
-	virtual void OnEnterFrame(float deltaTime) override final
-	{
+	virtual void OnEnterFrame(float deltaTime) override final{
+
 		Renderer&			renderer = GetRenderer();
 		const InputManager& input    = GetInputManager();
 
@@ -64,24 +51,29 @@ protected:
 			renderer.UseWireFrameMode = !renderer.UseWireFrameMode;
 		}
 
-		DrawTexture(tex, 100.f, 100.f, 1.f, deltaTime);
-		DrawFps(deltaTime, frameCount, lastFps, totalTime);
+		DrawRectangle(tex, 100.f, 1.f, 100.f, deltaTime);
+		DrawFps(deltaTime);
 	}
 
 
 
 
-	//=========================================================
-	////////			  Private methods..			  /////////
-	//=========================================================
+	//=============================================================
+	////////			  Contents methods..			  /////////
+	//=============================================================
 private:
-	void DrawRectangle(float& degree, Vector2& size, Vector2& worldPos, float moveSpeed, float scaleSpeed, float rotSpeed, float deltaTime, const LinearColor& color)
+	void DrawRectangle(const Texture2D& tex, float moveSpeed, float scaleSpeed, float rotSpeed, float deltaTime)
 	{
 		const InputManager& input         = GetInputManager();
 		Renderer&			renderer      = GetRenderer();
 		const float         moveSpeedSec  = (moveSpeed * deltaTime);
 		const float         rotSpeedSec   = (rotSpeed * deltaTime);
 		const float         scaleSpeedSec = (scaleSpeed * deltaTime);
+
+		static Vector2 worldPos = (Vector2::One * 100.f);
+		static Vector2 size		= (Vector2::One * 5.f);
+		static float   degree   = 0.f;
+
 
 		/************************************************************
 		 *   사각형의 회전과 이동, 크기를 조작한다...
@@ -127,21 +119,35 @@ private:
 		const float wHalf = 50.f;
 		const float hHalf = 50.f;
 
-		const Vector2 p1 = renderer.WorldToScreen((finalMat * Vector3(-wHalf, hHalf, 1.f)));
-		const Vector2 p2 = renderer.WorldToScreen((finalMat * Vector3(wHalf, hHalf, 1.f)));
-		const Vector3 p3 = renderer.WorldToScreen((finalMat * Vector3(-wHalf, -hHalf, 1.f)));
-		const Vector3 p4 = renderer.WorldToScreen((finalMat * Vector3(wHalf, -hHalf, 1.f )));
+		const Vector2 p1  = renderer.WorldToScreen((finalMat * Vector3(-wHalf, hHalf, 1.f)));
+		const Vector2 p2  = renderer.WorldToScreen((finalMat * Vector3(wHalf, hHalf, 1.f)));
+		const Vector3 p3  = renderer.WorldToScreen((finalMat * Vector3(-wHalf, -hHalf, 1.f)));
+		const Vector3 p4  = renderer.WorldToScreen((finalMat * Vector3(wHalf, -hHalf, 1.f )));
 
-		renderer.DrawTriangle(color, p1, p2, p3);
-		renderer.DrawTriangle(color, p2, p3, p4);
+		const Vector2 uv1 = Vector2(0.f, 0.f);
+		const Vector2 uv2 = Vector2(1.f, 0.f);
+		const Vector2 uv3 = Vector2(0.f, 1.f);
+		const Vector2 uv4 = Vector2(1.f, 1.f);
+
+		renderer.DrawTriangleWithTexture(tex, p1, uv1, p2, uv2, p3, uv3);
+		renderer.DrawTriangleWithTexture(tex, p2, uv2, p3, uv3, p4, uv4);
+
+		renderer.DrawTextField(w$(L"p1: ", p1, L"\nuv: ", uv1), p1 + Vector2::Left * 200.f);
+		renderer.DrawTextField(w$(L"p2: ", p2, L"\nuv: ", uv2), p2);
+		renderer.DrawTextField(w$(L"p3: ", p3, L"\nuv: ", uv3), p3 + Vector2::Left * 200.f);
+		renderer.DrawTextField(w$(L"p4: ", p4, L"\nuv: ", uv4), p4);
 		renderer.DrawTextField(w$(L"rotMat\n", finalMat), Vector2Int(0, 500));
 	}
-	void DrawFps(float deltaTime, int& frameCount, int& lastFps, float& totalTime) 
+	void DrawFps(float deltaTime) 
 	{
 		/*********************************************
 		 *    측정한 초당 프레임을 표시한다....
 		 *******/
 		Renderer& renderer = GetRenderer();
+
+		static int   frameCount = 0;
+		static int   lastFps    = 0;
+		static float totalTime  = 0.f;
 
 		frameCount++;
 		if ((totalTime += deltaTime) >= 1.f) {
@@ -152,11 +158,17 @@ private:
 
 		renderer.DrawTextField(w$(L"fps: ", lastFps), Vector2Int::Zero);
 	}
-	void DrawTriangle(float deltaTime, float speed, Vector2& pos, Vector2& pos2, Vector2& pos3) 
+	void DrawTriangle(float deltaTime, float speed) 
 	{
 		const InputManager& input	 = GetInputManager();
 		Renderer&			renderer = GetRenderer();
 		const float         speedSec = (speed * deltaTime);
+
+		static Vector2 pos  = Vector2(100.f, 100.f);
+		static Vector2 pos2 = Vector2(200.f, 100.f);
+		static Vector2 pos3 = Vector2(100.f, 200.f);
+
+
 
 		/*********************************************
 		 *   삼각형을 구성하는 세 점들의 이동....
@@ -284,7 +296,14 @@ private:
 
 
 
-/*======================================================================
+
+
+
+
+
+
+
+/*========================================================================================================
  *    프로그램의 진입점....
  *===========*/
 int WINAPI wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE prevHInstance, _In_ LPWSTR commandLine, _In_ int bShowCmd)

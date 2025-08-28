@@ -4,7 +4,7 @@
 /*============================================================================================================
  *   지정한 위치의 픽셀을 얻습니다...
  *========*/
-const hyunwoo::LinearColor hyunwoo::Texture2D::GetPixel(const hyunwoo::Vector2Int& pos) const 
+const hyunwoo::Color hyunwoo::Texture2D::GetPixel(const hyunwoo::Vector2Int& pos) const 
 {
 	const int idx = (pos.y * Width) + pos.x;
 
@@ -12,5 +12,5 @@ const hyunwoo::LinearColor hyunwoo::Texture2D::GetPixel(const hyunwoo::Vector2In
 		return Pixels[idx];
 	}
 
-	return LinearColor::White;
+ 	return Color::Pink;
 }

@@ -2,7 +2,7 @@
 #include "../UtilityModule/Zlib.h"
 #include <fstream>
 
-/*======================================================================================================================
+/*================================================================================================================================================
  *   지정한 주소의 Png파일로부터, 텍스쳐 데이터를 읽어들입니다....
  *============*/
 hyunwoo::PngImporter::ImportResult hyunwoo::PngImporter::Import(Texture2D& outTexture, const std::wstring& path)
@@ -140,7 +140,7 @@ hyunwoo::PngImporter::ImportResult hyunwoo::PngImporter::Import(Texture2D& outTe
 			}
 
 			//인터레이스 값이 잘못되어 있다면, 경과를 갱신하고 함수를 종료한다..
-			const bool isNoInterlace = (ihdrData.InterlaceMethod != InterlaceMethod::No_Interlace);
+			const bool isNoInterlace      = (ihdrData.InterlaceMethod != InterlaceMethod::No_Interlace);
 			const bool isNoAdam7Interlace = (ihdrData.InterlaceMethod != InterlaceMethod::Adam7Interlace);
 
 			if (isNoInterlace && isNoAdam7Interlace) {
@@ -229,7 +229,7 @@ hyunwoo::PngImporter::ImportResult hyunwoo::PngImporter::Import(Texture2D& outTe
 
 
 
-	/**************************************************************************************
+	/*******************************************************************************************
 	 *   온전한 압축 이미지 데이터의 Deflate 압축을 해제한다....
 	 *******/
 	std::vector<uint8_t> filtered_stream;
@@ -380,9 +380,9 @@ hyunwoo::PngImporter::ImportResult hyunwoo::PngImporter::Import(Texture2D& outTe
 			+------------------------------------------------------+*/
 			case(ColorType::GrayScale): 
 			{
-				const float colorChannel_G = (defiltered_stream[idx++] * inv255);
+				const DWORD colorChannel_G = (defiltered_stream[idx++]);
 
-				outTexture.Pixels.push_back(LinearColor(
+				outTexture.Pixels.push_back(Color(
 					colorChannel_G,
 					colorChannel_G,
 					colorChannel_G,
@@ -403,10 +403,10 @@ hyunwoo::PngImporter::ImportResult hyunwoo::PngImporter::Import(Texture2D& outTe
 			  +------------------------------------------------------+*/
 			case(ColorType::GrayScaleWithAlpha):
 			{
-				const float colorChannel_G = (defiltered_stream[idx++] * inv255);
-				const float colorChannel_A = (defiltered_stream[idx++] * inv255);
+				const DWORD colorChannel_G = (defiltered_stream[idx++]);
+				const DWORD colorChannel_A = (defiltered_stream[idx++]);
 
-				outTexture.Pixels.push_back(LinearColor(
+				outTexture.Pixels.push_back(Color(
 					colorChannel_G,
 					colorChannel_G,
 					colorChannel_G,
@@ -428,11 +428,11 @@ hyunwoo::PngImporter::ImportResult hyunwoo::PngImporter::Import(Texture2D& outTe
 			case(ColorType::Indexed_Color):
 			{
 				const uint32_t plteIdx	   = defiltered_stream[idx++];
-				const float colorChannel_R = (plteData[plteIdx].r * inv255);
-				const float colorChannel_G = (plteData[plteIdx].r * inv255);
-				const float colorChannel_B = (plteData[plteIdx].r * inv255);
+				const DWORD colorChannel_R = (plteData[plteIdx].r);
+				const DWORD colorChannel_G = (plteData[plteIdx].g);
+				const DWORD colorChannel_B = (plteData[plteIdx].b);
 
-				outTexture.Pixels.push_back(LinearColor(
+				outTexture.Pixels.push_back(Color(
 					colorChannel_R,
 					colorChannel_G,
 					colorChannel_B,
@@ -452,11 +452,11 @@ hyunwoo::PngImporter::ImportResult hyunwoo::PngImporter::Import(Texture2D& outTe
 			  +------------------------------------------------------+*/
 			case(ColorType::TrueColor):
 			{
-				const float colorChannel_R = (defiltered_stream[idx++] * inv255);
-				const float colorChannel_G = (defiltered_stream[idx++] * inv255);
-				const float colorChannel_B = (defiltered_stream[idx++] * inv255);
+				const DWORD colorChannel_R = (defiltered_stream[idx++]);
+				const DWORD colorChannel_G = (defiltered_stream[idx++]);
+				const DWORD colorChannel_B = (defiltered_stream[idx++]);
 
-				outTexture.Pixels.push_back(LinearColor(
+				outTexture.Pixels.push_back(Color(
 					colorChannel_R,
 					colorChannel_G,
 					colorChannel_B,
@@ -476,12 +476,12 @@ hyunwoo::PngImporter::ImportResult hyunwoo::PngImporter::Import(Texture2D& outTe
 			  +------------------------------------------------------+*/
 			case(ColorType::TrueColorWithAlpha):
 			{
-				const float colorChannel_R = (defiltered_stream[idx++] * inv255);
-				const float colorChannel_G = (defiltered_stream[idx++] * inv255);
-				const float colorChannel_B = (defiltered_stream[idx++] * inv255);
-				const float colorChannel_A = (defiltered_stream[idx++] * inv255);
+				const DWORD colorChannel_R = (defiltered_stream[idx++]);
+				const DWORD colorChannel_G = (defiltered_stream[idx++]);
+				const DWORD colorChannel_B = (defiltered_stream[idx++]);
+				const DWORD colorChannel_A = (defiltered_stream[idx++]);
 
-				outTexture.Pixels.push_back(LinearColor(
+				outTexture.Pixels.push_back(Color(
 					colorChannel_R,
 					colorChannel_G,
 					colorChannel_B,

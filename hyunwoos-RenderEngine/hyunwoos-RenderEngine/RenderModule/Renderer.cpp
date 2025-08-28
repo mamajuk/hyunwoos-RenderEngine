@@ -87,6 +87,7 @@ hyunwoo::Renderer::InitResult hyunwoo::Renderer::Init(HWND renderTargetHwnd, UIN
      ********/
     m_width               = initWidth;
     m_height              = initHeight;
+    m_totalPixelNum       = (initWidth * initHeight);
     m_widthf              = float(m_width);
     m_heightf             = float(m_height);
     m_widthf_half         = (m_widthf * .5f);
@@ -155,11 +156,11 @@ void hyunwoo::Renderer::ClearScreen()
 {
     if (m_isInit == false) return;
 
-    DWORD* endPtr       = m_backBufferBitmapPtr + (m_width * m_height);
+    DWORD* endPtr       = m_backBufferBitmapPtr + m_totalPixelNum;
     DWORD* alignedBegin = reinterpret_cast<DWORD*>(reinterpret_cast<uintptr_t>(m_backBufferBitmapPtr) + 15 & -16);
     DWORD* alignedEnd   = reinterpret_cast<DWORD*>(reinterpret_cast<uintptr_t>(endPtr) & -16);
 
-    const DWORD clearColor = ClearColor.ToDWORD_rgba(2, 1, 0, 3);
+    const DWORD clearColor = ClearColor.ARGB;
 
 
     /******************************************************
@@ -203,7 +204,7 @@ void hyunwoo::Renderer::ClearScreen()
 /*=============================================================================
  *   백버퍼에서 주어진 두 점 사이의 선을 그립니다....
  *==================*/
-void hyunwoo::Renderer::DrawLine(const LinearColor& color, const Vector2& startScreenPos, const Vector2& endScreenPos, bool useClipping)
+void hyunwoo::Renderer::DrawLine(const Color& color, const Vector2& startScreenPos, const Vector2& endScreenPos, bool useClipping)
 {
     float   w        = m_widthf;
     float   h        = m_heightf;
@@ -390,17 +391,17 @@ void hyunwoo::Renderer::DrawLine(const LinearColor& color, const Vector2& startS
 /*=============================================================================
  *   백버퍼의 특정 위치의 픽셀을, 지정한 색깔로 바꿉니다.
  *================*/
-void hyunwoo::Renderer::SetPixel(const LinearColor& color, const Vector2Int& screenPos)
+void hyunwoo::Renderer::SetPixel(const Color& color, const Vector2Int& screenPos)
 {
     /*********************************************************
      *   초기화가 안되어있거나, 인덱스를 벗어나면 함수를 종료한다...
      *****/
     const int idx = ((m_height - screenPos.y) * m_width + screenPos.x);
-    if (m_isInit == false || idx<0 || idx>=(m_width * m_height)) {
+    if (m_isInit == false || idx<0 || idx>=m_totalPixelNum) {
         return;
     }
 
-    m_backBufferBitmapPtr[idx] = color.ToDWORD_rgba(2, 1, 0, 3);
+    m_backBufferBitmapPtr[idx] = color.ARGB;
 }
 
 
@@ -438,7 +439,7 @@ void hyunwoo::Renderer::DrawTextField(const std::wstring& out, const hyunwoo::Ve
 /*==============================================================================
  *    지정된 색상으로 삼각형을 그립니다....
  *=============*/
-void hyunwoo::Renderer::DrawTriangle(const LinearColor& color, const Vector2& screenPos1, const Vector2& screenPos2, const Vector2& screenPos3)
+void hyunwoo::Renderer::DrawTriangle(const Color& color, const Vector2& screenPos1, const Vector2& screenPos2, const Vector2& screenPos3)
 {
     /*****************************************************
      *    와이어 프레임 모드일 경우, 선만 그리고 종료한다...
@@ -574,7 +575,11 @@ void hyunwoo::Renderer::DrawTriangleWithTexture(const Texture2D& texture, const 
              *   삼각형 범위 안에 있다면 점을 찍는다..
              *-----*/
             if ((s >= 0.f && s <= 1.f) && (t >= 0.f && t <= 1.f) && (r >= 0.f && r <= 1.f)) {
-                SetPixel(texture.GetPixel((uvPos1 * s) + (uvPos2 * t) + (uvPos3 * r)), p);
+                Vector2 uvPos = (uvPos1 * s) + (uvPos2 * t) + (uvPos3 * r);
+                uvPos.x *= (texture.Width -1);
+                uvPos.y *= (texture.Height-1);
+
+                SetPixel(texture.GetPixel(uvPos), p);
             }
         }
     }

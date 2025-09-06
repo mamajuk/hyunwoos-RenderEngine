@@ -2,6 +2,7 @@
 #include "EngineModule/RenderEngine.h"
 #include "UtilityModule/StringLamda.h"
 #include "MathModule/Vector.h"
+#include "MathModule/Quaternion.h"
 #include "MathModule/Matrix.h"
 #include "ImportModule/PngImporter.h"
 #include "UtilityModule/Zlib.h"
@@ -30,12 +31,14 @@ protected:
 	virtual void OnStart() override final{
 
 		Renderer& renderer        = GetRenderer();
-		renderer.UseAutoClear     = true;
+		renderer.UseAutoClear     = true;	
 		renderer.WireFrameColor   = Color::White;
 		renderer.ClearColor       = Color::Black;
 		SetTargetFrameRate(60);
 
-		PngImporter::Import(tex, L"test1.png");
+		if (PngImporter::Import(tex, L"test1.png").Success==false) {
+			throw "texture load is failed!!";
+		}
 	}
 
 
@@ -51,7 +54,7 @@ protected:
 			renderer.UseWireFrameMode = !renderer.UseWireFrameMode;
 		}
 
-		DrawRectangle(tex, 100.f, 1.f, 100.f, deltaTime);
+		DrawRectangle2(tex, 100.f, 1.f, 100.f, deltaTime);
 		DrawFps(deltaTime);
 	}
 
@@ -66,12 +69,12 @@ private:
 	{
 		const InputManager& input         = GetInputManager();
 		Renderer&			renderer      = GetRenderer();
-		const float         moveSpeedSec  = (moveSpeed * deltaTime);
-		const float         rotSpeedSec   = (rotSpeed * deltaTime);
+		const float         moveSpeedSec  = (moveSpeed  * deltaTime);
+		const float         rotSpeedSec   = (rotSpeed   * deltaTime);
 		const float         scaleSpeedSec = (scaleSpeed * deltaTime);
 
 		static Vector2 worldPos = (Vector2::One * 100.f);
-		static Vector2 size		= (Vector2::One * 5.f);
+		static Vector2 size		= (Vector2::One * 2.f);
 		static float   degree   = 0.f;
 
 
@@ -290,6 +293,131 @@ private:
 			}
 		}
 
+	}
+	void DrawRodrigues(const Vector3& rotAxis, const Vector3& rotVec, float rotSpeed, float deltaTime)
+	{
+		const InputManager& input	    = GetInputManager();
+		Renderer&			renderer    = GetRenderer();
+		const float			rotSpeedSec = (rotSpeed * deltaTime);
+
+		static float angle = 0.f;
+
+		/*********************************************************
+		 *  각도를 조작한다....
+		 ********/
+		angle += input.GetAxis(KeyCode::Left, KeyCode::Right) * rotSpeedSec;
+
+
+		/**********************************************************
+		 *   로드리게스 회전을 적용한다. 왼손 좌표계이기 때문에 외적의
+		 *   순서는 x기저 -> z기저 순으로 해야한다....
+		 *********/
+		float rad = (Math::Angle2Rad * angle);
+		float c   = Math::Cos(rad);
+		float s   = Math::Sin(rad);
+
+		Vector3 axis   = rotAxis.GetNormalized();
+		Vector3 proj   = (axis * Vector3::Dot(axis, rotVec));
+		Vector3 xBasis = (rotVec - proj).GetNormalized();
+		Vector3 zBasis = Vector3::Cross(xBasis, axis).GetNormalized();
+		Vector3 final  = Vector3::Rodrigues(angle, axis, rotVec);
+
+		renderer.DrawLine(Color::White, renderer.WorldToScreen(Vector2::Zero), renderer.WorldToScreen(rotVec * 100.f));
+		renderer.DrawLine(Color::Red, renderer.WorldToScreen(Vector2::Zero), renderer.WorldToScreen(axis * 100.f));
+		renderer.DrawLine(Color::Pink, renderer.WorldToScreen(Vector2::Zero), renderer.WorldToScreen(final * 100.f));
+		renderer.DrawTextField(w$(L"<-, ->: angle - ~ + \nangle: ", angle, L"\nrotVec: ", rotVec, L"\nrotAxis: ", rotAxis), renderer.WorldToScreen(Vector2::Down * 50.f));
+	}
+	void DrawRectangle2(const Texture2D& tex, float moveSpeed, float scaleSpeed, float rotSpeed, float deltaTime)
+	{
+		const InputManager& input = GetInputManager();
+		Renderer& renderer = GetRenderer();
+		const float         moveSpeedSec = (moveSpeed * deltaTime);
+		const float         rotSpeedSec = (rotSpeed * deltaTime);
+		const float         scaleSpeedSec = (scaleSpeed * deltaTime);
+
+		static Vector2    worldPos = (Vector2::One * 100.f);
+		static Vector2    size     = (Vector2::One * 2.f);
+		static Quaternion quat     = Quaternion::Identity;
+
+
+		/************************************************************
+		 *   사각형의 회전과 이동, 크기를 조작한다...
+		 ********/
+		worldPos += Vector2(
+			input.GetAxis(KeyCode::Left, KeyCode::Right) * moveSpeedSec,
+			input.GetAxis(KeyCode::Down, KeyCode::Up) * moveSpeedSec
+		);
+
+		size += Vector2(
+			input.GetAxis(KeyCode::J, KeyCode::L) * scaleSpeedSec,
+			input.GetAxis(KeyCode::K, KeyCode::I) * scaleSpeedSec
+		);
+
+		quat *= Quaternion::AngleAxis(
+			input.GetAxis(KeyCode::A, KeyCode::D) * rotSpeedSec,
+			Vector3::Up
+		);
+
+		quat *= Quaternion::AngleAxis(
+			input.GetAxis(KeyCode::S, KeyCode::W) * rotSpeedSec,
+			Vector3::Right
+		);
+
+
+
+		/***********************************************************
+		 *    사각형의 회전과 위치를 구성하는 행렬을 만든다....
+		 ********/
+		const Matrix4x4 T = Matrix4x4(
+			Vector4::BasisX,
+			Vector4::BasisY,
+			Vector4::BasisZ,
+			Vector4(worldPos.x, worldPos.y, 0.f, 1.f)
+		);
+
+		const Matrix4x4 R = quat;
+
+		const Matrix4x4 S = Matrix4x4(
+			(Vector4::BasisX * size.x),
+			(Vector4::BasisY * size.y),
+			Vector4::BasisZ,
+			Vector4::BasisW
+		);
+
+
+		const Matrix4x4 finalMat = (T * R * S);
+
+
+
+		/***************************************************
+		 *    주어진 위치에 회전된 사각형을 그립니다..
+		 ********/
+		const float wHalf = 50.f;
+		const float hHalf = 50.f;
+
+		const Vector4 objPos1 = Vector4(-wHalf, hHalf, 0.f, 1.f);
+		const Vector4 objPos2 = Vector4(wHalf, hHalf, 0.f, 1.f);
+		const Vector4 objPos3 = Vector4(-wHalf, -hHalf, 0.f, 1.f);
+		const Vector4 objPos4 = Vector4(wHalf, -hHalf, 0.f, 1.f);
+
+		const Vector2 p1 = renderer.WorldToScreen((finalMat * objPos1));
+		const Vector2 p2 = renderer.WorldToScreen((finalMat * objPos2));
+		const Vector3 p3 = renderer.WorldToScreen((finalMat * objPos3));
+		const Vector3 p4 = renderer.WorldToScreen((finalMat * objPos4));
+
+		const Vector2 uv1 = Vector2(0.f, 0.f);
+		const Vector2 uv2 = Vector2(1.f, 0.f);
+		const Vector2 uv3 = Vector2(0.f, 1.f);
+		const Vector2 uv4 = Vector2(1.f, 1.f);
+
+		renderer.DrawTriangleWithTexture(tex, p1, uv1, p2, uv2, p3, uv3);
+		renderer.DrawTriangleWithTexture(tex, p2, uv2, p3, uv3, p4, uv4);
+
+		renderer.DrawTextField(w$(L"p1: ", p1, L"\nuv: ", uv1), p1 + Vector2::Left * 200.f);
+		renderer.DrawTextField(w$(L"p2: ", p2, L"\nuv: ", uv2), p2);
+		renderer.DrawTextField(w$(L"p3: ", p3, L"\nuv: ", uv3), p3 + Vector2::Left * 200.f);
+		renderer.DrawTextField(w$(L"p4: ", p4, L"\nuv: ", uv4), p4);
+		renderer.DrawTextField(w$(L"T\n", T, L"\n\nR\n", R, L"\n\nS\n", S, L"\n\nfinalMat\n", finalMat), Vector2Int(0, 300));
 	}
 };
 

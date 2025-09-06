@@ -3,11 +3,15 @@
 #include <emmintrin.h>
 #include "../UtilityModule/StringLamda.h"
 
-/*=====================================================================
+/*=============================================================================================================
  *    좌표계 변환 메소드...
  *============*/
 hyunwoo::Vector2 hyunwoo::Renderer::WorldToScreen(const hyunwoo::Vector2& cartesianPos)
 {
+    /****************************************************************
+     *   화면 정중앙이 원점인 카타시안 좌표계 기반의 '월드' 좌표를,
+     *   화면 맨 좌측 상단이 원점인 스크린 좌표계로 변환합니다....
+     *******/
     return Vector2(
         (cartesianPos.x  + m_widthf_half), 
         (-cartesianPos.y + m_heightf_half)
@@ -16,6 +20,10 @@ hyunwoo::Vector2 hyunwoo::Renderer::WorldToScreen(const hyunwoo::Vector2& cartes
 
 hyunwoo::Vector2 hyunwoo::Renderer::ScreenToWorld(const Vector2& screenPos)
 {
+    /****************************************************************
+     *   화면 맨 좌측 상단이 원점인 스크린 좌표계를, 화면 정중앙이
+     *   원점인 카타시안 좌표계 기반의 '월드' 좌표로 변환합니다....
+     *******/
     return Vector2(
         (screenPos.x - m_widthf_half),
         (screenPos.y - m_heightf_half)
@@ -30,7 +38,7 @@ hyunwoo::Vector2 hyunwoo::Renderer::ScreenToWorld(const Vector2& screenPos)
 
 
 
-/*=====================================================================
+/*================================================================================================================
  *   랜더러를 초기화하는 메소드.
  *===========*/
 hyunwoo::Renderer::InitResult hyunwoo::Renderer::Init(HWND renderTargetHwnd, UINT initWidth, UINT initHeight)
@@ -115,7 +123,7 @@ hyunwoo::Renderer::InitResult hyunwoo::Renderer::Init(HWND renderTargetHwnd, UIN
 
 
 
-/*============================================================================
+/*=================================================================================================================
  *   가공한 비트맵을 화면 DC에 최종 제출합니다....
  *=============*/
 void hyunwoo::Renderer::Present()
@@ -149,7 +157,7 @@ void hyunwoo::Renderer::Present()
 
 
 
-/*============================================================================
+/*===================================================================================================================
  *   화면을 특정 색깔로 초기화합니다...
  *==========*/
 void hyunwoo::Renderer::ClearScreen()
@@ -201,7 +209,7 @@ void hyunwoo::Renderer::ClearScreen()
 
 
 
-/*=============================================================================
+/*===================================================================================================================
  *   백버퍼에서 주어진 두 점 사이의 선을 그립니다....
  *==================*/
 void hyunwoo::Renderer::DrawLine(const Color& color, const Vector2& startScreenPos, const Vector2& endScreenPos, bool useClipping)
@@ -388,13 +396,15 @@ void hyunwoo::Renderer::DrawLine(const Color& color, const Vector2& startScreenP
 
 
 
-/*=============================================================================
+/*=====================================================================================================================
  *   백버퍼의 특정 위치의 픽셀을, 지정한 색깔로 바꿉니다.
  *================*/
 void hyunwoo::Renderer::SetPixel(const Color& color, const Vector2Int& screenPos)
 {
-    /*********************************************************
-     *   초기화가 안되어있거나, 인덱스를 벗어나면 함수를 종료한다...
+    /***************************************************************
+     *   초기화가 안되어있거나, 인덱스를 벗어나면 함수를 종료한다.
+     *   백버퍼의 인덱스에서 y축이 뒤집어져 있기 때문에, 스크린좌표에서
+     *   y축만 뒤집어서 계산한다....
      *****/
     const int idx = ((m_height - screenPos.y) * m_width + screenPos.x);
     if (m_isInit == false || idx<0 || idx>=m_totalPixelNum) {
@@ -410,7 +420,10 @@ void hyunwoo::Renderer::SetPixel(const Color& color, const Vector2Int& screenPos
 
 
 
-/*===========================================================================
+
+
+
+/*=====================================================================================================================
  *    백버퍼의 지정한 위치에 문자열을 출력합니다.... 
  *=============*/
 void hyunwoo::Renderer::DrawTextField(const std::wstring& out, const hyunwoo::Vector2Int& screenPos)
@@ -436,7 +449,7 @@ void hyunwoo::Renderer::DrawTextField(const std::wstring& out, const hyunwoo::Ve
 
 
 
-/*==============================================================================
+/*===================================================================================================================
  *    지정된 색상으로 삼각형을 그립니다....
  *=============*/
 void hyunwoo::Renderer::DrawTriangle(const Color& color, const Vector2& screenPos1, const Vector2& screenPos2, const Vector2& screenPos3)
@@ -474,8 +487,17 @@ void hyunwoo::Renderer::DrawTriangle(const Color& color, const Vector2& screenPo
 
 
 
-    /*********************************************************
-     *   세 점의 크기를 구한 후, 해당 범위에 있는 점들을 순회한다..
+    /******************************************************************
+     *   두 점에 곱해지는 양의 스칼라값의 합이 1이 되도록 제한하면,
+     *   두 점 사이의 직선 사이의 점들만 만들어진다. 그럼 세 점에 곱해지는
+     *   양의 스칼라값의 합이 1이 되도록 제한하면, 세 점들에서 그려질 수 있는
+     *   직선 사이의 점들만 그려지되, 스칼라의 가중치에 따라 특정 직선에
+     *   치우져진 점이 만들어진다. 화면 해상도에 알맞는 픽셀들만 골라내어
+     *   삼각형을 찍기 위해서, 세 점들이 모두 포함되는 범위를 구한 후, 해당
+     *   범위에 있는 픽셀드을 순회한다. 그리고 한 점에서 다른 두 점을 향하는
+     *   벡터의 내적을 통한 연립으로 세 점에 가해지는 스칼라값(무게중심좌표)
+     *   를 구한다. 현재 처리할 점의 세 스칼라값의 범위가 0~1 사이면 삼각형
+     *   범위 안에 있는 점이니, 점을 찍으면 된다..
      ********/
     const int   xMin = Math::Min(screenPos1.x, screenPos2.x, screenPos3.x);
     const int   xMax = Math::Max(screenPos1.x, screenPos2.x, screenPos3.x);
@@ -513,7 +535,7 @@ void hyunwoo::Renderer::DrawTriangle(const Color& color, const Vector2& screenPo
 
 
 
-/*==============================================================================
+/*======================================================================================================================
  *    지정된 텍스쳐로 삼각형을 그립니다....
  *=============*/
 void hyunwoo::Renderer::DrawTriangleWithTexture(const Texture2D& texture, const Vector2& screenPos1, const Vector2& uvPos1, const Vector2& screenPos2, const Vector2& uvPos2, const Vector2& screenPos3, const Vector2& uvPos3)
@@ -551,8 +573,17 @@ void hyunwoo::Renderer::DrawTriangleWithTexture(const Texture2D& texture, const 
 
 
 
-    /*********************************************************
-     *   세 점의 크기를 구한 후, 해당 범위에 있는 점들을 순회한다..
+    /******************************************************************
+     *   두 점에 곱해지는 양의 스칼라값의 합이 1이 되도록 제한하면,
+     *   두 점 사이의 직선 사이의 점들만 만들어진다. 그럼 세 점에 곱해지는
+     *   양의 스칼라값의 합이 1이 되도록 제한하면, 세 점들에서 그려질 수 있는
+     *   직선 사이의 점들만 그려지되, 스칼라의 가중치에 따라 특정 직선에 
+     *   치우져진 점이 만들어진다. 화면 해상도에 알맞는 픽셀들만 골라내어
+     *   삼각형을 찍기 위해서, 세 점들이 모두 포함되는 범위를 구한 후, 해당
+     *   범위에 있는 픽셀드을 순회한다. 그리고 한 점에서 다른 두 점을 향하는
+     *   벡터의 내적을 통한 연립으로 세 점에 가해지는 스칼라값(무게중심좌표)
+     *   를 구한다. 현재 처리할 점의 세 스칼라값의 범위가 0~1 사이면 삼각형
+     *   범위 안에 있는 점이니, 점을 찍으면 된다..
      ********/
     const int   xMin = Math::Min(screenPos1.x, screenPos2.x, screenPos3.x);
     const int   xMax = Math::Max(screenPos1.x, screenPos2.x, screenPos3.x);

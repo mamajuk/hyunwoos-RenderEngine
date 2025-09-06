@@ -11,6 +11,10 @@ hyunwoo::RenderEngine* hyunwoo::RenderEngine::m_runningEnginePtr = nullptr;
 
 
 
+
+
+
+
 /*===========================================================================================
  *   엔진을 초기화하고, 프로그램을 진행하는 블록 함수입니다...
  *========*/
@@ -60,6 +64,7 @@ hyunwoo::RenderEngine::EndReason hyunwoo::RenderEngine::Run(const std::wstring& 
 	 *    윈도우 창을 생성하고, 생성한 창에 대한 핸들을 얻는데 실패했는가?
 	 *    맞다면 이유를 갱신하고 함수를 종료한다...
 	 ********/  
+
 	if ((m_mainHwnd = CreateWindowW(
 		appName.c_str(), 
 		appName.c_str(), 
@@ -164,6 +169,11 @@ hyunwoo::RenderEngine::EndReason hyunwoo::RenderEngine::Run(const std::wstring& 
 
 
 
+
+
+
+
+
 /*===============================================================================
  *   윈도우로부터 전달받은 메세지를 처리하는 메소드입니다...
  *========*/
@@ -229,12 +239,21 @@ LRESULT hyunwoo::RenderEngine::WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARA
 
 
 
+
+
+
+
 /*====================================================================
  *   랜더 엔진이 실행 중인지를 확인합니다...
  *==========*/
 bool hyunwoo::RenderEngine::EngineIsRunning() const {
 	return (m_runningEnginePtr != nullptr);
 }
+
+
+
+
+
 
 
 
@@ -256,6 +275,11 @@ void hyunwoo::RenderEngine::SetTargetFrameRate(int newTargetFrameRate) {
 	m_targetFrameRate = (newTargetFrameRate < 0 ? 0 : newTargetFrameRate);
 	m_frameEntryTime  = (1.f / newTargetFrameRate);
 }
+
+
+
+
+
 
 
 

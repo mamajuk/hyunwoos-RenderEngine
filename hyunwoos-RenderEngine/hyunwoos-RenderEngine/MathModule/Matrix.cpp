@@ -130,10 +130,10 @@ hyunwoo::Matrix4x4& hyunwoo::Matrix4x4::Transpose()
 hyunwoo::Matrix4x4 hyunwoo::Matrix4x4::GetTranspose() const
 {
     return Matrix4x4{
-        Vector3(BasisX.x, BasisY.x, BasisZ.x),
-        Vector3(BasisX.y, BasisY.y, BasisZ.y),
-        Vector3(BasisX.z, BasisY.z, BasisZ.z),
-        Vector3(BasisX.w, BasisY.w, BasisZ.w)
+        Vector4(BasisX.x, BasisY.x, BasisZ.x, BasisW.x),
+        Vector4(BasisX.y, BasisY.y, BasisZ.y, BasisW.y),
+        Vector4(BasisX.z, BasisY.z, BasisZ.z, BasisW.z),
+        Vector4(BasisX.w, BasisY.w, BasisZ.w, BasisW.w)
     };
 }
 

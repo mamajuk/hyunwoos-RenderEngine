@@ -318,11 +318,14 @@ struct hyunwoo::Vector3
 		return ((lhs.x * rhs.x) + (lhs.y * rhs.y) + (lhs.z * rhs.z));
 	}
 
-	constexpr static const Vector3 Cross(const Vector3& lhs, const Vector3& rhs) {
+	constexpr static const Vector3 Cross(const Vector3& lhs, const Vector3& rhs) 
+	{
 		return { (lhs.y * rhs.z) - (lhs.z * rhs.y),
 				 (lhs.z * rhs.x) - (lhs.x * rhs.z),
 				 (lhs.x * rhs.y) - (lhs.y * rhs.x) };
 	}
+
+	static const Vector3 Rodrigues(const float rotAngle, const Vector3& rotAxis, const Vector3& rotVector);
 
 	constexpr const float GetSqrMagnitude() const {
 		return Dot(*this, *this);
@@ -330,7 +333,8 @@ struct hyunwoo::Vector3
 
 	const float GetMagnitude() const;
 
-	const Vector3 GetNormalized() const {
+	const Vector3 GetNormalized() const 
+	{
 		const float size = GetMagnitude();
 		if (size == 0.0f) return Vector3::Zero;
 
@@ -338,7 +342,8 @@ struct hyunwoo::Vector3
 		return Vector3((x * invSize), (y * invSize), (z*invSize));
 	}
 
-	void Normalized() {
+	void Normalized() 
+	{
 		const float size = GetMagnitude();
 		if (size == 0.0f) return;
 
@@ -348,7 +353,8 @@ struct hyunwoo::Vector3
 		z *= invSize;
 	}
 
-	void AddString(std::string& sharedStr) const {
+	void AddString(std::string& sharedStr) const 
+	{
 		sharedStr += "(";
 		sharedStr += std::to_string(x);
 		sharedStr += ", ";
@@ -358,7 +364,8 @@ struct hyunwoo::Vector3
 		sharedStr += ")";
 	}
 
-	void AddWString(std::wstring& sharedStr) const {
+	void AddWString(std::wstring& sharedStr) const 
+	{
 		sharedStr += L"(";
 		sharedStr += std::to_wstring(x);
 		sharedStr += L", ";

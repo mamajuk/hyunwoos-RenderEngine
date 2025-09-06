@@ -135,6 +135,7 @@
     <ClCompile Include="MathModule\Color.cpp" />
     <ClCompile Include="MathModule\Math.cpp" />
     <ClCompile Include="MathModule\Matrix.cpp" />
+    <ClCompile Include="MathModule\Quaternion.cpp" />
     <ClCompile Include="MathModule\Vector.cpp" />
     <ClCompile Include="RenderModule\Renderer.cpp" />
     <ClCompile Include="RenderModule\RenderResources.cpp" />

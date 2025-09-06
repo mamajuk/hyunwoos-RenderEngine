@@ -54,6 +54,9 @@
     <ClCompile Include="RenderModule\RenderResources.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="MathModule\Quaternion.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="EngineModule\RenderEngine.h">

@@ -122,7 +122,7 @@ protected:
 	/////////		    Public methods..		//////////
 	//====================================================
 public:
-	EndReason Run(const std::wstring& appName, HINSTANCE hInstance, LPWSTR commandLine, int bShowCmd );
+	EndReason Run(const std::wstring& appName, HINSTANCE hInstance, LPWSTR commandLine, int bShowCmd);
 
 
 

@@ -131,6 +131,18 @@ hyunwoo::Vector3::operator hyunwoo::Vector4Int() const
 	return Vector4Int(std::lround(x), std::lround(y), std::lround(z));
 }
 
+const hyunwoo::Vector3 hyunwoo::Vector3::Rodrigues(const float rotAngle, const hyunwoo::Vector3& rotAxis, const hyunwoo::Vector3& rotVector)
+{
+	const float rad = (Math::Angle2Rad * rotAngle);
+	const float c   = Math::Cos(rad);
+	const float s   = Math::Sin(rad);
+
+	const Vector3 proj   = rotAxis * Dot(rotAxis, rotVector);
+	const Vector3 xBasis = (rotVector - proj);
+	const Vector3 zBasis = Vector3::Cross(xBasis, rotAxis);
+
+	return (proj + (xBasis * c) + (zBasis * s));
+}
 
 /**정수버전....**/
 const Vector3Int Vector3Int::Zero	 = { 0, 0, 0  };

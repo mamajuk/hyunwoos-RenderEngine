@@ -41,21 +41,18 @@ public:
 	 *    어떤 압축 알고리즘을 사용했는지를 
 	 *    나타내는 1bytes 유니온입니다...
 	 ********/
-	union CompressionMethod {
-
-		enum class CMType : uint8_t 
-		{
+	union CompressionMethod 
+	{
+		enum class CMType : uint8_t {
 			Deflate  = 8, //Deflate 알고리즘이 사용됨을 의미.
 			Reserved = 15 //예약됨..
 		};
 
-		enum class CINFOType : uint8_t
-		{
+		enum class CINFOType : uint8_t{
 			SlidingWindow_Size32KB = 7 //사용할 슬라이딩 윈도우의 크기가 32kb임을 나타내는 값.
 		};
 
-		struct 
-		{
+		struct {
 			CMType    cm    : 4; //일반적으로 8==deflate다. 다른값은 에러가 발생해야 한다..
 			CINFOType cinfo : 4; //사용한 슬라이딩 윈도우의 크기를 나타냄. cm이 8이면 7( 32k )
 		};

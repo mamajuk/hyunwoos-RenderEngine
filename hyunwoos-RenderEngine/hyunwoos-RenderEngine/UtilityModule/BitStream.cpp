@@ -41,9 +41,9 @@ uint32_t hyunwoo::BitStream::ReadBits(uint32_t readBitCount)
 		uint32_t need_bytes    = (ByteLeft>=4? 4:ByteLeft);
 		uint32_t nxt_read_bits;
 
-		/*------------------------------------
-		 *   필요한만큼의 바이트를 읽어들인다.
-		 *   단, 최대 4bytes로 제한한다.
+		/*-----------------------------------------
+		 *   필요한만큼의 바이트를 바이트 스트림으로부터 
+		     읽어들인다. 단, 최대 4bytes로 제한한다.
 		 *-----*/
 		for (uint32_t i = 0; i < need_bytes; i++) {
 			uint32_t Symbol = (*ByteStreamPtr++);

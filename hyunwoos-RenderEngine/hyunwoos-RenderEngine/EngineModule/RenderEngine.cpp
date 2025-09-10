@@ -262,12 +262,13 @@ bool hyunwoo::RenderEngine::EngineIsRunning() const {
 /*======================================================================
  *    랜더 엔진의 타깃 프레임을 설정 및 확인합니다....
  *===========*/
-int hyunwoo::RenderEngine::GetTargetFrameRate() const {
+int hyunwoo::RenderEngine::GetTargetFrameRate() const 
+{
 	return m_targetFrameRate;
 }
 
-void hyunwoo::RenderEngine::SetTargetFrameRate(int newTargetFrameRate) {
-
+void hyunwoo::RenderEngine::SetTargetFrameRate(int newTargetFrameRate) 
+{
 	/****************************************
 	 *   타깃 프레임을 갱신하고, 
 	     적절한 프레임 진입 시간값을 캐싱합니다..

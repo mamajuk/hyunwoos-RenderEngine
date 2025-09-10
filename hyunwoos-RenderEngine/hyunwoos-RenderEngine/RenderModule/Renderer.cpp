@@ -165,8 +165,8 @@ void hyunwoo::Renderer::ClearScreen()
     if (m_isInit == false) return;
 
     DWORD* endPtr       = m_backBufferBitmapPtr + m_totalPixelNum;
-    DWORD* alignedBegin = reinterpret_cast<DWORD*>(reinterpret_cast<uintptr_t>(m_backBufferBitmapPtr) + 15 & -16);
-    DWORD* alignedEnd   = reinterpret_cast<DWORD*>(reinterpret_cast<uintptr_t>(endPtr) & -16);
+    DWORD* alignedBegin = reinterpret_cast<DWORD*>(reinterpret_cast<uintptr_t>(m_backBufferBitmapPtr) + 15 & -16); //메모리 영역에서 16으로 정렬이 시작되는 주소값..
+    DWORD* alignedEnd   = reinterpret_cast<DWORD*>(reinterpret_cast<uintptr_t>(endPtr) & -16);  //메모리 영역에서 16으로 정렬된 구간이 끝나는 주소값...
 
     const DWORD clearColor = ClearColor.ARGB;
 

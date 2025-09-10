@@ -1,6 +1,6 @@
 #include "Zlib.h"
 
-/*=====================================================================================
+/*==================================================================================================
  *   주어진 코드 길이 테이블을 이용하여, 동적 허프만 트리를 구축한다....
  *==========*/
 void hyunwoo::Zlib::HuffmanTree::Build_Dynamic(const uint32_t* code_length_table_ptr, uint32_t code_length_table_len)
@@ -259,7 +259,7 @@ void hyunwoo::Zlib::HuffmanTree::InsertNode(uint32_t symbol, uint32_t code, uint
 hyunwoo::Zlib::InflateResult hyunwoo::Zlib::Inflate(std::vector<uint8_t>& inZlibDeflateStream, std::vector<uint8_t>& outInflateStream)
 {
     Zlib::Data          data;
-    Zlib::InflateResult ret       = { 0, };
+    Zlib::InflateResult ret   = { 0, };
 
 
     /**************************************************************************************************
@@ -710,7 +710,7 @@ hyunwoo::Zlib::InflateResult hyunwoo::Zlib::Inflate(std::vector<uint8_t>& inZlib
  *=======*/
 void hyunwoo::Zlib::Inflate_LZ77(BitStream& bitStream, std::vector<uint8_t>& outInflateStream, const Zlib::HuffmanTree& literal_length_code_tree, const Zlib::HuffmanTree& distance_code_tree)
 {
-    /*******************************************************
+    /****************************************************************
      *   중지 코드가 등장할 때까지, 디코딩을 진행한다...
      *******/
     while (true) 

@@ -50,7 +50,7 @@ hyunwoo::PngImporter::ImportResult hyunwoo::PngImporter::Import(Texture2D& outTe
 	 *   순서를 재배치해야 한다.
 	 *********/
 	Chunk				 chunk;
-	RGB					 plteData[256];
+	IndexedRGB					 plteData[256];
 	IHDR_Data			 ihdrData;
 	std::vector<uint8_t> deflate_img_stream;
 

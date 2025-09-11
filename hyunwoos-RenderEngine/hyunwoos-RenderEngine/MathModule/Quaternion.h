@@ -36,9 +36,8 @@ public:
 	~Quaternion()				  = default;
 
 
-	const float		  Magnitude() const;
 	const Quaternion& Conjugate();
-
+	const float		  GetMagnitude() const;
 	const Quaternion  GetConjugate() const;
 	Matrix4x4		  GetRotateMatrix() const;
 
@@ -48,7 +47,7 @@ public:
 
 
 	static Quaternion AngleAxis(const float angle, const Vector3& rotAxis);
-	static Quaternion Euler(const float xAngle, const float yAngle, const float zAngle);
+	static Quaternion Euler(const float yAngle, const float xAngle, const float zAngle);
 	static Quaternion FromTo(const Vector3& from ,const Vector3& to, const float angleScale = 1.f);
 
 

@@ -251,6 +251,58 @@
 			   ∴R(v) = e^nθ/2 · v · e^n-θ/2 = q`vq`*
 			   때문에 회전 사원수에 회전량을 설정할 때, 절반으로 만들어서 줘야 이후 최종 회전 사원수 q를 통해 특정 벡터 v에 로드리게스 회전을 적용할 때 각도를 절반으로 할
 			  필요가 없어지게 된다.
+
+		    (6): 특정 벡터를 로드리게스 회전시키는 R(v) = qvq*의 회전 결과는 오른손 좌표계를 따른다. X축을 나타내는 벡터 v와 Y축으로 90º회전시키는 회전사원수 q가 있다고
+				 해보자. 그렇다면 정리하지 않은 로드기네스 회전식에서는 R(v) = ( 0, v|| ) + ( 0, s(nxv) + cv )와 같이 된다. 잘보면 회전축 n과 직교하는 회전평면의 Y축을 구하기
+				 위해서 회전축과 벡터 v간의 외적(nxv)이 진행되는데, 이는 YxX = -Z라고 볼 수 있다. 이를 카타시안 좌표계에서의 2차원 평면으로 본다면 Z가 y축이고 X축은 그대로
+				 X축으로 볼 수 있다. 따라서 두 기저에 c과 s을 곱하고 선형결합하면 결과 벡터는 반시계로 회전하게 된다. 이를 Z축의 +방향이 앞쪽인 왼손좌표계의 관점에서 해석하면
+				 회전축과 직교하는 회전평면의 Y축이 뒤쪽으로 보이며, 회전평면의 두 기저에 각각 c과 s을 곱하고 선형결합을 했을 때의 결과 벡터는 시계방향 회전을 하는 것처럼 보이게
+				 된다. 반면 Z축의 +방향이 뒤쪽인 오른손좌표계의 관점에서 해석하면 회전축과 직교하는 회전평면의 Y축이 앞쪽으로 보이며, 회전평면의 두 기저에 각각 c과 s를 곱해주고
+			     선형결합을 했을 때의 결과벡터는 반시계 방향 회전을 하는 것처럼 보일 뿐이다.
+
+			(7): 근데 생각해보면 어차피 실수부는 0이 나오기 때문에 결과가 순허수 사원수인 것이다. 따라서 실수부까지 굳이 계산하는 것은 낭비다. 계산량을 줄이기 위해서
+				 기존 최종 계산식에서 실수부를 제거해보자. 최종 로드기네스 회전 수식을 실수부를 w로, 허수부를 r로 봤을 때 곱셈을 전개해보자.
+				 ∴q    = ( cosθ/2, sinθ/2n ) = ( w, r )
+				 ∴R(v) = qvq*
+						 = ( w, r )( 0,v )( w, -r )
+					 = ( w, r )( (v·r), -(v x r) + wv )
+						 = ( w(v·r) - (r·(-(v x r) + wv)), (rx(-(v x r) + wv)) + w(-(v x r) + wv ) + (v·r)r )
+				전개된 위 식에서 실수부만 전개시켜보자. 일단 내적항 (r(-(vxr) + wv)은 스칼라이기 때문에 -r의 내적을 각 분배할 수 있다:
+					 = ( -w(v·r) + ( -r·(vxr) + r·wv ) )
+				그런데 (vxr)은 당연하게도 r과 직교하는 벡터다. 따라서 직교하면 0이되는 내적의 성질상 이 항은 0이 되서 소거된다:
+					= ( -w(v·r) + r·wv )
+				그리고 내적은 스칼라다. 따라서 벡터 v에 곱해진 스칼라 w는 밖으로 꺼낼 수 가 있다. 따라서 실수부는 제거된다:
+					= ( -w(v·r) + w(r·v) ) = 0
+			   이제 남은 허수부 (rx(-(v x r) + wv)) + w(-(v x r) + wv ) + (v·r)r를 정리해보자. 외적은 벡터간의 덧셈에서 분배가 가능하다:
+				   = -(rx(v x r)) + (rxwv) + w(-(v x r) + wv ) + (v·r)r
+			   그리고 여기서 W도 분배해준다. 그리고 외적 성질로 인해서 결과가 같은 부분을 더한다:
+					   = -(r x (v x r)) + 2w(r x v) + w²v ) + (v·r)r
+			   위 식에서 w²을 어떻게해야 제거해야할까? q의 크기 qq*는 q의 실수부의 제곱 + 벡터부의 내적과 같다.
+			   ∴q    = ( w, r )
+			   ∵qq* = w² + r·r = 1
+			   여기서 벡터부의 내적부분을 식의 결과 1로 넘기면 다음과 같이 전개가 가능하다:
+			   ∴w²  = 1-r·r
+			   = -(r x (v x r)) + 2w(r x v) + (1-r·r)v ) + (v·r)r
+			   = -(r x (v x r)) + 2w(r x v) + v-(r·r)v + (v·r)r
+
+				여기서부터는 삼중곱을 알아야 정리가 가능하다. 삼중곱은 세번의 외적 AxBxC를 정리한 결과는 항상 BxC로 만들어진
+				평면안에 속하는 벡터가 됨을 의미한다. 삼중곱 B(A·C)-C(A·B)은 AxBxC와 결과가 동일하다. 이를 이용해서 기존 식을 치환해보자:
+				 ∴rx(vxr) = r x (v x r) = v(r·r)-r(r·v)
+				 위 삼중곱 식은, ∴-(r x (v x r)) + 2w(r x v) + v-(r·r)v + (v·r)r의 좌측항에 비스무리하게 보이기에, -1로 묶어서 다음과 같이
+				 치환이 가능하다. 치환하면 우측항에 같은 식이 있기에, 이를 합칠 수 있다:
+			   = -(r x (v x r)) + 2w(r x v) + v-(v(r·r)-r(r·v))
+			   = -(r x (v x r)) + 2w(r x v) + v-(rx(vxr))
+			   = -2( r x (v x r)) + 2w( r x v ) + v
+			   위 식에서, -2( r x (v x r)) 부분에서 공통된 부분을 줄여서 계산량을 줄일 수 있을 것이다:
+			   = -2( r x (v x r)) + 2w( r x v ) + v
+			   = -2( r x -(r x v)) + 2w( r x v ) + v
+			   여기서 -2는, 외적 항들에 들어갈 때 한 곳에서만 넣어줘야 한다. 외적 2vxr = 2(vxr)로 묶을 수 있지만, 2vx2r = 4(vxr)이 되어야 한다.
+			   앞서 말했듯이 외적에서 한 벡터에 스칼라가 있으면 그 스칼라가 외적식 전체적으로 분배되기 때문이다. 따라서 다음과 같이 전개된다:
+			   =  (r x 2(r x v)) + 2w( r x v ) + v
+			   위 식에서 2( r x v )라는 식이 반복된다. 따라서 실제 계산시 미리 계산해둔 2( r x v )를 t로 두고 재사용하면 된다. 따라서 최종 정리는 다음과
+			   같다:
+			   ∴ t = 2( r x v )
+			   =  (r x t) + wt + v
 		   */
 
 
@@ -276,7 +328,7 @@ const hyunwoo::Quaternion hyunwoo::Quaternion::Identity = { 1.f, Vector3::Zero }
  *===========*/
 hyunwoo::Quaternion hyunwoo::Quaternion::AngleAxis(const float angle, const Vector3& rotAxis)
 {
-	const float rad = (Math::Angle2Rad * angle * .5f);
+	const float rad = (Math::Angle2Rad * -angle * .5f);
 
 	return Quaternion(
 		Math::Cos(rad),
@@ -295,7 +347,7 @@ hyunwoo::Quaternion hyunwoo::Quaternion::AngleAxis(const float angle, const Vect
 /*============================================================================================================
  *   주어진 세 각도로 오일러 회전( Yaw->Pitch->Roll )이 적용된 사원수를 얻습니다....
  *===========*/
-hyunwoo::Quaternion hyunwoo::Quaternion::Euler(const float xAngle, const float yAngle, const float zAngle)
+hyunwoo::Quaternion hyunwoo::Quaternion::Euler(const float yAngle, const float xAngle, const float zAngle)
 {
 	return AngleAxis(zAngle, Vector3::Back) * AngleAxis(xAngle, Vector3::Right) * AngleAxis(yAngle, Vector3::Up);
 }
@@ -311,6 +363,7 @@ hyunwoo::Quaternion hyunwoo::Quaternion::Euler(const float xAngle, const float y
 hyunwoo::Quaternion hyunwoo::Quaternion::FromTo(const Vector3& from, const Vector3& to, const float angleScale)
 {
 	const float   c    = Vector3::Dot(from.GetNormalized(), to.GetNormalized()) * angleScale * .5f;
+	const float   s    = Math::Sin(Math::Acos(Math::Range(c, -1.f, 1.f)));
 	const Vector3 axis = Vector3::Cross(from, to);
 
 	/*******************************************************
@@ -319,10 +372,10 @@ hyunwoo::Quaternion hyunwoo::Quaternion::FromTo(const Vector3& from, const Vecto
 	 *   항상 180º 회전이 가능한 회전축을 얻을 수 있다..
 	 ********/
 	if (axis.GetSqrMagnitude()==0.f) {
-		return Quaternion(c, Vector3::Cross(from, Vector3::Up));
+		return Quaternion(c, Vector3::Cross(from, Vector3::Up) * s);
 	}
 
-	return Quaternion(c, axis);
+	return Quaternion(c, axis * s);
 }
 
 
@@ -358,7 +411,7 @@ const hyunwoo::Quaternion hyunwoo::Quaternion::GetConjugate() const {
 /*==========================================================================================================
  *    해당 Quaternion의 크기를 얻습니다.....
  *=============*/
-const float hyunwoo::Quaternion::Magnitude() const
+const float hyunwoo::Quaternion::GetMagnitude() const
 {
 	const Quaternion mulConjugate = operator*(GetConjugate());
 
@@ -405,10 +458,14 @@ hyunwoo::Quaternion& hyunwoo::Quaternion::operator*=(const Quaternion& rhs)
  *=============*/
 const hyunwoo::Vector3 hyunwoo::Quaternion::operator *(const hyunwoo::Vector3& rhs) const
 {   
-	/**************************************************
-	 *   기존 q·v·q*은 
+	/**********************************************************
+	 *   기존 qvq*은 시계방향 회전이다. 따라서 q*vq로 진행해야
+	 *   왼손좌표게에서의 반시계 회전이 보장된다.
 	 *******/
-	return (GetConjugate() * Quaternion(0, rhs) * *this).XYZ;
+	const Vector3 t = Vector3::Cross(XYZ, rhs) * 2.f;
+
+	//return (*this * Quaternion(0, rhs) * GetConjugate()).XYZ;
+	return Vector3::Cross(XYZ, t) + (t * W) + rhs;
 }
 
 hyunwoo::Quaternion& hyunwoo::Quaternion::operator *=(const hyunwoo::Vector3& rhs)

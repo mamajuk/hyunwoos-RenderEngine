@@ -105,6 +105,11 @@ class hyunwoo::PngImporter final
 		IsLast = 0b1,
 	};
 
+
+	/***************************************
+	 *   모든 청크들의 Data 필드를 제외한
+	 *   나머지 구조가 정의된 구조체입니다...
+	 *******/
 	struct Chunk
 	{
 		uint32_t  Length;
@@ -112,6 +117,11 @@ class hyunwoo::PngImporter final
 		uint32_t  CRC32;
 	};
 
+
+	/**************************************
+	 *   IHDR 청크의 Data 부분의 구조가 
+	 *   정의된 구조체입니다...
+	 ********/
 	struct IHDR_Data
 	{
 		uint32_t	      Width;
@@ -123,7 +133,12 @@ class hyunwoo::PngImporter final
 		InterlaceMethod   InterlaceMethod;
 	};
 
-	struct RGB
+
+	/**************************************
+	 *  IndexedColor의 PLTE 테이블에서 RGB 
+	    성분을 나타내는 구조체입니다...
+	 *******/
+	struct IndexedRGB
 	{
 		int8_t r, g, b;
 	};

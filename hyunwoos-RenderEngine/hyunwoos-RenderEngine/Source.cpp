@@ -11,25 +11,25 @@ using namespace hyunwoo;
 using KeyCode = hyunwoo::InputManager::KeyCode;
 
 
-/*=======================================================================================================
+/*=========================================================================================================================
  *    사용자 정의 랜더 엔진을 정의한다...
  *==========*/
 class MyRenderEngine final : public RenderEngine
 {
-	//=======================================================
-	////////			    Fields..				 ////////
-	//=======================================================
+	//==================================================================================
+	////////							   Fields..								////////
+	//==================================================================================
 private:
 	Texture2D tex;
 
 
 
-	//==========================================================
-	////////			 Override methods..				////////
-	//==========================================================
+	//======================================================================================
+	////////						  Override methods..							////////
+	//======================================================================================
 protected:
-	virtual void OnStart() override final{
-
+	virtual void OnStart() override final
+	{
 		Renderer& renderer        = GetRenderer();
 		renderer.UseAutoClear     = true;	
 		renderer.WireFrameColor   = Color::White;
@@ -42,8 +42,8 @@ protected:
 	}
 
 
-	virtual void OnEnterFrame(float deltaTime) override final{
-
+	virtual void OnEnterFrame(float deltaTime) override final
+	{
 		Renderer&			renderer = GetRenderer();
 		const InputManager& input    = GetInputManager();
 
@@ -61,9 +61,9 @@ protected:
 
 
 
-	//=============================================================
-	////////			   Example methods..			  /////////
-	//=============================================================
+	//===================================================================================
+	////////							Example methods..						/////////
+	//===================================================================================
 private:
 	void Example1_ShowFps(float deltaTime)
 	{
@@ -337,7 +337,7 @@ private:
 
 		static Vector2    worldPos = (Vector2::One * 100.f);
 		static Vector2    size     = (Vector2::One * 2.f);
-		static Quaternion quat     = Quaternion::Identity;
+		static Vector3    euler    = Vector3::Zero;
 
 
 		/************************************************************
@@ -353,20 +353,13 @@ private:
 			input.GetAxis(KeyCode::K, KeyCode::I) * scaleSpeedSec
 		);
 
-		quat *= Quaternion::AngleAxis(
-			input.GetAxis(KeyCode::A, KeyCode::D) * rotSpeedSec,
-			Vector3::Up
+		euler += Vector3(
+			input.GetAxis(KeyCode::S, KeyCode::W)* rotSpeedSec,
+			input.GetAxis(KeyCode::A, KeyCode::D)* rotSpeedSec,
+			input.GetAxis(KeyCode::Q, KeyCode::E)* rotSpeedSec
 		);
 
-		quat *= Quaternion::AngleAxis(
-			input.GetAxis(KeyCode::S, KeyCode::W) * rotSpeedSec,
-			Vector3::Right
-		);
-
-		quat *= Quaternion::AngleAxis(
-			input.GetAxis(KeyCode::Q, KeyCode::E) * rotSpeedSec,
-			Vector3::Forward
-		);
+		const Quaternion quat = Quaternion::Euler(euler.y, euler.x, euler.z);
 
 
 
@@ -427,7 +420,7 @@ private:
 		renderer.DrawTextField(w$(L"p2: ", screenPos_RightTop, L"\nuv: ", uvPos_RightTop), screenPos_RightTop);
 		renderer.DrawTextField(w$(L"p3: ", screenPos_LeftBottom, L"\nuv: ", uvPos_LeftBottom), screenPos_LeftBottom + Vector2::Left * 200.f);
 		renderer.DrawTextField(w$(L"p4: ", screenPos_RightBottom, L"\nuv: ", uvPos_RightBottom), screenPos_RightBottom);
-		renderer.DrawTextField(w$(L"T\n", T, L"\n\nR\n", R, L"\n\nS\n", S, L"\n\nfinalMat\n", finalMat), Vector2Int(0, 300));
+		renderer.DrawTextField(w$(L"Euler: ", euler, L"\n\nT\n", T, L"\n\nR\n", R, L"\n\nS\n", S, L"\n\nfinalMat\n", finalMat), Vector2Int(0, 300));
 	}
 };
 

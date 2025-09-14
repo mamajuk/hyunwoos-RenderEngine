@@ -30,6 +30,12 @@ C:\Users\우수컴\source\repos\hyunwoos-RenderEngine\hyunwoos-RenderEngine\hyun
 C:\Users\우수컴\source\repos\hyunwoos-RenderEngine\hyunwoos-RenderEngine\hyunwoos-RenderEngine\MathModule\Vector.h(203,8): warning C4244: '/=': conversion from 'const float' to 'int', possible loss of data
   (compiling source file 'Source.cpp')
   
-C:\Users\우수컴\source\repos\hyunwoos-RenderEngine\hyunwoos-RenderEngine\hyunwoos-RenderEngine\Source.cpp(215,45): warning C4244: 'argument': conversion from 'int' to 'float', possible loss of data
-C:\Users\우수컴\source\repos\hyunwoos-RenderEngine\hyunwoos-RenderEngine\hyunwoos-RenderEngine\Source.cpp(215,43): warning C4244: 'argument': conversion from 'int' to 'float', possible loss of data
+C:\Users\우수컴\source\repos\hyunwoos-RenderEngine\hyunwoos-RenderEngine\hyunwoos-RenderEngine\ImportModule\PmxImporter.h(85,3): warning C4309: 'initializing': truncation of constant value
+  (compiling source file 'Source.cpp')
+  
+C:\Users\우수컴\source\repos\hyunwoos-RenderEngine\hyunwoos-RenderEngine\hyunwoos-RenderEngine\ImportModule\PmxImporter.h(85,3): warning C4369: 'hyunwoo::PmxImporter::DefaultIndexType':  enumerator value '-1' cannot be represented as 'unsigned char', value is '-1'
+  (compiling source file 'Source.cpp')
+  
+C:\Users\우수컴\source\repos\hyunwoos-RenderEngine\hyunwoos-RenderEngine\hyunwoos-RenderEngine\Source.cpp(242,45): warning C4244: 'argument': conversion from 'int' to 'float', possible loss of data
+C:\Users\우수컴\source\repos\hyunwoos-RenderEngine\hyunwoos-RenderEngine\hyunwoos-RenderEngine\Source.cpp(242,43): warning C4244: 'argument': conversion from 'int' to 'float', possible loss of data
   hyunwoos-RenderEngine.vcxproj -> C:\Users\우수컴\source\repos\hyunwoos-RenderEngine\hyunwoos-RenderEngine\x64\Debug\hyunwoos-RenderEngine.exe

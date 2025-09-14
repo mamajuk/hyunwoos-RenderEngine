@@ -131,6 +131,7 @@
   <ItemGroup>
     <ClCompile Include="EngineModule\InputManager.cpp" />
     <ClCompile Include="EngineModule\RenderEngine.cpp" />
+    <ClCompile Include="ImportModule\PmxImporter.cpp" />
     <ClCompile Include="ImportModule\PngImporter.cpp" />
     <ClCompile Include="MathModule\Color.cpp" />
     <ClCompile Include="MathModule\Math.cpp" />
@@ -147,6 +148,7 @@
   <ItemGroup>
     <ClInclude Include="EngineModule\InputManager.h" />
     <ClInclude Include="EngineModule\RenderEngine.h" />
+    <ClInclude Include="ImportModule\PmxImporter.h" />
     <ClInclude Include="ImportModule\PngImporter.h" />
     <ClInclude Include="MathModule\Color.h" />
     <ClInclude Include="MathModule\Math.h" />
@@ -160,9 +162,20 @@
     <ClInclude Include="UtilityModule\Zlib.h" />
   </ItemGroup>
   <ItemGroup>
+    <Image Include="Paymon\Texture\mc3.png" />
+    <Image Include="Paymon\Texture\toon.png" />
+    <Image Include="Paymon\Texture\头发.png" />
+    <Image Include="Paymon\Texture\披风.png" />
+    <Image Include="Paymon\Texture\披风2.png" />
+    <Image Include="Paymon\Texture\脸.png" />
+    <Image Include="Paymon\Texture\衣服.png" />
+    <Image Include="Paymon\Texture\表情.png" />
     <Image Include="test1.png" />
     <Image Include="test2.png" />
     <Image Include="test3.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Paymon\paymon.pmx" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

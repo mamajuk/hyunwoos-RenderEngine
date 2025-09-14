@@ -91,13 +91,13 @@ public:
 		return floorf(rhs);
 	}
 
-	static const float Range(const float Symbol, const float min, const float max) {
+	static const float Clamp(const float Symbol, const float min, const float max) {
 		if (Symbol < min) return min;
 		if (Symbol > max) return max;
 		return Symbol;
 	}
 
-	static const float Range01(const float Symbol) {
+	static const float Clamp01(const float Symbol) {
 		if (Symbol < 0.f) return 0.f;
 		if (Symbol > 1.f) return 1.f;
 		return Symbol;

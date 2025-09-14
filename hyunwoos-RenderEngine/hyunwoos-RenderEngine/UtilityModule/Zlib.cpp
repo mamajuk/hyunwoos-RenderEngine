@@ -111,17 +111,17 @@ void hyunwoo::Zlib::HuffmanTree::Build_Fixed(const SymbolType symbolType)
 
         /**lit Value (144-255)**/
         for (uint32_t i = 0; i < 111; i++) {
-            InsertNode(i, (0b110010000 + i), 9);
+            InsertNode((144 + i), (0b110010000 + i), 9);
         }
 
         /**lit Value (256-279)**/
         for (uint32_t i = 0; i < 23; i++) {
-            InsertNode(i, (0b0000000 + i), 7);
+            InsertNode((256 + i), (0b0000000 + i), 7);
         }
 
         /**lit Value (280-287)**/
         for (uint32_t i = 0; i < 7; i++) {
-            InsertNode(i, (0b11000000 + i), 8);
+            InsertNode((280 + i), (0b11000000 + i), 8);
         }
 
         return;
@@ -354,6 +354,11 @@ hyunwoo::Zlib::InflateResult hyunwoo::Zlib::Inflate(std::vector<uint8_t>& inZlib
     fixed_literal_length_tree.Build_Fixed(Zlib::HuffmanTree::SymbolType::Literal_Length);
     fixed_distance_tree.Build_Fixed(Zlib::HuffmanTree::SymbolType::Distance);
 
+    uint32_t block_count           = 0;
+    uint32_t dynamic_huffman_count = 0;
+    uint32_t no_compression_count  = 0;
+    uint32_t fixed_huffman_count   = 0;
+
     do {
        /*+------------------------------------------------------------+
          | Zlib(Deflate)로 압축된 데이터는, 여러개의 블럭으로 구성되어      |
@@ -379,6 +384,7 @@ hyunwoo::Zlib::InflateResult hyunwoo::Zlib::Inflate(std::vector<uint8_t>& inZlib
          *                   | (10): 동적 Huffman 코드를 사용함.    |
          *                   | (11): 무효.                        |
          **------------------+-----------------------------------|*/
+        block_count++;
         isFinalBlock = (bitStream.ReadBits(1) > 0);
         blockType    = Zlib::BlockCompressionType(bitStream.ReadBits(2));
 
@@ -406,10 +412,17 @@ hyunwoo::Zlib::InflateResult hyunwoo::Zlib::Inflate(std::vector<uint8_t>& inZlib
              +-----------+----------------------------------------+*/
             case(Zlib::BlockCompressionType::None): {
 
+                no_compression_count++;
                 bitStream.MoveOffsetToByteBoundary();
 
                 uint32_t LEN  = bitStream.ReadBits(16);
                 uint32_t NLEN = bitStream.ReadBits(16);
+
+                //LEN이 유효한가?
+                if ((LEN & ~NLEN)!=LEN) {
+                    ret.Invalid_NoCompresionBlock = true;
+                    return ret;
+                }
 
                 //리터럴 바이트 수만큼, 결과 스트림에 복사한다...
                 for (int i = 0; i < LEN; i++) {
@@ -501,6 +514,7 @@ hyunwoo::Zlib::InflateResult hyunwoo::Zlib::Inflate(std::vector<uint8_t>& inZlib
              +-----------+-----------------------------------------+*/
             case(Zlib::BlockCompressionType::Fixed_Huffman): {
 
+                fixed_huffman_count++;
                 Inflate_LZ77(bitStream, outInflateStream, fixed_literal_length_tree, fixed_distance_tree);
                 break;
             }
@@ -598,6 +612,7 @@ hyunwoo::Zlib::InflateResult hyunwoo::Zlib::Inflate(std::vector<uint8_t>& inZlib
              +-----------+---------------------------------------------+*/
             case(Zlib::BlockCompressionType::Dynamic_Huffman): {
 
+                dynamic_huffman_count++;
                 uint32_t hlit  = bitStream.ReadBits(5) + 257;
                 uint32_t hdist = bitStream.ReadBits(5) + 1;
                 uint32_t hclen = bitStream.ReadBits(4) + 4;

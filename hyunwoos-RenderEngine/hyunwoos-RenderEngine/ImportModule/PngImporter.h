@@ -1,6 +1,7 @@
 #pragma once
 #include <cstdInt>
 #include <string>
+#include<type_traits>
 #include "../RenderModule/RenderResources.h"
 
 namespace hyunwoo {
@@ -17,7 +18,7 @@ class hyunwoo::PngImporter final
 	//======================================================================================
 	///////									 Defines...								///////
 	//=====================================================================================
-
+public:
 	/************************************
 	 *   Png 파일의 매직해더를 나타내는 
 	     정수값입니다...
@@ -150,8 +151,8 @@ class hyunwoo::PngImporter final
 	///////											Public methods.....									///////
 	//=========================================================================================================
 public:
-	static ImportResult Import( Texture2D& outTexture, const std::wstring& path );
-
+	static ImportResult Import(Texture2D& outTexture, const std::wstring& path);
+	static ImportResult Imports(std::vector<Texture2D>& outTextures, std::initializer_list<const wchar_t*> paths);
 
 
 

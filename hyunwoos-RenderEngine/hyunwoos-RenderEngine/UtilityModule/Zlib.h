@@ -144,6 +144,7 @@ public:
 		bool CMIsNotDeflate				 : 1;
 		bool CMF_Or_FLG_ValueIsCorrupted : 1;
 		bool UsePresetDictionary		 : 1;
+		bool Invalid_NoCompresionBlock   : 1;
 	};
 
 

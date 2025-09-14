@@ -24,7 +24,7 @@ uint32_t hyunwoo::BitStream::ReadBits(uint32_t readBitCount)
 	 *   읽을 비트 수가 없다면, 결과를 갱신하고
 	 *   함수를 종료한다....
 	 ******/
-	if (readBitCount<=0) {
+	if (readBitCount<=0 || readBitCount>32 || ByteLeft==0 && BitLeft==0) {
 		return 0;
 	}
 
@@ -85,5 +85,5 @@ uint32_t hyunwoo::BitStream::ReadBits(uint32_t readBitCount)
  *==========*/
 void hyunwoo::BitStream::MoveOffsetToByteBoundary()
 {
-	BitLeft >>= (BitLeft % 8);
+	BitLeft -= (BitLeft % 8);
 }

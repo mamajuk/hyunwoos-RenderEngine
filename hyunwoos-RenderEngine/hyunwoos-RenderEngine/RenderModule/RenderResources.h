@@ -1,12 +1,18 @@
 #pragma once
 #include <Windows.h>
 #include <vector>
+#include <functional>
 #include "../MathModule/Vector.h"
 #include "../MathModule/Color.h"
 
 namespace hyunwoo {
 	struct Texture2D;
-
+	struct Vertex;
+	struct Triangle;
+	struct Mesh;
+	struct Shader;
+	struct Material;
+	struct DisplayObject;
 }
 
 
@@ -25,6 +31,64 @@ struct hyunwoo::Texture2D
 
 
 
+
 /*===========================================================================================================
- *
+ *   오브젝트 위치와, UV좌표로 구성된 버텍스가 정의된 구조체입니다...
  *=========*/
+struct hyunwoo::Vertex
+{
+	Vector3 ObjPos;
+	Vector3 Normal;
+	Vector2 UvPos;
+};
+
+
+
+
+/*===========================================================================================================
+ *   버텍스 3개의 위치로 구성된 삼각형을 나타내는 구조체입니다...
+ *=========*/
+struct hyunwoo::Triangle
+{
+	uint32_t indices[3];
+};
+
+
+
+
+/*===========================================================================================================
+ *   모델링 데이터를 담을 수 있는 구조체입니다...
+ *=========*/
+struct hyunwoo::Mesh
+{
+	std::vector<Vertex>	  Vertices;
+	std::vector<Triangle> Triangles;
+	std::vector<uint32_t> SubMesh_Triangle_Counts;
+};
+
+
+
+
+
+
+/**==============================================================================================================
+ *   쉐이더의 각 메소드들이 정의된 구조체입니다....
+ *==========*/
+struct hyunwoo::Shader
+{
+	std::function<Vertex(const Vertex& in)>			  VertexShader;
+	std::function<LinearColor(const LinearColor& in)> FragmentShader;
+};
+
+
+
+
+
+
+/*==============================================================================================================
+ *   머터리얼을 나타내는 구조체입니다...
+ *==========*/
+struct hyunwoo::Material
+{
+
+};

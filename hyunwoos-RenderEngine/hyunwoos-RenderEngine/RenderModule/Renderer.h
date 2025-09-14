@@ -9,14 +9,14 @@ namespace hyunwoo {
 }
 
 
-/*====================================================================================================
+/*==============================================================================================================================================
  *    그래픽 출력에 관한 메소드들을 제공하는 클래스입니다....
  *==============*/
 class hyunwoo::Renderer final
 {
-	//====================================================================
-	///////							Defines..				      ////////
-	//====================================================================
+	//==========================================================================================
+	///////									 Defines..									////////
+	//==========================================================================================
 public:
 	/********************************************
 	 *   랜더러의 초기화 결과가 담긴 구조체입니다..
@@ -31,9 +31,11 @@ public:
 
 
 
-	//===============================================================================
-	////////							Properties..						/////////
-	//===============================================================================
+
+
+	//========================================================================================
+	////////								Properties..							/////////
+	//=======================================================================================
 public:
 	/****************************************
 	 *   랜더러 상태 관련 프로퍼티...
@@ -46,6 +48,7 @@ public:
 	 ******/
 	bool        UseAutoClear     : 1 = true;
 	bool		UseWireFrameMode : 1 = false;
+	bool		UseAlphaBlending : 1 = true;
 	Color		WireFrameColor       = LinearColor::Black;
 	Color		ClearColor           = LinearColor::White;
 
@@ -60,13 +63,15 @@ public:
 
 
 
-	//==========================================================================
-	/////////							Fields...					   /////////
-	//==========================================================================
+
+
+	//=======================================================================================
+	/////////								Fields...								/////////
+	//=======================================================================================
 private:
-	HDC     m_memDC      = NULL;
-	bool    m_isInit : 1 = false;
-	HWND    m_renderTargetHWND;
+	HDC     m_memDC			   = NULL;
+	bool    m_isInit : 1	   = false;
+	HWND    m_renderTargetHWND = NULL;
 
 
 	/****************************
@@ -83,7 +88,10 @@ private:
 	HBITMAP m_backBufferBitmap     = NULL;
 	HBITMAP m_oldBitmap			   = NULL;
 	DWORD*  m_backBufferBitmapPtr  = nullptr;
+	float*  m_depthBufferPtr	   = nullptr;
 	
+
+
 
 
 
@@ -92,6 +100,10 @@ private:
 	//////////						  Public methods..						/////////
 	//===============================================================================
 public:
+	Renderer()				  = default;
+	Renderer(const Renderer&) = delete;
+	~Renderer();
+
 	InitResult Init(HWND renderTargetHwnd, UINT initWidth, UINT initHeight);
 
 
@@ -110,6 +122,18 @@ public:
 	void DrawTextField(const std::wstring& out, const Vector2Int& screenPos);
 	void SetPixel(const Color& color, const Vector2Int& screenPos);
 	void DrawLine(const Color& color, const Vector2& startScreenPos, const Vector2& endScreenPos, bool useClipping = true);
-	void DrawTriangle(const Color& color, const Vector2& screenPos1, const Vector2& screenPos2, const Vector2& screenPos3);
-	void DrawTriangleWithTexture(const Texture2D& texture, const Vector2& screenPos1, const Vector2& uvPos1, const Vector2& screenPos2, const Vector2& uvPos2, const Vector2& screenPos3, const Vector2& uvPos3);
+	void DrawTriangle(const Color& color, const Vector3& worldPos1, const Vector3& worldPos2, const Vector3& worldPos3);
+	void DrawTriangle(const Texture2D& texture, const Vector3& worldPos1, const Vector2& uvPos1, const Vector3& worldPos2, const Vector2& uvPos2, const Vector3& worldPos3, const Vector2& uvPos3);
+
+
+
+
+
+
+
+	//=================================================================================
+	////////////					   Private methods..				 //////////////
+	//=================================================================================
+private:
+	inline void SetPixel_internal(const Color& color, const uint32_t index);
 };

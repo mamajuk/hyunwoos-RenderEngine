@@ -1,7 +1,26 @@
 #include "Renderer.h"
 #include <cstdint>
 #include <emmintrin.h>
+#include <xmmintrin.h>
 #include "../UtilityModule/StringLamda.h"
+
+/*=============================================================================================================
+ *   랜더러의 소멸자...
+ *=========*/
+hyunwoo::Renderer::~Renderer()
+{
+    SelectObject(m_memDC, m_oldBitmap);
+    DeleteObject(m_backBufferBitmap);
+
+    delete[] m_depthBufferPtr;
+}
+
+
+
+
+
+
+
 
 /*=============================================================================================================
  *    좌표계 변환 메소드...
@@ -18,7 +37,7 @@ hyunwoo::Vector2 hyunwoo::Renderer::WorldToScreen(const hyunwoo::Vector2& cartes
     );
 }
 
-hyunwoo::Vector2 hyunwoo::Renderer::ScreenToWorld(const Vector2& screenPos)
+hyunwoo::Vector2 hyunwoo::Renderer::ScreenToWorld(const hyunwoo::Vector2& screenPos)
 {
     /****************************************************************
      *   화면 맨 좌측 상단이 원점인 스크린 좌표계를, 화면 정중앙이
@@ -29,6 +48,8 @@ hyunwoo::Vector2 hyunwoo::Renderer::ScreenToWorld(const Vector2& screenPos)
         (screenPos.y - m_heightf_half)
     );
 }
+
+
 
 
 
@@ -102,6 +123,7 @@ hyunwoo::Renderer::InitResult hyunwoo::Renderer::Init(HWND renderTargetHwnd, UIN
     m_heightf_half        = (m_heightf * .5f);
     m_renderTargetHWND    = renderTargetHwnd;
     m_isInit              = true;
+    m_depthBufferPtr      = new float[m_totalPixelNum];
     ret.InitSuccess       = true;
 
 
@@ -164,39 +186,85 @@ void hyunwoo::Renderer::ClearScreen()
 {
     if (m_isInit == false) return;
 
-    DWORD* endPtr       = m_backBufferBitmapPtr + m_totalPixelNum;
-    DWORD* alignedBegin = reinterpret_cast<DWORD*>(reinterpret_cast<uintptr_t>(m_backBufferBitmapPtr) + 15 & -16); //메모리 영역에서 16으로 정렬이 시작되는 주소값..
-    DWORD* alignedEnd   = reinterpret_cast<DWORD*>(reinterpret_cast<uintptr_t>(endPtr) & -16);  //메모리 영역에서 16으로 정렬된 구간이 끝나는 주소값...
+    /***********************************************************************************
+     *   백버퍼를 초기화합니다...
+     *********/
+    {
+        DWORD* endPtr       = m_backBufferBitmapPtr + m_totalPixelNum;
+        DWORD* alignedBegin = reinterpret_cast<DWORD*>(reinterpret_cast<uintptr_t>(m_backBufferBitmapPtr) + 15 & -16); //메모리 영역에서 16으로 정렬이 시작되는 주소값..
+        DWORD* alignedEnd   = reinterpret_cast<DWORD*>(reinterpret_cast<uintptr_t>(endPtr) & -16);  //메모리 영역에서 16으로 정렬된 구간이 끝나는 주소값...
 
-    const DWORD clearColor = ClearColor.ARGB;
+        const DWORD clearColor = ClearColor.ARGB;
 
 
-    /******************************************************
-     *   SIMD 코드는 주소값이 16으로 정렬되어 있어야 한다.
-     *   따라서 비트맵의 시작 주소부터 16으로 정렬된 주소까지는
-     *   SIMD 연산을 사용하지 않고 일반 for문으로 처리한다..
-     ********/
-    for (DWORD* i = endPtr; i < alignedBegin; i++) {
-        *i = clearColor;
+        /*-------------------------------------------------------
+         *   SIMD 코드는 주소값이 16으로 정렬되어 있어야 한다.
+         *   따라서 비트맵의 시작 주소부터 16으로 정렬된 주소까지는
+         *   SIMD 연산을 사용하지 않고 일반 for문으로 처리한다..
+         *------*/
+        for (DWORD* i = endPtr; i < alignedBegin; i++) {
+            *i = clearColor;
+        }
+
+
+        /*--------------------------------------------------------
+         *   정렬된 주소에 진입했다면, 마지막 정렬 주소까지
+         *    SIMD 연산으로 한 번에 16bytes씩 처리한다....
+         *-------*/
+        __m128i rgba = _mm_set1_epi32(clearColor);
+
+        for (DWORD* i = alignedBegin; i < alignedEnd; i += 4) {
+            _mm_store_si128((__m128i*)i, rgba);
+        }
+
+
+        /*-----------------------------------------------
+         *  정렬된 주소 이후, 남은 원소들을 처리한다...
+         *---------*/
+        for (DWORD* i = alignedEnd; i < endPtr; i++) {
+            *i = clearColor;
+        }
     }
 
 
-    /***************************************************
-     *   정렬된 주소에 진입했다면, 마지막 정렬 주소까지
-     *    SIMD 연산으로 한 번에 16bytes씩 처리한다....
-     ******/
-    __m128i rgba = _mm_set1_epi32(clearColor);
 
-    for (DWORD* i = alignedBegin; i < alignedEnd; i+=4 ) {
-        _mm_store_si128((__m128i*)i, rgba);
-    }
-
-
-    /*****************************************************
-     *  정렬된 주소 이후, 남은 원소들을 처리한다...
+    /***************************************************************************************
+     *   깊이 버퍼를 초기화합니다....
      *******/
-    for (DWORD* i = alignedEnd; i < endPtr; i++) {
-        *i = clearColor;
+    {
+        float* endPtr       = m_depthBufferPtr + m_totalPixelNum;
+        float* alignedBegin = reinterpret_cast<float*>(reinterpret_cast<uintptr_t>(m_depthBufferPtr) + 15 & -16); //메모리 영역에서 16으로 정렬이 시작되는 주소값..
+        float* alignedEnd   = reinterpret_cast<float*>(reinterpret_cast<uintptr_t>(endPtr) & -16);  //메모리 영역에서 16으로 정렬된 구간이 끝나는 주소값...
+
+        constexpr float clearValue = std::numeric_limits<float>::infinity();
+
+        /*-------------------------------------------------------
+         *   SIMD 코드는 주소값이 16으로 정렬되어 있어야 한다.
+         *   따라서 비트맵의 시작 주소부터 16으로 정렬된 주소까지는
+         *   SIMD 연산을 사용하지 않고 일반 for문으로 처리한다..
+         *------*/
+        for (float* i = endPtr; i < alignedBegin; i++) {
+            *i = clearValue;
+        }
+
+
+        /*--------------------------------------------------------
+         *   정렬된 주소에 진입했다면, 마지막 정렬 주소까지
+         *    SIMD 연산으로 한 번에 16bytes씩 처리한다....
+         *-------*/
+        __m128 inf = _mm_set1_ps(clearValue);
+
+        for (float* i = alignedBegin; i < alignedEnd; i += 4) {
+            _mm_store_ps(i, inf);
+        }
+
+
+        /*-----------------------------------------------
+         *  정렬된 주소 이후, 남은 원소들을 처리한다...
+         *---------*/
+        for (float* i = alignedEnd; i < endPtr; i++) {
+            *i = clearValue;
+        }
     }
 }
 
@@ -411,7 +479,21 @@ void hyunwoo::Renderer::SetPixel(const Color& color, const Vector2Int& screenPos
         return;
     }
 
-    m_backBufferBitmapPtr[idx] = color.ARGB;
+    SetPixel_internal(color, idx);
+}
+
+void hyunwoo::Renderer::SetPixel_internal(const Color& color, const uint32_t index)
+{
+    //알파값이 255보다 작을 때에만, 알파 블랜딩을 적용한다...
+    if (UseAlphaBlending && color.A < 255) {
+        LinearColor goalColor = color;
+        LinearColor clearColor = ClearColor;
+
+        m_backBufferBitmapPtr[index] = Color(clearColor + (goalColor - clearColor) * goalColor.a).ARGB;
+        return;
+    }
+
+    m_backBufferBitmapPtr[index] = color.ARGB;
 }
 
 
@@ -449,11 +531,17 @@ void hyunwoo::Renderer::DrawTextField(const std::wstring& out, const hyunwoo::Ve
 
 
 
+
 /*===================================================================================================================
  *    지정된 색상으로 삼각형을 그립니다....
  *=============*/
-void hyunwoo::Renderer::DrawTriangle(const Color& color, const Vector2& screenPos1, const Vector2& screenPos2, const Vector2& screenPos3)
+void hyunwoo::Renderer::DrawTriangle(const Color& color, const Vector3& worldPos1, const Vector3& worldPos2, const Vector3& worldPos3)
 {
+    const Vector2 screenPos1 = WorldToScreen(worldPos1);
+    const Vector2 screenPos2 = WorldToScreen(worldPos2);
+    const Vector2 screenPos3 = WorldToScreen(worldPos3);
+
+
     /*****************************************************
      *    와이어 프레임 모드일 경우, 선만 그리고 종료한다...
      *******/
@@ -520,7 +608,16 @@ void hyunwoo::Renderer::DrawTriangle(const Color& color, const Vector2& screenPo
              *   삼각형 범위 안에 있다면 점을 찍는다..
              *-----*/
             if ((s >= 0.f && s <= 1.f) && (t >= 0.f && t <= 1.f) && (r >= 0.f && r <= 1.f)) {
-                SetPixel(color, p);
+                const uint32_t idx   = ((m_height - p.y) * m_width + p.x);
+                const float    depth = (worldPos1.z * s) + (worldPos2.z * t) + (worldPos3.z * r);
+
+                //점을 찍을 필요가 없다면, 다음으로 넘어간다....
+                if ((idx < 0 || idx>m_totalPixelNum) || m_depthBufferPtr[idx] < depth) {
+                    continue;
+                }
+
+                m_depthBufferPtr[idx] = depth;
+                SetPixel_internal(color, idx);
             }
         }
     }
@@ -535,12 +632,17 @@ void hyunwoo::Renderer::DrawTriangle(const Color& color, const Vector2& screenPo
 
 
 
-/*======================================================================================================================
+/*=============================================================================================================================
  *    지정된 텍스쳐로 삼각형을 그립니다....
  *=============*/
-void hyunwoo::Renderer::DrawTriangleWithTexture(const Texture2D& texture, const Vector2& screenPos1, const Vector2& uvPos1, const Vector2& screenPos2, const Vector2& uvPos2, const Vector2& screenPos3, const Vector2& uvPos3)
+void hyunwoo::Renderer::DrawTriangle(const Texture2D& texture, const Vector3& worldPos1, const Vector2& uvPos1, const Vector3& worldPos2, const Vector2& uvPos2, const Vector3& worldPos3, const Vector2& uvPos3)
 {
-    /*****************************************************
+    const Vector2 screenPos1 = WorldToScreen(worldPos1);
+    const Vector2 screenPos2 = WorldToScreen(worldPos2);
+    const Vector2 screenPos3 = WorldToScreen(worldPos3);
+
+
+    /*******************************************************************
      *    와이어 프레임 모드일 경우, 선만 그리고 종료한다...
      *******/
     if (UseWireFrameMode) {
@@ -551,20 +653,20 @@ void hyunwoo::Renderer::DrawTriangleWithTexture(const Texture2D& texture, const 
     }
 
 
-    /*******************************************************
+    /*********************************************************************
      *    컨벡스 결합을 위해 필요한 값들을 계산한다...
      *******/
     const Vector2 u = (screenPos1 - screenPos3);
     const Vector2 v = (screenPos2 - screenPos3);
 
-    const float uv = Vector2::Dot(u, v);
-    const float uu = Vector2::Dot(u, u);
-    const float vv = Vector2::Dot(v, v);
+    const float uv   = Vector2::Dot(u, v);
+    const float uu   = Vector2::Dot(u, u);
+    const float vv   = Vector2::Dot(v, v);
     const float deno = (uv * uv - uu * vv);
 
 
 
-    /**********************************************************
+    /**********************************************************************
      *     퇴화 삼각형인가? ( 분모가 0 ) 맞다면 함수를 종료한다...
      **********/
     if (deno == 0.0f) {
@@ -573,7 +675,7 @@ void hyunwoo::Renderer::DrawTriangleWithTexture(const Texture2D& texture, const 
 
 
 
-    /******************************************************************
+    /************************************************************************
      *   두 점에 곱해지는 양의 스칼라값의 합이 1이 되도록 제한하면,
      *   두 점 사이의 직선 사이의 점들만 만들어진다. 그럼 세 점에 곱해지는
      *   양의 스칼라값의 합이 1이 되도록 제한하면, 세 점들에서 그려질 수 있는
@@ -589,28 +691,38 @@ void hyunwoo::Renderer::DrawTriangleWithTexture(const Texture2D& texture, const 
     const int   xMax = Math::Max(screenPos1.x, screenPos2.x, screenPos3.x);
     const int   yMin = Math::Min(screenPos1.y, screenPos2.y, screenPos3.y);
     const int   yMax = Math::Max(screenPos1.y, screenPos2.y, screenPos3.y);
-    const float div = (1.f / deno);
+    const float div  = (1.f / deno);
 
-    for (int y = yMin; y <= yMax; y++) {
-        for (int x = xMin; x <= xMax; x++) {
+    for (int y = yMin; y <= yMax; y++) 
+    {
+        for (int x = xMin; x <= xMax; x++) 
+        {
+            const Vector2  p     = Vector2(x, y);
+            const Vector2  w     = (p - screenPos3);
+            const float    wu    = Vector2::Dot(w, u);
+            const float    wv    = Vector2::Dot(w, v);
+            const float    s     = (wv * uv - wu * vv) * div;
+            const float    t     = (wu * uv - wv * uu) * div;
+            const float    r     = (1.f - s - t);
 
-            const Vector2 p = Vector2(x, y);
-            const Vector2 w = (p - screenPos3);
-            const float   wu = Vector2::Dot(w, u);
-            const float   wv = Vector2::Dot(w, v);
-            const float   s = (wv * uv - wu * vv) * div;
-            const float   t = (wu * uv - wv * uu) * div;
-            const float   r = (1.f - s - t);
-
-            /*-----------------------------------------
+            /*-------------------------------------------------
              *   삼각형 범위 안에 있다면 점을 찍는다..
              *-----*/
             if ((s >= 0.f && s <= 1.f) && (t >= 0.f && t <= 1.f) && (r >= 0.f && r <= 1.f)) {
+                const uint32_t idx   = ((m_height - p.y) * m_width + p.x);
+                const float    depth = (worldPos1.z * s) + (worldPos2.z * t) + (worldPos3.z * r);
+
+                //점을 찍을 필요가 없다면, 다음으로 넘어간다....
+                if ((idx < 0 || idx>m_totalPixelNum) || m_depthBufferPtr[idx] < depth) {
+                    continue;
+                }
+
                 Vector2 uvPos = (uvPos1 * s) + (uvPos2 * t) + (uvPos3 * r);
                 uvPos.x *= (texture.Width -1);
                 uvPos.y *= (texture.Height-1);
 
-                SetPixel(texture.GetPixel(uvPos), p);
+                m_depthBufferPtr[idx] = depth;
+                SetPixel_internal(texture.GetPixel(uvPos), idx);
             }
         }
     }

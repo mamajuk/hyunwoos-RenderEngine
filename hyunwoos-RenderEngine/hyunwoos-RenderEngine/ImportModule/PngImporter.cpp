@@ -50,7 +50,7 @@ hyunwoo::PngImporter::ImportResult hyunwoo::PngImporter::Import(Texture2D& outTe
 	 *   순서를 재배치해야 한다.
 	 *********/
 	Chunk				 chunk;
-	IndexedRGB					 plteData[256];
+	IndexedRGB			 plteData[256];
 	IHDR_Data			 ihdrData;
 	std::vector<uint8_t> deflate_img_stream;
 
@@ -201,7 +201,6 @@ hyunwoo::PngImporter::ImportResult hyunwoo::PngImporter::Import(Texture2D& outTe
 		else if (chunk.Type == ChunkType::PLTE)
 		{
 			in.read((char*)plteData, chunk.Length);
-			break;
 		}
 
 
@@ -239,7 +238,7 @@ hyunwoo::PngImporter::ImportResult hyunwoo::PngImporter::Import(Texture2D& outTe
 	/*----------------------------------------------
 	 *   Deflate 압축을 해제한 데이터가 올바른가?
 	 *------*/
-	const uint32_t bytesPerPixel     = (ihdrData.BitDepth / 8) * GetColorDimension(ihdrData.ColorType);
+	const uint32_t bytesPerPixel     = (ihdrData.BitDepth/ 8) * GetColorDimension(ihdrData.ColorType);
 	const uint32_t correct_data_size = (ihdrData.Height * (1 + ihdrData.Width * bytesPerPixel));
 
 	//올바르지 않다면, 결과를 갱신하고 함수를 종료한다..
@@ -347,7 +346,7 @@ hyunwoo::PngImporter::ImportResult hyunwoo::PngImporter::Import(Texture2D& outTe
 				}
 			}
 
-			defiltered_stream.push_back(recon_x & 0xFF);
+			defiltered_stream.push_back(uint8_t(recon_x));
 		}
 	}
 
@@ -495,6 +494,41 @@ hyunwoo::PngImporter::ImportResult hyunwoo::PngImporter::Import(Texture2D& outTe
 	ret.Success = true;
 	return ret;
 }
+
+
+
+
+
+
+
+
+
+
+
+
+/*=======================================================================================================================
+ *   주어진 모든 경로들로부터 텍스쳐를 읽어들입니다....
+ *==============*/
+hyunwoo::PngImporter::ImportResult hyunwoo::PngImporter::Imports(std::vector<Texture2D>& outTextures, std::initializer_list<const wchar_t*> paths)
+{
+	ImportResult ret = { 0, };
+
+	outTextures.clear();
+	outTextures.resize(paths.size());
+
+	uint32_t tex_idx = 0;
+	for (const auto path : paths)
+	{
+		if ((ret = Import(outTextures[tex_idx++], path)).Success == false) {
+			return ret;
+		}
+	}
+
+	return ret;
+}
+
+
+
 
 
 

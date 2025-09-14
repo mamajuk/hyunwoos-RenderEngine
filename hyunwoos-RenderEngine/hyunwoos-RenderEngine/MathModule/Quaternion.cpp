@@ -328,6 +328,9 @@ const hyunwoo::Quaternion hyunwoo::Quaternion::Identity = { 1.f, Vector3::Zero }
  *===========*/
 hyunwoo::Quaternion hyunwoo::Quaternion::AngleAxis(const float angle, const Vector3& rotAxis)
 {
+	/*************************************************************
+	 *  왼손좌표게에서 반시계로 회전시키기위해, 각도를 뒤집어서 준다..
+	 ********/
 	const float rad = (Math::Angle2Rad * -angle * .5f);
 
 	return Quaternion(
@@ -363,7 +366,7 @@ hyunwoo::Quaternion hyunwoo::Quaternion::Euler(const float yAngle, const float x
 hyunwoo::Quaternion hyunwoo::Quaternion::FromTo(const Vector3& from, const Vector3& to, const float angleScale)
 {
 	const float   c    = Vector3::Dot(from.GetNormalized(), to.GetNormalized()) * angleScale * .5f;
-	const float   s    = Math::Sin(Math::Acos(Math::Range(c, -1.f, 1.f)));
+	const float   s    = Math::Sin(Math::Acos(Math::Clamp(c, -1.f, 1.f)));
 	const Vector3 axis = Vector3::Cross(from, to);
 
 	/*******************************************************

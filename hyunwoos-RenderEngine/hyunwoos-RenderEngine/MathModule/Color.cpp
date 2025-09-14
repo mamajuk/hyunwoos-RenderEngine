@@ -68,9 +68,9 @@ const Color Color::Purple = Color(165, 0, 216, 255);
 hyunwoo::Color::operator LinearColor() const
 {
     return LinearColor(
-        (R / 255),
-        (G / 255),
-        (B / 255),
-        (A / 255)
+        (R / 255.f),
+        (G / 255.f),
+        (B / 255.f),
+        (A / 255.f)
     );
 }

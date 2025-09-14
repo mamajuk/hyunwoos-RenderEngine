@@ -1,10 +1,12 @@
-#include <Windows.h>
+ï»¿#include <Windows.h>
+#include <vector>
 #include "EngineModule/RenderEngine.h"
 #include "UtilityModule/StringLamda.h"
 #include "MathModule/Vector.h"
 #include "MathModule/Quaternion.h"
 #include "MathModule/Matrix.h"
 #include "ImportModule/PngImporter.h"
+#include "ImportModule/PmxImporter.h"
 #include "UtilityModule/Zlib.h"
 #include "UtilityModule/BitStream.h"
 using namespace hyunwoo;
@@ -12,7 +14,7 @@ using KeyCode = hyunwoo::InputManager::KeyCode;
 
 
 /*=========================================================================================================================
- *    »ç¿ëÀÚ Á¤ÀÇ ·£´õ ¿£ÁøÀ» Á¤ÀÇÇÑ´Ù...
+ *    ì‚¬ìš©ì ì •ì˜ ëœë” ì—”ì§„ì„ ì •ì˜í•œë‹¤...
  *==========*/
 class MyRenderEngine final : public RenderEngine
 {
@@ -20,7 +22,8 @@ class MyRenderEngine final : public RenderEngine
 	////////							   Fields..								////////
 	//==================================================================================
 private:
-	Texture2D tex;
+	Mesh				   mesh_paymon;
+	std::vector<Texture2D> textures_paymon;
 
 
 
@@ -32,13 +35,34 @@ protected:
 	{
 		Renderer& renderer        = GetRenderer();
 		renderer.UseAutoClear     = true;	
-		renderer.WireFrameColor   = Color::White;
-		renderer.ClearColor       = Color::Black;
+		renderer.UseAlphaBlending = false;
+		renderer.WireFrameColor   = Color::Black;
+		renderer.ClearColor       = Color::White;
 		SetTargetFrameRate(60);
 
-		if (PngImporter::Import(tex, L"test1.png").Success==false) {
-			throw "texture load is failed!!";
+
+		/********************************************************
+		 *   í˜ì´ëª¬ ë©”ì‹œë¥¼ ë¶ˆëŸ¬ì˜¨ë‹¤...
+		 *****/
+		PmxImporter::ImportResult pmxRet = PmxImporter::Import(
+			mesh_paymon, 
+			L"Paymon/paymon.pmx"
+		);
+
+		PngImporter::ImportResult pngRet = PngImporter::Imports(textures_paymon, { 
+			  L"Paymon/Texture/è„¸.png",
+			  L"Paymon/Texture/å¤´å‘.png",
+			  L"Paymon/Texture/è¡£æœ.png",
+			  L"Paymon/Texture/mc3.png",
+			  L"Paymon/Texture/æŠ«é£2.png",
+			  L"Paymon/Texture/è¡¨æƒ….png" 
+		});
+
+		//ì •ìƒì ìœ¼ë¡œ ì½ì–´ë“¤ì´ëŠ”ë° ì‹¤íŒ¨í–ˆëŠ”ê°€?
+		if (pmxRet.Success==false || pngRet.Success==false) {
+			throw "import failed!!";
 		}
+
 	}
 
 
@@ -47,14 +71,17 @@ protected:
 		Renderer&			renderer = GetRenderer();
 		const InputManager& input    = GetInputManager();
 
-		/*******************************************
-		 *   ¿ÍÀÌ¾î ÇÁ·¹ÀÓ ¸ğµå¸¦ »ç¿ëÇÏ´Â°¡?
-		 ******/
+		//ì™€ì´ì–´ í”„ë ˆì„ ëª¨ë“œë¥¼ ì‚¬ìš©í•˜ëŠ”ê°€?
 		if (input.WasPressedThisFrame(KeyCode::Space)) {
 			renderer.UseWireFrameMode = !renderer.UseWireFrameMode;
 		}
 
-		Example7_DrawRectangle_WithQuaternion(tex, 100.f, 1.f, 100.f, deltaTime);
+		//ì•ŒíŒŒ ë¸”ëœë”©ì„ ì‚¬ìš©í•˜ëŠ”ê°€?
+		if (input.WasPressedThisFrame(KeyCode::Shift)) {
+			renderer.UseAlphaBlending = !renderer.UseAlphaBlending;
+		}
+
+		Example9_DrawSubMeshs(mesh_paymon, textures_paymon, 100.f, 50.f, 100.f, deltaTime);
 		Example1_ShowFps(deltaTime);
 	}
 
@@ -68,7 +95,7 @@ private:
 	void Example1_ShowFps(float deltaTime)
 	{
 		/*********************************************
-		 *    ÃøÁ¤ÇÑ ÃÊ´ç ÇÁ·¹ÀÓÀ» Ç¥½ÃÇÑ´Ù....
+		 *    ì¸¡ì •í•œ ì´ˆë‹¹ í”„ë ˆì„ì„ í‘œì‹œí•œë‹¤....
 		 *******/
 		Renderer& renderer = GetRenderer();
 
@@ -98,7 +125,7 @@ private:
 
 
 			/*********************************************
-			 *   »ï°¢ÇüÀ» ±¸¼ºÇÏ´Â ¼¼ Á¡µéÀÇ ÀÌµ¿....
+			 *   ì‚¼ê°í˜•ì„ êµ¬ì„±í•˜ëŠ” ì„¸ ì ë“¤ì˜ ì´ë™....
 			 *******/
 			pos += Vector2(
 				input.GetAxis(KeyCode::A, KeyCode::D) * speedSec,
@@ -117,7 +144,7 @@ private:
 
 
 			/********************************************
-			 *   »ï°¢ÇüÀ» ±×¸°´Ù...
+			 *   ì‚¼ê°í˜•ì„ ê·¸ë¦°ë‹¤...
 			 *******/
 			const Vector2 p1 = renderer.WorldToScreen(pos);
 			const Vector2 p2 = renderer.WorldToScreen(pos2);
@@ -151,7 +178,7 @@ private:
 	void Example4_DrawTexture(const Texture2D texture, float moveSpeed, float rotSpeed, float scaleSpeed, float deltaTime)
 	{
 		/***********************************************
-		 *   ÅØ½ºÃÄÀÇ À§Ä¡¿Í È¸Àü·®À» Á¶ÀÛÇÑ´Ù...
+		 *   í…ìŠ¤ì³ì˜ ìœ„ì¹˜ì™€ íšŒì „ëŸ‰ì„ ì¡°ì‘í•œë‹¤...
 		 *******/
 		Renderer&			renderer      = GetRenderer();
 		const InputManager& input         = GetInputManager();
@@ -178,7 +205,7 @@ private:
 
 
 		/******************************************************
-		 *   °¢ ÇÈ¼¿µé¿¡°Ô °øÅëÀûÀ¸·Î »ç¿ëÇÒ TRS Çà·ÄÀ» ±¸ÃàÇÑ´Ù..
+		 *   ê° í”½ì…€ë“¤ì—ê²Œ ê³µí†µì ìœ¼ë¡œ ì‚¬ìš©í•  TRS í–‰ë ¬ì„ êµ¬ì¶•í•œë‹¤..
 		 *******/
 		const float rad = (degree * Math::Angle2Rad);
 		const float c   = Math::Cos(rad);
@@ -201,7 +228,7 @@ private:
 
 
 		/*****************************************************
-		 *   ÅØ½ºÃÄÀÇ °¢ ÇÈ¼¿µéÀ» ±×¸°´Ù...
+		 *   í…ìŠ¤ì³ì˜ ê° í”½ì…€ë“¤ì„ ê·¸ë¦°ë‹¤...
 		 ********/
 		const int heightHalf = (texture.Height / 2);
 		const int widthHalf  = (texture.Width / 2);
@@ -232,7 +259,7 @@ private:
 
 
 		/************************************************************
-		 *   »ç°¢ÇüÀÇ È¸Àü°ú ÀÌµ¿, Å©±â¸¦ Á¶ÀÛÇÑ´Ù...
+		 *   ì‚¬ê°í˜•ì˜ íšŒì „ê³¼ ì´ë™, í¬ê¸°ë¥¼ ì¡°ì‘í•œë‹¤...
 		 ********/
 		worldPos += Vector2(
 			input.GetAxis(KeyCode::Left, KeyCode::Right) * moveSpeedSec,
@@ -248,7 +275,7 @@ private:
 
 
 		/***********************************************************
-		 *    »ç°¢ÇüÀÇ È¸Àü°ú À§Ä¡¸¦ ±¸¼ºÇÏ´Â Çà·ÄÀ» ¸¸µç´Ù....
+		 *    ì‚¬ê°í˜•ì˜ íšŒì „ê³¼ ìœ„ì¹˜ë¥¼ êµ¬ì„±í•˜ëŠ” í–‰ë ¬ì„ ë§Œë“ ë‹¤....
 		 ********/
 		float c = Math::Cos(Math::Angle2Rad * degree);
 		float s = Math::Sin(Math::Angle2Rad * degree);
@@ -270,7 +297,7 @@ private:
 
 
 		/***************************************************
-		 *    ÁÖ¾îÁø À§Ä¡¿¡ È¸ÀüµÈ »ç°¢ÇüÀ» ±×¸³´Ï´Ù..
+		 *    ì£¼ì–´ì§„ ìœ„ì¹˜ì— íšŒì „ëœ ì‚¬ê°í˜•ì„ ê·¸ë¦½ë‹ˆë‹¤..
 		 ********/
 		const float wHalf = 50.f;
 		const float hHalf = 50.f;
@@ -285,8 +312,8 @@ private:
 		const Vector2 uv3 = Vector2(0.f, 1.f);
 		const Vector2 uv4 = Vector2(1.f, 1.f);
 
-		renderer.DrawTriangleWithTexture(tex, p1, uv1, p2, uv2, p3, uv3);
-		renderer.DrawTriangleWithTexture(tex, p2, uv2, p3, uv3, p4, uv4);
+		renderer.DrawTriangle(tex, p1, uv1, p2, uv2, p3, uv3);
+		renderer.DrawTriangle(tex, p2, uv2, p3, uv3, p4, uv4);
 
 		renderer.DrawTextField(w$(L"p1: ", p1, L"\nuv: ", uv1), p1 + Vector2::Left * 200.f);
 		renderer.DrawTextField(w$(L"p2: ", p2, L"\nuv: ", uv2), p2);
@@ -303,14 +330,14 @@ private:
 		static float angle = 0.f;
 
 		/*********************************************************
-		 *  °¢µµ¸¦ Á¶ÀÛÇÑ´Ù....
+		 *  ê°ë„ë¥¼ ì¡°ì‘í•œë‹¤....
 		 ********/
 		angle += input.GetAxis(KeyCode::Left, KeyCode::Right) * rotSpeedSec;
 
 
 		/**********************************************************
-		 *   ·Îµå¸®°Ô½º È¸ÀüÀ» Àû¿ëÇÑ´Ù. ¿Ş¼Õ ÁÂÇ¥°èÀÌ±â ¶§¹®¿¡ ¿ÜÀûÀÇ
-		 *   ¼ø¼­´Â x±âÀú -> z±âÀú ¼øÀ¸·Î ÇØ¾ßÇÑ´Ù....
+		 *   ë¡œë“œë¦¬ê²ŒìŠ¤ íšŒì „ì„ ì ìš©í•œë‹¤. ì™¼ì† ì¢Œí‘œê³„ì´ê¸° ë•Œë¬¸ì— ì™¸ì ì˜
+		 *   ìˆœì„œëŠ” xê¸°ì € -> zê¸°ì € ìˆœìœ¼ë¡œ í•´ì•¼í•œë‹¤....
 		 *********/
 		float rad = (Math::Angle2Rad * angle);
 		float c   = Math::Cos(rad);
@@ -341,7 +368,7 @@ private:
 
 
 		/************************************************************
-		 *   »ç°¢ÇüÀÇ È¸Àü°ú ÀÌµ¿, Å©±â¸¦ Á¶ÀÛÇÑ´Ù...
+		 *   ì‚¬ê°í˜•ì˜ íšŒì „ê³¼ ì´ë™, í¬ê¸°ë¥¼ ì¡°ì‘í•œë‹¤...
 		 ********/
 		worldPos += Vector2(
 			input.GetAxis(KeyCode::Left, KeyCode::Right) * moveSpeedSec,
@@ -364,7 +391,7 @@ private:
 
 
 		/***********************************************************
-		 *    »ç°¢ÇüÀÇ È¸Àü°ú À§Ä¡¸¦ ±¸¼ºÇÏ´Â Çà·ÄÀ» ¸¸µç´Ù....
+		 *    ì‚¬ê°í˜•ì˜ íšŒì „ê³¼ ìœ„ì¹˜ë¥¼ êµ¬ì„±í•˜ëŠ” í–‰ë ¬ì„ ë§Œë“ ë‹¤....
 		 ********/
 		const Matrix4x4 T = Matrix4x4(
 			Vector4::BasisX,
@@ -388,7 +415,7 @@ private:
 
 
 		/***************************************************
-		 *    ÁÖ¾îÁø À§Ä¡¿¡ È¸ÀüµÈ »ç°¢ÇüÀ» ±×¸³´Ï´Ù..
+		 *    ì£¼ì–´ì§„ ìœ„ì¹˜ì— íšŒì „ëœ ì‚¬ê°í˜•ì„ ê·¸ë¦½ë‹ˆë‹¤..
 		 ********/
 		const float wHalf = 50.f;
 		const float hHalf = 50.f;
@@ -399,27 +426,204 @@ private:
 		const Vector4 objPos_LeftBottom   = Vector4(-wHalf, -hHalf, 0.f, 1.f);
 		const Vector4 objPos_RightBottom  = Vector4(wHalf, -hHalf, 0.f, 1.f);
 
-		const Vector2 screenPos_LeftTop     = renderer.WorldToScreen((finalMat * objPos_LeftTop));
-		const Vector2 screenPos_RightTop    = renderer.WorldToScreen((finalMat * objPos_RightTop));
-		const Vector3 screenPos_LeftBottom  = renderer.WorldToScreen((finalMat * objPos_LeftBottom));
-		const Vector3 screenPos_RightBottom = renderer.WorldToScreen((finalMat * objPos_RightBottom));
+		const Vector3 worldPos_LeftTop     = (finalMat * objPos_LeftTop);
+		const Vector3 worldPos_RightTop    = (finalMat * objPos_RightTop);
+		const Vector3 worldPos_LeftBottom  = (finalMat * objPos_LeftBottom);
+		const Vector3 worldPos_RightBottom = (finalMat * objPos_RightBottom);
 
 		const Vector2 uvPos_LeftTop     = Vector2(0.f, 0.f);
 		const Vector2 uvPos_RightTop    = Vector2(1.f, 0.f);
 		const Vector2 uvPos_LeftBottom  = Vector2(0.f, 1.f);
 		const Vector2 uvPos_RightBottom = Vector2(1.f, 1.f);
 
-		renderer.DrawTriangleWithTexture(tex, screenPos_LeftTop, uvPos_LeftTop, screenPos_RightTop, uvPos_RightTop, screenPos_LeftBottom, uvPos_LeftBottom);
-		renderer.DrawTriangleWithTexture(tex, screenPos_RightTop, uvPos_RightTop, screenPos_LeftBottom, uvPos_LeftBottom, screenPos_RightBottom, uvPos_RightBottom);
+		renderer.DrawTriangle(tex, worldPos_LeftTop, uvPos_LeftTop, worldPos_RightTop, uvPos_RightTop, worldPos_LeftBottom, uvPos_LeftBottom);
+		renderer.DrawTriangle(tex, worldPos_RightTop, uvPos_RightTop, worldPos_LeftBottom, uvPos_LeftBottom, worldPos_RightBottom, uvPos_RightBottom);
 
 		renderer.DrawLine(LinearColor::Red,   renderer.WorldToScreen(objPos_Center), renderer.WorldToScreen(objPos_Center + R.BasisX * 50.f));
 		renderer.DrawLine(LinearColor::Green, renderer.WorldToScreen(objPos_Center), renderer.WorldToScreen(objPos_Center + R.BasisY * 50.f));
 		renderer.DrawLine(LinearColor::Blue,  renderer.WorldToScreen(objPos_Center), renderer.WorldToScreen(objPos_Center + R.BasisZ * 50.f));
 
-		renderer.DrawTextField(w$(L"p1: ", screenPos_LeftTop, L"\nuv: ", uvPos_LeftTop), screenPos_LeftTop + Vector2::Left * 200.f);
-		renderer.DrawTextField(w$(L"p2: ", screenPos_RightTop, L"\nuv: ", uvPos_RightTop), screenPos_RightTop);
-		renderer.DrawTextField(w$(L"p3: ", screenPos_LeftBottom, L"\nuv: ", uvPos_LeftBottom), screenPos_LeftBottom + Vector2::Left * 200.f);
-		renderer.DrawTextField(w$(L"p4: ", screenPos_RightBottom, L"\nuv: ", uvPos_RightBottom), screenPos_RightBottom);
+		renderer.DrawTextField(w$(L"p1: ", worldPos_LeftTop, L"\nuv: ", uvPos_LeftTop), worldPos_LeftTop + Vector2::Left * 200.f);
+		renderer.DrawTextField(w$(L"p2: ", worldPos_RightTop, L"\nuv: ", uvPos_RightTop), worldPos_RightTop);
+		renderer.DrawTextField(w$(L"p3: ", worldPos_LeftBottom, L"\nuv: ", uvPos_LeftBottom), worldPos_LeftBottom + Vector2::Left * 200.f);
+		renderer.DrawTextField(w$(L"p4: ", worldPos_RightBottom, L"\nuv: ", uvPos_RightBottom), worldPos_RightBottom);
+		renderer.DrawTextField(w$(L"Euler: ", euler, L"\n\nT\n", T, L"\n\nR\n", R, L"\n\nS\n", S, L"\n\nfinalMat\n", finalMat), Vector2Int(0, 300));
+	}
+	void Example8_DrawMesh(const Mesh& mesh, float moveSpeed, float scaleSpeed, float rotSpeed, float deltaTime)
+	{
+		const InputManager& input		  = GetInputManager();
+		Renderer&			renderer	  = GetRenderer();
+		const float         moveSpeedSec  = (moveSpeed * deltaTime);
+		const float         rotSpeedSec   = (rotSpeed * deltaTime);
+		const float         scaleSpeedSec = (scaleSpeed * deltaTime);
+
+		static Vector2    worldPos = (Vector2::One * 100.f);
+		static Vector3    size     = (Vector3::One * 40.f);
+		static Vector3    euler    = Vector3::Zero;
+
+
+		/************************************************************
+		 *   ì‚¬ê°í˜•ì˜ íšŒì „ê³¼ ì´ë™, í¬ê¸°ë¥¼ ì¡°ì‘í•œë‹¤...
+		 ********/
+		worldPos += Vector2(
+			input.GetAxis(KeyCode::Left, KeyCode::Right) * moveSpeedSec,
+			input.GetAxis(KeyCode::Down, KeyCode::Up) * moveSpeedSec
+		);
+
+		size += Vector3(
+			input.GetAxis(KeyCode::J, KeyCode::L) * scaleSpeedSec,
+			input.GetAxis(KeyCode::K, KeyCode::I) * scaleSpeedSec,
+			input.GetAxis(KeyCode::U, KeyCode::O) * scaleSpeedSec
+		);
+
+		euler += Vector3(
+			input.GetAxis(KeyCode::S, KeyCode::W) * rotSpeedSec,
+			input.GetAxis(KeyCode::A, KeyCode::D) * rotSpeedSec,
+			input.GetAxis(KeyCode::Q, KeyCode::E) * rotSpeedSec
+		);
+
+		const Quaternion quat = Quaternion::Euler(euler.y, euler.x, euler.z);
+
+
+
+		/***********************************************************
+		 *    ì‚¬ê°í˜•ì˜ íšŒì „ê³¼ ìœ„ì¹˜ë¥¼ êµ¬ì„±í•˜ëŠ” í–‰ë ¬ì„ ë§Œë“ ë‹¤....
+		 ********/
+		const Matrix4x4 T = Matrix4x4(
+			Vector4::BasisX,
+			Vector4::BasisY,
+			Vector4::BasisZ,
+			Vector4(worldPos.x, worldPos.y, 0.f, 1.f)
+		);
+
+		const Matrix4x4 R = quat.GetRotateMatrix();
+
+		const Matrix4x4 S = Matrix4x4(
+			(Vector4::BasisX * size.x),
+			(Vector4::BasisY * size.y),
+			(Vector4::BasisZ * size.z),
+			Vector4::BasisW
+		);
+
+
+		const Matrix4x4 finalMat = (T * R * S);
+
+
+
+		/***************************************************
+		 *    ì£¼ì–´ì§„ ìœ„ì¹˜ì— ì„œë¸Œë©”ì‹œë³„ë¡œ ì‚¼ê°í˜•ë“¤ì„ ê·¸ë¦½ë‹ˆë‹¤...
+		 ********/
+		for (uint32_t i = 0; i < mesh.Triangles.size(); i++) {
+			const Triangle triangle = mesh.Triangles[i];
+			
+			const Vertex& vertex1 = mesh.Vertices[triangle.indices[0]];
+			const Vertex& vertex2 = mesh.Vertices[triangle.indices[1]];
+			const Vertex& vertex3 = mesh.Vertices[triangle.indices[2]];
+
+			const Vector4 objPos1 = Vector4(vertex1.ObjPos.x, vertex1.ObjPos.y, vertex1.ObjPos.z, 1.f);
+			const Vector4 objPos2 = Vector4(vertex2.ObjPos.x, vertex2.ObjPos.y, vertex2.ObjPos.z, 1.f);
+			const Vector4 objPos3 = Vector4(vertex3.ObjPos.x, vertex3.ObjPos.y, vertex3.ObjPos.z, 1.f);
+
+			const Vector3 worldPos1 = (finalMat * objPos1);
+			const Vector3 worldPos2 = (finalMat * objPos2);
+			const Vector3 worldPos3 = (finalMat * objPos3);
+
+			renderer.DrawTriangle(Color::Pink, worldPos1, worldPos2, worldPos3);
+		}
+
+		renderer.DrawTextField(w$(L"Euler: ", euler, L"\n\nT\n", T, L"\n\nR\n", R, L"\n\nS\n", S, L"\n\nfinalMat\n", finalMat), Vector2Int(0, 300));
+	}
+	void Example9_DrawSubMeshs(const Mesh& mesh, const std::vector<Texture2D>& texs, float moveSpeed, float scaleSpeed, float rotSpeed, float deltaTime)
+	{
+		const InputManager& input		  = GetInputManager();
+		Renderer&			renderer	  = GetRenderer();
+		const float         moveSpeedSec  = (moveSpeed * deltaTime);
+		const float         rotSpeedSec	  = (rotSpeed * deltaTime);
+		const float         scaleSpeedSec = (scaleSpeed * deltaTime);
+
+		static Vector3    worldPos = (Vector2::One * 100.f);
+		static Vector3    size     = (Vector3::One * 40.f);
+		static Vector3    euler    = Vector3::Zero;
+
+
+		/************************************************************
+		 *   ì‚¬ê°í˜•ì˜ íšŒì „ê³¼ ì´ë™, í¬ê¸°ë¥¼ ì¡°ì‘í•œë‹¤...
+		 ********/
+		worldPos += Vector3(
+			input.GetAxis(KeyCode::Left, KeyCode::Right) * moveSpeedSec,
+			input.GetAxis(KeyCode::Down, KeyCode::Up) * moveSpeedSec,
+			input.GetAxis(KeyCode::Num_2, KeyCode::Num_8) * moveSpeedSec
+		);
+
+		size += Vector3(
+			input.GetAxis(KeyCode::J, KeyCode::L) * scaleSpeedSec,
+			input.GetAxis(KeyCode::K, KeyCode::I) * scaleSpeedSec,
+			input.GetAxis(KeyCode::U, KeyCode::O) * scaleSpeedSec
+		);
+
+		euler += Vector3(
+			input.GetAxis(KeyCode::S, KeyCode::W) * rotSpeedSec,
+			input.GetAxis(KeyCode::A, KeyCode::D) * rotSpeedSec,
+			input.GetAxis(KeyCode::Q, KeyCode::E) * rotSpeedSec
+		);
+
+		const Quaternion quat = Quaternion::Euler(euler.y, euler.x, euler.z);
+
+
+
+		/***********************************************************
+		 *    ì‚¬ê°í˜•ì˜ íšŒì „ê³¼ ìœ„ì¹˜ë¥¼ êµ¬ì„±í•˜ëŠ” í–‰ë ¬ì„ ë§Œë“ ë‹¤....
+		 ********/
+		const Matrix4x4 T = Matrix4x4(
+			Vector4::BasisX,
+			Vector4::BasisY,
+			Vector4::BasisZ,
+			Vector4(worldPos.x, worldPos.y, 0.f, 1.f)
+		);
+
+		const Matrix4x4 R = quat.GetRotateMatrix();
+
+		const Matrix4x4 S = Matrix4x4(
+			(Vector4::BasisX * size.x),
+			(Vector4::BasisY * size.y),
+			(Vector4::BasisZ * size.z),
+			Vector4::BasisW
+		);
+
+
+		const Matrix4x4 finalMat = (T * R * S);
+
+
+
+		/***************************************************
+		 *    ì£¼ì–´ì§„ ìœ„ì¹˜ì— ì„œë¸Œë©”ì‹œë³„ë¡œ ì‚¼ê°í˜•ë“¤ì„ ê·¸ë¦½ë‹ˆë‹¤...
+		 ********/
+		const uint32_t subMesh_texIdx_List[] = { 0,1,0,2,2,1,4,5 };
+
+		for (uint32_t subMeshIdx = 0, triangleIdx = 0; subMeshIdx < mesh.SubMesh_Triangle_Counts.size(); subMeshIdx++) 
+		{
+			const uint32_t subMesh_finalIdx = (triangleIdx + mesh.SubMesh_Triangle_Counts[subMeshIdx]);
+
+			while(triangleIdx < subMesh_finalIdx){
+
+				const Triangle triangle = mesh.Triangles[triangleIdx++];
+
+				const Vertex& vertex1 = mesh.Vertices[triangle.indices[0]];
+				const Vertex& vertex2 = mesh.Vertices[triangle.indices[1]];
+				const Vertex& vertex3 = mesh.Vertices[triangle.indices[2]];
+
+				const Vector4 objPos1 = Vector4(vertex1.ObjPos.x, vertex1.ObjPos.y, vertex1.ObjPos.z, 1.f);
+				const Vector4 objPos2 = Vector4(vertex2.ObjPos.x, vertex2.ObjPos.y, vertex2.ObjPos.z, 1.f);
+				const Vector4 objPos3 = Vector4(vertex3.ObjPos.x, vertex3.ObjPos.y, vertex3.ObjPos.z, 1.f);
+
+				const Vector3 worldPos1 = (finalMat * objPos1);
+				const Vector3 worldPos2 = (finalMat * objPos2);
+				const Vector3 worldPos3 = (finalMat * objPos3);
+
+				renderer.DrawTriangle(texs[subMesh_texIdx_List[subMeshIdx]], worldPos1, vertex1.UvPos, worldPos2, vertex2.UvPos, worldPos3, vertex3.UvPos);
+			}
+		}
+
 		renderer.DrawTextField(w$(L"Euler: ", euler, L"\n\nT\n", T, L"\n\nR\n", R, L"\n\nS\n", S, L"\n\nfinalMat\n", finalMat), Vector2Int(0, 300));
 	}
 };
@@ -433,9 +637,8 @@ private:
 
 
 
-
 /*========================================================================================================
- *    ÇÁ·Î±×·¥ÀÇ ÁøÀÔÁ¡....
+ *    í”„ë¡œê·¸ë¨ì˜ ì§„ì…ì ....
  *===========*/
 int WINAPI wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE prevHInstance, _In_ LPWSTR commandLine, _In_ int bShowCmd)
 {

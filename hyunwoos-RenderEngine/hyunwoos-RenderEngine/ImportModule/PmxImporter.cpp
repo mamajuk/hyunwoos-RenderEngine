@@ -96,7 +96,10 @@ hyunwoo::PmxImporter::ImportResult hyunwoo::PmxImporter::Import(Mesh& outMesh, c
          *  Position, Normal, UV를 읽어들인다..
          *----*/
         Vertex& vertex = outMesh.Vertices[i];
-        in.read((char*)&vertex, sizeof(Vector3)*2 + sizeof(Vector2));
+        in.read((char*)&vertex.ObjPos, 12);
+        in.seekg(12, std::ios::cur);
+        in.read((char*)&vertex.UvPos, 8);
+
 
 
         /*--------------------------------------
@@ -247,8 +250,6 @@ hyunwoo::PmxImporter::ImportResult hyunwoo::PmxImporter::Import(Mesh& outMesh, c
 
         texture_name.resize(prev_size + path_size);
         in.read((char*)&texture_name[prev_size], path_size);
-
-        texture_name.push_back(L'/');
     }
 
 

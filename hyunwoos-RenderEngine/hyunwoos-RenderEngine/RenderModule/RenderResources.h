@@ -38,7 +38,6 @@ struct hyunwoo::Texture2D
 struct hyunwoo::Vertex
 {
 	Vector3 ObjPos;
-	Vector3 Normal;
 	Vector2 UvPos;
 };
 

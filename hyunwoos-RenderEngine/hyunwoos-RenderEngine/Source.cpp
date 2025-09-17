@@ -36,26 +36,25 @@ protected:
 		Renderer& renderer        = GetRenderer();
 		renderer.UseAutoClear     = true;	
 		renderer.UseAlphaBlending = false;
-		renderer.WireFrameColor   = Color::Black;
-		renderer.ClearColor       = Color::White;
+		renderer.WireFrameColor   = Color::White;
+		renderer.ClearColor       = Color::Black;
 		SetTargetFrameRate(60);
 
 
 		/********************************************************
 		 *   페이몬 메시를 불러온다...
 		 *****/
-		PmxImporter::ImportResult pmxRet = PmxImporter::Import(
-			mesh_paymon, 
-			L"Paymon/paymon.pmx"
+		PmxImporter::ImportResult pmxRet = PmxImporter::Import(mesh_paymon, 
+			L"Resources/Paymon/paymon.pmx"
 		);
 
 		PngImporter::ImportResult pngRet = PngImporter::Imports(textures_paymon, { 
-			  L"Paymon/Texture/脸.png",
-			  L"Paymon/Texture/头发.png",
-			  L"Paymon/Texture/衣服.png",
-			  L"Paymon/Texture/mc3.png",
-			  L"Paymon/Texture/披风2.png",
-			  L"Paymon/Texture/表情.png" 
+			  L"Resources/Paymon/Texture/脸.png",
+			  L"Resources/Paymon/Texture/头发.png",
+			  L"Resources/Paymon/Texture/衣服.png",
+			  L"Resources/Paymon/Texture/mc3.png",
+			  L"Resources/Paymon/Texture/披风2.png",
+			  L"Resources/Paymon/Texture/表情.png" 
 		});
 
 		//정상적으로 읽어들이는데 실패했는가?
@@ -81,7 +80,7 @@ protected:
 			renderer.UseAlphaBlending = !renderer.UseAlphaBlending;
 		}
 
-		Example9_DrawSubMeshs(mesh_paymon, textures_paymon, 100.f, 50.f, 100.f, deltaTime);
+		Example9_DrawSubMeshs(mesh_paymon, textures_paymon, 100.f, 100.f, 200.f, deltaTime);
 		Example1_ShowFps(deltaTime);
 	}
 
@@ -541,9 +540,9 @@ private:
 		const float         rotSpeedSec	  = (rotSpeed * deltaTime);
 		const float         scaleSpeedSec = (scaleSpeed * deltaTime);
 
-		static Vector3    worldPos = (Vector2::One * 100.f);
-		static Vector3    size     = (Vector3::One * 40.f);
-		static Vector3    euler    = Vector3::Zero;
+		static Vector3 worldPos = Vector3(0.f, 0.f, 100.f);
+		static Vector3 size     = (Vector3::One);
+		static Vector3 euler    = Vector3::Zero;
 
 
 		/************************************************************
@@ -552,7 +551,7 @@ private:
 		worldPos += Vector3(
 			input.GetAxis(KeyCode::Left, KeyCode::Right) * moveSpeedSec,
 			input.GetAxis(KeyCode::Down, KeyCode::Up) * moveSpeedSec,
-			input.GetAxis(KeyCode::Num_2, KeyCode::Num_8) * moveSpeedSec
+			input.GetAxis(KeyCode::NUMPAD_2, KeyCode::NUMPAD_8) * moveSpeedSec
 		);
 
 		size += Vector3(
@@ -574,11 +573,19 @@ private:
 		/***********************************************************
 		 *    사각형의 회전과 위치를 구성하는 행렬을 만든다....
 		 ********/
+		const float fov = 90.f;
+		const float n   = 0.3f;
+		const float f   = 1000.f;
+		const float k   = (n + f) / (f-n);
+		const float l   = f - (k*f);
+		const float a   = renderer.GetAspectRatio();
+		const float d   = 1.f / Math::Tan(fov * Math::Angle2Rad * .5f);
+
 		const Matrix4x4 T = Matrix4x4(
 			Vector4::BasisX,
 			Vector4::BasisY,
 			Vector4::BasisZ,
-			Vector4(worldPos.x, worldPos.y, 0.f, 1.f)
+			Vector4(worldPos.x, worldPos.y, worldPos.z, 1.f)
 		);
 
 		const Matrix4x4 R = quat.GetRotateMatrix();
@@ -590,8 +597,14 @@ private:
 			Vector4::BasisW
 		);
 
+		const Matrix4x4 P = Matrix4x4(
+			Vector4(d, 0.f, 0.f, 0.f),
+			Vector4(0.f, (d*a), 0.f, 0.f),
+			Vector4(0.f, 0.f, k, 1.f),
+			Vector4(0.f, 0.f, l, 0)
+		);
 
-		const Matrix4x4 finalMat = (T * R * S);
+		const Matrix4x4 finalMat = (P * T * R * S);
 
 
 
@@ -600,13 +613,12 @@ private:
 		 ********/
 		const uint32_t subMesh_texIdx_List[] = { 0,1,0,2,2,1,4,5 };
 
-		for (uint32_t subMeshIdx = 0, triangleIdx = 0; subMeshIdx < mesh.SubMesh_Triangle_Counts.size(); subMeshIdx++) 
-		{
+		for (uint32_t subMeshIdx = 0, triangleIdx = 0; subMeshIdx < mesh.SubMesh_Triangle_Counts.size(); subMeshIdx++) {
 			const uint32_t subMesh_finalIdx = (triangleIdx + mesh.SubMesh_Triangle_Counts[subMeshIdx]);
 
 			while(triangleIdx < subMesh_finalIdx){
 
-				const Triangle triangle = mesh.Triangles[triangleIdx++];
+				const Triangle& triangle = mesh.Triangles[triangleIdx++];
 
 				const Vertex& vertex1 = mesh.Vertices[triangle.indices[0]];
 				const Vertex& vertex2 = mesh.Vertices[triangle.indices[1]];
@@ -616,15 +628,15 @@ private:
 				const Vector4 objPos2 = Vector4(vertex2.ObjPos.x, vertex2.ObjPos.y, vertex2.ObjPos.z, 1.f);
 				const Vector4 objPos3 = Vector4(vertex3.ObjPos.x, vertex3.ObjPos.y, vertex3.ObjPos.z, 1.f);
 
-				const Vector3 worldPos1 = (finalMat * objPos1);
-				const Vector3 worldPos2 = (finalMat * objPos2);
-				const Vector3 worldPos3 = (finalMat * objPos3);
+				const Vector4 clipPos1 = (finalMat * objPos1);
+				const Vector4 clipPos2 = (finalMat * objPos2);
+				const Vector4 clipPos3 = (finalMat * objPos3);
 
-				renderer.DrawTriangle(texs[subMesh_texIdx_List[subMeshIdx]], worldPos1, vertex1.UvPos, worldPos2, vertex2.UvPos, worldPos3, vertex3.UvPos);
+				renderer.DrawTriangle(texs[subMesh_texIdx_List[subMeshIdx]], clipPos1, vertex1.UvPos, clipPos2, vertex2.UvPos, clipPos3, vertex3.UvPos);
 			}
 		}
 
-		renderer.DrawTextField(w$(L"Euler: ", euler, L"\n\nT\n", T, L"\n\nR\n", R, L"\n\nS\n", S, L"\n\nfinalMat\n", finalMat), Vector2Int(0, 300));
+		renderer.DrawTextField(w$(L"near, far: ", Vector2(n, f), L"\nK, l: ", Vector2(k, l), L"\nEuler: ", euler, L"\n\nT\n", T, L"\n\nR\n", R, L"\n\nS\n", S, L"\n\nClip\n", P, L"\n\nfinalMat\n", finalMat), Vector2Int(0, 20));
 	}
 };
 

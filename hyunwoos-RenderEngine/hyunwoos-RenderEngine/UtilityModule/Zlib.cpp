@@ -61,8 +61,7 @@ void hyunwoo::Zlib::HuffmanTree::Build_Dynamic(const uint32_t* code_length_table
 
     /*----------------------------------
      *  트리에 각 코드들을 구성하는
-     *  노드들을 삽입한다. 사전순으로 값이
-     *  
+     *  노드들을 삽입한다. 
      *-----*/
     for (uint32_t i = 0; i < code_length_table_len; i++) {
         const uint32_t code_len = code_length_table_ptr[i];
@@ -178,6 +177,22 @@ uint32_t hyunwoo::Zlib::HuffmanTree::GetSymbol(BitStream& bitStream) const
     }
 
     return 0;
+}
+
+
+
+
+
+
+
+
+
+/*==============================================================================================
+ *  현재 트리의 노드 개수를 얻습니다....
+ *==========*/
+uint32_t hyunwoo::Zlib::HuffmanTree::GetNodeCount() const
+{
+    return m_nodeList.size();
 }
 
 
@@ -318,8 +333,9 @@ hyunwoo::Zlib::InflateResult hyunwoo::Zlib::Inflate(std::vector<uint8_t>& inZlib
     stream_idx += zlib_block_size;
 
 
-    /*-----------------------------------------------
-     *   확인값을 읽는다....
+    /*--------------------------------------------------
+     *   손상여부를 빠르게 확인할 수 있는 확인값을 읽는다..
+     *   하지만 손상여부 확인 과정은 넘어갑니다...
      *-------*/
     data.checkSum_alder32 = *(uint32_t*)&inZlibDeflateStream[stream_idx];
 
@@ -345,15 +361,27 @@ hyunwoo::Zlib::InflateResult hyunwoo::Zlib::Inflate(std::vector<uint8_t>& inZlib
     Zlib::HuffmanTree     code_len_code_len_tree;
     Zlib::HuffmanTree     literal_length_tree;
     Zlib::HuffmanTree     distance_tree;
-
-    Zlib::HuffmanTree     fixed_literal_length_tree;
-    Zlib::HuffmanTree     fixed_distance_tree;
     std::vector<uint32_t> litLength_and_dist_code_len_table;
 
-    //고정 허프만 트리들을 구축한다...
-    fixed_literal_length_tree.Build_Fixed(Zlib::HuffmanTree::SymbolType::Literal_Length);
-    fixed_distance_tree.Build_Fixed(Zlib::HuffmanTree::SymbolType::Distance);
+    static Zlib::HuffmanTree  fixed_literal_length_tree;
+    static Zlib::HuffmanTree  fixed_distance_tree;
 
+
+    /*-----------------------------------------------
+     *  고정 허프만 트리는 항상 같은 트리만 사용된다.
+     *  따라서 최초 한 번만 초기화하고 재사용한다....
+     *------*/
+    if (fixed_literal_length_tree.GetNodeCount()==0) {
+
+        fixed_literal_length_tree.Build_Fixed(Zlib::HuffmanTree::SymbolType::Literal_Length);
+        fixed_distance_tree.Build_Fixed(Zlib::HuffmanTree::SymbolType::Distance);
+    }
+
+
+
+    /*-----------------------------------------------
+     *   Zlib 데이터를 구성하는 블럭들을 처리한다...
+     *-----*/
     uint32_t block_count           = 0;
     uint32_t dynamic_huffman_count = 0;
     uint32_t no_compression_count  = 0;
@@ -721,7 +749,8 @@ hyunwoo::Zlib::InflateResult hyunwoo::Zlib::Inflate(std::vector<uint8_t>& inZlib
 
 
 /*============================================================================================================
- *   주어진 리터럴/원본 문자열 길이 코드의 허프만 트리와, 역방향 거리의 허프만 트리로 LZ77을 해독한다...
+ *   주어진 리터럴/원본 문자열 길이 코드의 허프만 트리와, 역방향 거리의 허프만 트리로 LZ77을 해독합니다...
+ *   해독해서 얻은 원본 데이터는 outInflateStream에 추가됩니다...
  *=======*/
 void hyunwoo::Zlib::Inflate_LZ77(BitStream& bitStream, std::vector<uint8_t>& outInflateStream, const Zlib::HuffmanTree& literal_length_code_tree, const Zlib::HuffmanTree& distance_code_tree)
 {

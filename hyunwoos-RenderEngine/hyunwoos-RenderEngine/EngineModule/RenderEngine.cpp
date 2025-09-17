@@ -2,7 +2,7 @@
 using KeyCode  = hyunwoo::InputManager::KeyCode;
 using KeyState = hyunwoo::InputManager::KeyState;
 
-/*===========================================================================================
+/*================================================================================================================
  *   정적 필드의 초기화를 진행한다....
  *========*/
 hyunwoo::RenderEngine* hyunwoo::RenderEngine::m_runningEnginePtr = nullptr;
@@ -15,7 +15,7 @@ hyunwoo::RenderEngine* hyunwoo::RenderEngine::m_runningEnginePtr = nullptr;
 
 
 
-/*===========================================================================================
+/*=============================================================================================================
  *   엔진을 초기화하고, 프로그램을 진행하는 블록 함수입니다...
  *========*/
 hyunwoo::RenderEngine::EndReason hyunwoo::RenderEngine::Run(const std::wstring& appName, HINSTANCE hInstance, LPWSTR commandLine, int bShowCmd)

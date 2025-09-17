@@ -415,6 +415,7 @@ hyunwoo::PngImporter::ImportResult hyunwoo::PngImporter::Import(Texture2D& outTe
 			}
 
 
+
 			/*+------------------------------------------------------+
 			  |				    Indexed Color(3bytes)	    		 |
 			  +-----------------+------------------------------------+

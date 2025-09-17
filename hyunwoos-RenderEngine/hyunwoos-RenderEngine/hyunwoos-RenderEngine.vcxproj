@@ -162,20 +162,20 @@
     <ClInclude Include="UtilityModule\Zlib.h" />
   </ItemGroup>
   <ItemGroup>
-    <Image Include="Paymon\Texture\mc3.png" />
-    <Image Include="Paymon\Texture\toon.png" />
-    <Image Include="Paymon\Texture\头发.png" />
-    <Image Include="Paymon\Texture\披风.png" />
-    <Image Include="Paymon\Texture\披风2.png" />
-    <Image Include="Paymon\Texture\脸.png" />
-    <Image Include="Paymon\Texture\衣服.png" />
-    <Image Include="Paymon\Texture\表情.png" />
-    <Image Include="test1.png" />
-    <Image Include="test2.png" />
-    <Image Include="test3.png" />
+    <Image Include="Resources\Paymon\Texture\mc3.png" />
+    <Image Include="Resources\Paymon\Texture\toon.png" />
+    <Image Include="Resources\Paymon\Texture\头发.png" />
+    <Image Include="Resources\Paymon\Texture\披风.png" />
+    <Image Include="Resources\Paymon\Texture\披风2.png" />
+    <Image Include="Resources\Paymon\Texture\脸.png" />
+    <Image Include="Resources\Paymon\Texture\衣服.png" />
+    <Image Include="Resources\Paymon\Texture\表情.png" />
+    <Image Include="Resources\test1.png" />
+    <Image Include="Resources\test2.png" />
+    <Image Include="Resources\test3.png" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="Paymon\paymon.pmx" />
+    <None Include="Resources\Paymon\paymon.pmx" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

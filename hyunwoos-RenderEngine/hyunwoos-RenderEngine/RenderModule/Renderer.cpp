@@ -22,9 +22,26 @@ hyunwoo::Renderer::~Renderer()
 
 
 
+
+
+
 /*=============================================================================================================
  *    좌표계 변환 메소드...
  *============*/
+hyunwoo::Vector2 hyunwoo::Renderer::NDCToScreen(const Vector4& ndcPos)
+{
+    return WorldToScreen(Vector2(
+        (ndcPos.x * m_widthf_half), 
+        (ndcPos.y * m_heightf_half)
+    ));
+}
+
+hyunwoo::Vector4 hyunwoo::Renderer::ClipToNDC(const Vector4& clipPos)
+{
+    const float wDiv = (clipPos.w==0.f? 0.f:(1.f / clipPos.w));
+    return Vector4((clipPos.x * wDiv), (clipPos.y * wDiv), (clipPos.z * wDiv), 1.f);
+}
+
 hyunwoo::Vector2 hyunwoo::Renderer::WorldToScreen(const hyunwoo::Vector2& cartesianPos)
 {
     /****************************************************************
@@ -119,6 +136,7 @@ hyunwoo::Renderer::InitResult hyunwoo::Renderer::Init(HWND renderTargetHwnd, UIN
     m_totalPixelNum       = (initWidth * initHeight);
     m_widthf              = float(m_width);
     m_heightf             = float(m_height);
+    m_aspectRatio         = (m_width / m_height);
     m_widthf_half         = (m_widthf * .5f);
     m_heightf_half        = (m_heightf * .5f);
     m_renderTargetHWND    = renderTargetHwnd;
@@ -635,11 +653,15 @@ void hyunwoo::Renderer::DrawTriangle(const Color& color, const Vector3& worldPos
 /*=============================================================================================================================
  *    지정된 텍스쳐로 삼각형을 그립니다....
  *=============*/
-void hyunwoo::Renderer::DrawTriangle(const Texture2D& texture, const Vector3& worldPos1, const Vector2& uvPos1, const Vector3& worldPos2, const Vector2& uvPos2, const Vector3& worldPos3, const Vector2& uvPos3)
+void hyunwoo::Renderer::DrawTriangle(const Texture2D& texture, const Vector4& clipPos1, const Vector2& uvPos1, const Vector4& clipPos2, const Vector2& uvPos2, const Vector4& clipPos3, const Vector2& uvPos3)
 {
-    const Vector2 screenPos1 = WorldToScreen(worldPos1);
-    const Vector2 screenPos2 = WorldToScreen(worldPos2);
-    const Vector2 screenPos3 = WorldToScreen(worldPos3);
+    const Vector4 ndcPos1 = ClipToNDC(clipPos1);
+    const Vector4 ndcPos2 = ClipToNDC(clipPos2);
+    const Vector4 ndcPos3 = ClipToNDC(clipPos3);
+
+    const Vector2 screenPos1 = NDCToScreen(ndcPos1);
+    const Vector2 screenPos2 = NDCToScreen(ndcPos2);
+    const Vector2 screenPos3 = NDCToScreen(ndcPos3);
 
 
     /*******************************************************************
@@ -710,7 +732,7 @@ void hyunwoo::Renderer::DrawTriangle(const Texture2D& texture, const Vector3& wo
              *-----*/
             if ((s >= 0.f && s <= 1.f) && (t >= 0.f && t <= 1.f) && (r >= 0.f && r <= 1.f)) {
                 const uint32_t idx   = ((m_height - p.y) * m_width + p.x);
-                const float    depth = (worldPos1.z * s) + (worldPos2.z * t) + (worldPos3.z * r);
+                const float    depth = (clipPos1.w * s) + (clipPos2.w * t) + (clipPos3.w * r);
 
                 //점을 찍을 필요가 없다면, 다음으로 넘어간다....
                 if ((idx < 0 || idx>m_totalPixelNum) || m_depthBufferPtr[idx] < depth) {
@@ -755,6 +777,20 @@ UINT hyunwoo::Renderer::GetWidth()  const {
 
 UINT hyunwoo::Renderer::GetHeight() const {
     return m_height;
+}
+
+
+
+
+
+
+
+/*=======================================================================
+ *   랜더러가 생성한 비트맵의 종횡비를 반환합니다....
+ *=========*/
+float hyunwoo::Renderer::GetAspectRatio() const
+{
+    return m_aspectRatio;
 }
 
 

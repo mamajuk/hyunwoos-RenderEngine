@@ -56,8 +56,9 @@ public:
 	/*************************************
 	 *    비트맵 크기 관련 프로퍼티....
 	 ******/
-	UINT GetWidth()  const;
-	UINT GetHeight() const;
+	UINT  GetWidth()	   const;
+	UINT  GetHeight()	   const;
+	float GetAspectRatio() const;
 
 
 
@@ -80,6 +81,7 @@ private:
 	UINT m_width         = 0;
 	UINT m_height        = 0;
 	UINT m_totalPixelNum = 0;
+	float m_aspectRatio  = 0.f;
 	float m_widthf	     = 0.f;
 	float m_heightf      = 0.f;
 	float m_widthf_half  = 0;
@@ -110,6 +112,8 @@ public:
 	/***************************
 	 *   좌표계 변환 메소드....
 	 ******/
+	Vector2 NDCToScreen(const Vector4& ndcPos);
+	Vector4 ClipToNDC(const Vector4& clipPos);
 	Vector2 WorldToScreen(const Vector2& cartesianPos);
 	Vector2 ScreenToWorld(const Vector2& screenPos);
 	
@@ -123,7 +127,7 @@ public:
 	void SetPixel(const Color& color, const Vector2Int& screenPos);
 	void DrawLine(const Color& color, const Vector2& startScreenPos, const Vector2& endScreenPos, bool useClipping = true);
 	void DrawTriangle(const Color& color, const Vector3& worldPos1, const Vector3& worldPos2, const Vector3& worldPos3);
-	void DrawTriangle(const Texture2D& texture, const Vector3& worldPos1, const Vector2& uvPos1, const Vector3& worldPos2, const Vector2& uvPos2, const Vector3& worldPos3, const Vector2& uvPos3);
+	void DrawTriangle(const Texture2D& texture, const Vector4& clipPos1, const Vector2& uvPos1, const Vector4& clipPos2, const Vector2& uvPos2, const Vector4& clipPos3, const Vector2& uvPos3);
 
 
 

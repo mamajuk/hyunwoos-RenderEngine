@@ -139,8 +139,36 @@
     <Image Include="Resources\Paymon\Texture\披风2.png">
       <Filter>Resource Files</Filter>
     </Image>
+    <Image Include="Resources\feixieer\tex\肌.png">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="Resources\feixieer\tex\面.png">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="Resources\feixieer\tex\发.png">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="Resources\feixieer\tex\服.png">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="Resources\feixieer\tex\表情.png">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="Resources\feixieer\hair.png">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="Resources\feixieer\skin.png">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="Resources\feixieer\toon_defo.png">
+      <Filter>Resource Files</Filter>
+    </Image>
   </ItemGroup>
   <ItemGroup>
     <None Include="Resources\Paymon\paymon.pmx" />
+    <None Include="Resources\feixieer\feixieer.pmx" />
+  </ItemGroup>
+  <ItemGroup>
+    <Text Include="Resources\feixieer\readme【一定要看】.txt" />
   </ItemGroup>
 </Project>

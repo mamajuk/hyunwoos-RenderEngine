@@ -22,8 +22,9 @@ class MyRenderEngine final : public RenderEngine
 	////////							   Fields..								////////
 	//==================================================================================
 private:
-	Mesh				   mesh_paymon;
-	std::vector<Texture2D> textures_paymon;
+	Mesh				   m_mesh;
+	std::vector<Texture2D> m_textures;
+	std::vector<uint32_t>  m_submesh_tex_indices;
 
 
 
@@ -36,32 +37,24 @@ protected:
 		Renderer& renderer        = GetRenderer();
 		renderer.UseAutoClear     = true;	
 		renderer.UseAlphaBlending = false;
-		renderer.WireFrameColor   = Color::White;
-		renderer.ClearColor       = Color::Black;
+		renderer.WireFrameColor   = Color::Black;
+		renderer.ClearColor       = Color::White;
 		SetTargetFrameRate(60);
 
 
+
 		/********************************************************
-		 *   페이몬 메시를 불러온다...
+		 *   메시를 불러온다...
 		 *****/
-		PmxImporter::ImportResult pmxRet = PmxImporter::Import(mesh_paymon, 
-			L"Resources/Paymon/paymon.pmx"
-		);
+		PmxImporter::StorageDescription pmx_storage_desc;
+		pmx_storage_desc.OutMesh				 = &m_mesh;
+		pmx_storage_desc.OutTextures		     = &m_textures;
+		pmx_storage_desc.OutSubMeshTextureIdices = &m_submesh_tex_indices;
 
-		PngImporter::ImportResult pngRet = PngImporter::Imports(textures_paymon, { 
-			  L"Resources/Paymon/Texture/脸.png",
-			  L"Resources/Paymon/Texture/头发.png",
-			  L"Resources/Paymon/Texture/衣服.png",
-			  L"Resources/Paymon/Texture/mc3.png",
-			  L"Resources/Paymon/Texture/披风2.png",
-			  L"Resources/Paymon/Texture/表情.png" 
-		});
-
-		//정상적으로 읽어들이는데 실패했는가?
-		if (pmxRet.Success==false || pngRet.Success==false) {
-			throw "import failed!!";
+		PmxImporter::ImportResult pmxRet;
+		if ((pmxRet=PmxImporter::Import(pmx_storage_desc, L"Resources/feixieer/feixieer.pmx")).Success==false) {
+			throw "Pmx import failed!!";
 		}
-
 	}
 
 
@@ -80,7 +73,7 @@ protected:
 			renderer.UseAlphaBlending = !renderer.UseAlphaBlending;
 		}
 
-		Example9_DrawSubMeshs(mesh_paymon, textures_paymon, 100.f, 100.f, 200.f, deltaTime);
+		Example9_DrawSubMeshs(m_mesh, m_textures, 100.f, 100.f, 200.f, deltaTime);
 		Example1_ShowFps(deltaTime);
 	}
 
@@ -611,8 +604,6 @@ private:
 		/***************************************************
 		 *    주어진 위치에 서브메시별로 삼각형들을 그립니다...
 		 ********/
-		const uint32_t subMesh_texIdx_List[] = { 0,1,0,2,2,1,4,5 };
-
 		for (uint32_t subMeshIdx = 0, triangleIdx = 0; subMeshIdx < mesh.SubMesh_Triangle_Counts.size(); subMeshIdx++) {
 			const uint32_t subMesh_finalIdx = (triangleIdx + mesh.SubMesh_Triangle_Counts[subMeshIdx]);
 
@@ -632,7 +623,7 @@ private:
 				const Vector4 clipPos2 = (finalMat * objPos2);
 				const Vector4 clipPos3 = (finalMat * objPos3);
 
-				renderer.DrawTriangle(texs[subMesh_texIdx_List[subMeshIdx]], clipPos1, vertex1.UvPos, clipPos2, vertex2.UvPos, clipPos3, vertex3.UvPos);
+				renderer.DrawTriangle(texs[m_submesh_tex_indices[subMeshIdx]], clipPos1, vertex1.UvPos, clipPos2, vertex2.UvPos, clipPos3, vertex3.UvPos);
 			}
 		}
 

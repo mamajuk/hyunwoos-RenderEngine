@@ -22,8 +22,8 @@ namespace hyunwoo {
  *=========*/
 struct hyunwoo::Texture2D
 {
-	uint32_t				 Width;
-	uint32_t				 Height;
+	uint32_t				 Width  = 0;
+	uint32_t				 Height = 0;
 	std::vector<Color>		 Pixels;
 
 	const Color GetPixel(const Vector2Int& pos) const;
@@ -89,5 +89,5 @@ struct hyunwoo::Shader
  *==========*/
 struct hyunwoo::Material
 {
-
+	Shader Shader;
 };

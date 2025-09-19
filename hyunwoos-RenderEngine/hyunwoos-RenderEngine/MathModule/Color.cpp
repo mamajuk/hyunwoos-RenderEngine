@@ -7,6 +7,7 @@ using namespace hyunwoo;
  *   LinearColor의 필드/메소드들의 정의....
  *******/
 
+
 /*===============================================================================================
  *    LinearColor의 정적 맴버들의 초기화....
  *=========*/
@@ -21,16 +22,18 @@ const LinearColor LinearColor::Purple = LinearColor((165.f/255.f),0.f,(216.f/255
 
 
 
+
+
 /*===============================================================================================
  *    LinearColor에서 Color로의 캐스트 메소드....
  *=========*/
 hyunwoo::LinearColor::operator Color() const
 {
     return Color(
-        std::lround(r * 255.f),
-        std::lround(g * 255.f),
-        std::lround(b * 255.f),
-        std::lround(a * 255.f)
+        std::lround(R * 255.f),
+        std::lround(G * 255.f),
+        std::lround(B * 255.f),
+        std::lround(A * 255.f)
     );
 }
 

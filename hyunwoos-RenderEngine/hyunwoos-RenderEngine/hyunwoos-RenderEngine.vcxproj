@@ -162,6 +162,14 @@
     <ClInclude Include="UtilityModule\Zlib.h" />
   </ItemGroup>
   <ItemGroup>
+    <Image Include="Resources\feixieer\hair.png" />
+    <Image Include="Resources\feixieer\skin.png" />
+    <Image Include="Resources\feixieer\tex\发.png" />
+    <Image Include="Resources\feixieer\tex\服.png" />
+    <Image Include="Resources\feixieer\tex\肌.png" />
+    <Image Include="Resources\feixieer\tex\表情.png" />
+    <Image Include="Resources\feixieer\tex\面.png" />
+    <Image Include="Resources\feixieer\toon_defo.png" />
     <Image Include="Resources\Paymon\Texture\mc3.png" />
     <Image Include="Resources\Paymon\Texture\toon.png" />
     <Image Include="Resources\Paymon\Texture\头发.png" />
@@ -175,7 +183,11 @@
     <Image Include="Resources\test3.png" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="Resources\feixieer\feixieer.pmx" />
     <None Include="Resources\Paymon\paymon.pmx" />
+  </ItemGroup>
+  <ItemGroup>
+    <Text Include="Resources\feixieer\readme【一定要看】.txt" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

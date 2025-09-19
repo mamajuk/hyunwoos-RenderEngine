@@ -38,6 +38,10 @@ hyunwoo::Vector2 hyunwoo::Renderer::NDCToScreen(const Vector4& ndcPos)
 
 hyunwoo::Vector4 hyunwoo::Renderer::ClipToNDC(const Vector4& clipPos)
 {
+    /******************************************************************
+     *   클립좌표계로 변환하기 전의 z값이 보존된 w값으로, 클립 좌표의 모든
+     *   원소를 나누어 모든 축이 -1~1로 정규화된 NDC 좌표계로 변환한다...
+     ******/
     const float wDiv = (clipPos.w==0.f? 0.f:(1.f / clipPos.w));
     return Vector4((clipPos.x * wDiv), (clipPos.y * wDiv), (clipPos.z * wDiv), 1.f);
 }
@@ -504,10 +508,15 @@ void hyunwoo::Renderer::SetPixel_internal(const Color& color, const uint32_t ind
 {
     //알파값이 255보다 작을 때에만, 알파 블랜딩을 적용한다...
     if (UseAlphaBlending && color.A < 255) {
-        LinearColor goalColor = color;
-        LinearColor clearColor = ClearColor;
+        LinearColor goalColor    = color;
+        LinearColor prevColor    = LinearColor(m_backBufferBitmapPtr[index]);
 
-        m_backBufferBitmapPtr[index] = Color(clearColor + (goalColor - clearColor) * goalColor.a).ARGB;
+        if (prevColor!=LinearColor::White) {
+            Color       prevColorInt;
+            prevColorInt.ARGB = m_backBufferBitmapPtr[index];
+        }
+
+        m_backBufferBitmapPtr[index] = Color(prevColor + (goalColor - prevColor) * goalColor.A).ARGB;
         return;
     }
 
@@ -673,6 +682,8 @@ void hyunwoo::Renderer::DrawTriangle(const Texture2D& texture, const Vector4& cl
         DrawLine(WireFrameColor, screenPos2, screenPos3);
         return;
     }
+
+
 
 
     /*********************************************************************

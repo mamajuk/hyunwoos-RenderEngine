@@ -2,6 +2,7 @@
 #include <cstdInt>
 #include <string>
 #include<type_traits>
+#include "../UtilityModule/Zlib.h"
 #include "../RenderModule/RenderResources.h"
 
 namespace hyunwoo {
@@ -41,6 +42,8 @@ public:
 		bool Failed_Deflate				   : 1;
 		bool Invalid_Interlace			   : 1;
 		bool Invalid_FilterType			   : 1;
+
+		Zlib::InflateResult ZlibInflateRet;
 	};
 
 

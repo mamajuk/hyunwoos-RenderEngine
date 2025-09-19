@@ -3,6 +3,7 @@
 #include <vector>
 #include "../MathModule/Vector.h"
 #include "../RenderModule/RenderResources.h"
+#include "PngImporter.h"
 
 namespace hyunwoo {
 	class PmxImporter;
@@ -18,19 +19,6 @@ class hyunwoo::PmxImporter final
 	/////////////////							Defines..							//////////////
 	//============================================================================================
 public:
-
-	/*************************************
-	 *   Pmx 파일의 임포트 결과를 보관하는
-	 *   구조체입니다..
-	 ********/
-	struct ImportResult
-	{
-		bool Success		 : 1;
-		bool Failed_OpenFile : 1;
-		bool IsNotPmxFile    : 1;
-	};
-
-
 
 	/***************************************
 	 *   Pmx 파일의 시그니처를 나타내는 
@@ -147,12 +135,41 @@ public:
 	 ********/
 	struct Header
 	{
-		uint32_t	 Signature;
-		float		 Version;
-		uint8_t		 Globals_Count;
-		Globals		 Globals;
+		uint32_t Signature;
+		float	 Version;
+		uint8_t	 Globals_Count;
+		Globals	 Globals;
 	};
 
+
+
+	/*************************************
+	 *   Pmx 파일의 임포트 결과를 보관하는
+	 *   구조체입니다..
+	 ********/
+	struct ImportResult
+	{
+		bool Success		   : 1;
+		bool Failed_OpenFile   : 1;
+		bool IsNotPmxFile	   : 1;
+		bool LoadDataIsNothing : 1;
+		bool Failed_TextureLoad: 1;
+
+		PngImporter::ImportResult TextureLoadResult;
+	};
+
+
+
+	/*************************************
+	 *   Pmx 파일로부터 얻어올 데이터들을
+	 *   서술하는 구조체입니다...
+	 ********/
+	struct StorageDescription
+	{
+		Mesh*					OutMesh				    = nullptr;
+		std::vector<Texture2D>* OutTextures			    = nullptr;
+		std::vector<uint32_t>*  OutSubMeshTextureIdices = nullptr;
+	};
 
 
 
@@ -160,6 +177,11 @@ public:
 	/////////////////					   Public methods..						  /////////////////
 	//=============================================================================================
 public:
-	static ImportResult Import(Mesh& outMesh, const std::wstring& path);
+	static ImportResult Import(const StorageDescription& loadDesc, const wchar_t* path);
+
 
 };
+
+
+
+

@@ -85,5 +85,7 @@ uint32_t hyunwoo::BitStream::ReadBits(uint32_t readBitCount)
  *==========*/
 void hyunwoo::BitStream::MoveOffsetToByteBoundary()
 {
-	BitLeft -= (BitLeft % 8);
+	const uint32_t ShiftCount = (BitLeft % 8);
+	BitLeft         -= ShiftCount;
+	BitStreamValue >>= ShiftCount;
 }

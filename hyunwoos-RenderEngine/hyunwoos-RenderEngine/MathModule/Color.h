@@ -79,6 +79,14 @@ struct hyunwoo::Color final
 	//=========================================================
 	/////////			Operator methods...			  /////////
 	//=========================================================
+	constexpr const bool operator==(const Color& rhs) const {
+		return ((R == rhs.R) && (G == rhs.G) && (B == rhs.B) && (A == rhs.A));
+	}
+
+	constexpr const bool operator!=(const Color& rhs) const {
+		return !(*this == rhs);
+	}
+
 	constexpr const Color operator+(const Color& rhs) const {
 		return Color((R + rhs.R), (G + rhs.G), (B + rhs.B), (A + rhs.A));
 	}
@@ -148,7 +156,7 @@ struct hyunwoo::LinearColor final
 	//===============================================
 	////////		   Property...			 ////////
 	//===============================================
-	float r, g, b, a;
+	float R, G, B, A;
 
 
 	static const LinearColor White;
@@ -166,31 +174,32 @@ struct hyunwoo::LinearColor final
 	//======================================================
 	////////		   Public methods..				////////
 	//======================================================
-	constexpr LinearColor(float r = 0.f, float g = 0.f, float b = 0.f, float a = 1.f): r(r), g(g),b(b), a(a) {}
+	constexpr LinearColor(DWORD ARGB) :A((ARGB >> 24)/255.f), R(((ARGB << 8) >> 24)/255), G(((ARGB << 16) >> 24)/255), B(((ARGB << 24) >> 24)/255) {}
+	constexpr LinearColor(float r = 0.f, float g = 0.f, float b = 0.f, float a = 1.f): R(r), G(g), B(b), A(a) {}
 	constexpr LinearColor(const LinearColor&) = default;
 	constexpr ~LinearColor()			      = default;
 
 	void AddString(std::string& sharedStr) const {
 		sharedStr += "(";
-		sharedStr += std::to_string(r);
+		sharedStr += std::to_string(R);
 		sharedStr += ", ";
-		sharedStr += std::to_string(g);
+		sharedStr += std::to_string(G);
 		sharedStr += ", ";
-		sharedStr += std::to_string(b);
+		sharedStr += std::to_string(B);
 		sharedStr += ", ";
-		sharedStr += std::to_string(a);
+		sharedStr += std::to_string(A);
 		sharedStr += ")";
 	}
 
 	void AddWString(std::wstring& sharedStr) const {
 		sharedStr += L"(";
-		sharedStr += std::to_wstring(r);
+		sharedStr += std::to_wstring(R);
 		sharedStr += L", ";
-		sharedStr += std::to_wstring(g);
+		sharedStr += std::to_wstring(G);
 		sharedStr += L", ";
-		sharedStr += std::to_wstring(b);
+		sharedStr += std::to_wstring(B);
 		sharedStr += L", ";
-		sharedStr += std::to_wstring(a);
+		sharedStr += std::to_wstring(A);
 		sharedStr += L")";
 	}
 
@@ -199,53 +208,61 @@ struct hyunwoo::LinearColor final
 	//=========================================================
 	/////////			Operator methods...			  /////////
 	//=========================================================
+	constexpr const bool operator==(const LinearColor& rhs) const {
+		return ((R==rhs.R) && (G==rhs.G) && (B==rhs.B) && (A==rhs.A));
+	}
+
+	constexpr const bool operator!=(const LinearColor& rhs) const {
+		return !(*this==rhs);
+	}
+
 	constexpr const LinearColor operator+(const LinearColor& rhs) const {
-		return LinearColor((r+rhs.r), (g+rhs.g), (b+rhs.b), (a+rhs.a));
+		return LinearColor((R+rhs.R), (G+rhs.G), (B+rhs.B), (A+rhs.A));
 	}
 
 	const LinearColor operator-(const LinearColor& rhs) const {
-		return LinearColor((r-rhs.r), (g-rhs.g), (b-rhs.b), (a-rhs.a));
+		return LinearColor((R-rhs.R), (G-rhs.G), (B-rhs.B), (A-rhs.A));
 	}
 
 	const LinearColor operator*(const LinearColor& rhs) const {
-		return LinearColor((r*rhs.r), (g*rhs.g), (b*rhs.b), (a*rhs.a));
+		return LinearColor((R*rhs.R), (G*rhs.G), (B*rhs.B), (A*rhs.A));
 	}
 
 	const LinearColor operator*(const float scalar) const {
-		return LinearColor((r*scalar), (g*scalar), (b*scalar), (a*scalar));
+		return LinearColor((R*scalar), (G*scalar), (B*scalar), (A*scalar));
 	}
 
 	operator Color() const;
 
 	LinearColor& operator+=(const LinearColor& rhs){
-		r += rhs.r;
-		g += rhs.g;
-		b += rhs.b;
-		a += rhs.a;
+		R += rhs.R;
+		G += rhs.G;
+		B += rhs.B;
+		A += rhs.A;
 		return *this;
 	}
 
 	LinearColor& operator-=(const LinearColor& rhs) {
-		r -= rhs.r;
-		g -= rhs.g;
-		b -= rhs.b;
-		a -= rhs.a;
+		R -= rhs.R;
+		G -= rhs.G;
+		B -= rhs.B;
+		A -= rhs.A;
 		return *this;
 	}
 
 	LinearColor& operator*=(const LinearColor& rhs) {
-		r *= rhs.r;
-		g *= rhs.g;
-		b *= rhs.b;
-		a *= rhs.a;
+		R *= rhs.R;
+		G *= rhs.G;
+		B *= rhs.B;
+		A *= rhs.A;
 		return *this;
 	}
 
 	LinearColor& operator+=(const float scalar) {
-		r += scalar;
-		g += scalar;
-		b += scalar;
-		a += scalar;
+		R += scalar;
+		G += scalar;
+		B += scalar;
+		A += scalar;
 		return *this;
 	}
 };

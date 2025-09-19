@@ -7,8 +7,7 @@
  *============*/
 hyunwoo::PngImporter::ImportResult hyunwoo::PngImporter::Import(Texture2D& outTexture, const std::wstring& path)
 {
-	ImportResult ret = { 0, };
-
+	ImportResult outRet = { 0, };
 
 	/**************************************************************************************
 	 *   주어진 주소의 파일이 유효한가?
@@ -20,8 +19,8 @@ hyunwoo::PngImporter::ImportResult hyunwoo::PngImporter::Import(Texture2D& outTe
 	 *   함수를 종료한다...
 	 *****/
 	if (in.is_open() == false) {
-		ret.Failed_OpenFile = true;
-		return ret;
+		outRet.Failed_OpenFile = true;
+		return outRet;
 	}
 
 
@@ -37,8 +36,8 @@ hyunwoo::PngImporter::ImportResult hyunwoo::PngImporter::Import(Texture2D& outTe
 	 *  함수를 종료한다...
 	 *-----*/
 	if (signature != PngImporter::Signature) {
-		ret.Invalid_Signature = true;
-		return ret;
+		outRet.Invalid_Signature = true;
+		return outRet;
 	}
 
 
@@ -129,14 +128,14 @@ hyunwoo::PngImporter::ImportResult hyunwoo::PngImporter::Import(Texture2D& outTe
 
 			//압축방법이 유효하지 않다면, 결과를 갱신하고 함수를 종료한다....
 			if (ihdrData.CompressionMethod != CompressionMethod::Deflate) {
-				ret.CompressionMethodIsNotDeflate = true;
-				return ret;
+				outRet.CompressionMethodIsNotDeflate = true;
+				return outRet;
 			}
 
 			//필터 방법이 유효하지 않다면, 결과를 갱신하고 함수를 종료한다...
 			if (ihdrData.FilterMethod != FilterMethod::Adative) {
-				ret.FilterMethodIsNotAdative = true;
-				return ret;
+				outRet.FilterMethodIsNotAdative = true;
+				return outRet;
 			}
 
 			//인터레이스 값이 잘못되어 있다면, 경과를 갱신하고 함수를 종료한다..
@@ -144,8 +143,8 @@ hyunwoo::PngImporter::ImportResult hyunwoo::PngImporter::Import(Texture2D& outTe
 			const bool isNoAdam7Interlace = (ihdrData.InterlaceMethod != InterlaceMethod::Adam7Interlace);
 
 			if (isNoInterlace && isNoAdam7Interlace) {
-				ret.Invalid_Interlace = true;
-				return ret;
+				outRet.Invalid_Interlace = true;
+				return outRet;
 			}
 		}
 
@@ -232,21 +231,29 @@ hyunwoo::PngImporter::ImportResult hyunwoo::PngImporter::Import(Texture2D& outTe
 	 *   온전한 압축 이미지 데이터의 Deflate 압축을 해제한다....
 	 *******/
 	std::vector<uint8_t> filtered_stream;
-	Zlib::Inflate(deflate_img_stream, filtered_stream);
+	if ((outRet.ZlibInflateRet = Zlib::Inflate(deflate_img_stream, filtered_stream)).Success==false) {
+		outRet.Failed_Deflate = true;
+		return outRet;
+	}
 
 
 	/*----------------------------------------------
 	 *   Deflate 압축을 해제한 데이터가 올바른가?
 	 *------*/
-	const uint32_t bytesPerPixel     = (ihdrData.BitDepth/ 8) * GetColorDimension(ihdrData.ColorType);
-	const uint32_t correct_data_size = (ihdrData.Height * (1 + ihdrData.Width * bytesPerPixel));
+	const uint32_t bitsPerPixel		  = (ihdrData.BitDepth * GetColorDimension(ihdrData.ColorType));
+	const uint32_t bytesPerPixel	  = (bitsPerPixel+7) / 8;
+	const uint32_t correct_data_size  = (ihdrData.Height * (8 + ihdrData.Width * bitsPerPixel))/8;
 
 	//올바르지 않다면, 결과를 갱신하고 함수를 종료한다..
 	if (filtered_stream.size() != correct_data_size) {
-		ret.Failed_Deflate = true;
-		return ret;
+		outRet.Failed_Deflate = true;
+		return outRet;
 	}
 
+
+	if (ihdrData.BitDepth<8) {
+		int i = 0;
+	}
 
 
 	/****************************************************************************************
@@ -254,7 +261,7 @@ hyunwoo::PngImporter::ImportResult hyunwoo::PngImporter::Import(Texture2D& outTe
 	 *   의 한 행을 의미)마다 적용된 필터링 방법이 모두 다르다. 그렇기에 각 스캔라인이 시작하기 전에
 	 *   해당 스캔라인에 적용된 필터링 방법을 나타내는 1bytes가 먼저 등장한다..
 	 *********/
-	const int32_t		 scanLineStride = (ihdrData.Width * bytesPerPixel);
+	const int32_t		 scanLineStride = (ihdrData.Width * bitsPerPixel) / 8;
 	std::vector<uint8_t> defiltered_stream;
 
 	defiltered_stream.reserve(ihdrData.Width * ihdrData.Height);
@@ -302,6 +309,7 @@ hyunwoo::PngImporter::ImportResult hyunwoo::PngImporter::Import(Texture2D& outTe
 	for (uint32_t scanLine = 0; scanLine < ihdrData.Height; scanLine++){
 		FilterType filter_type = (FilterType)filtered_stream[idx++];
 
+
 		for (uint32_t x = 0; x < scanLineStride; x++) {
 
 			uint32_t filt_x  = filtered_stream[idx++];
@@ -309,31 +317,32 @@ hyunwoo::PngImporter::ImportResult hyunwoo::PngImporter::Import(Texture2D& outTe
 			
 			switch (filter_type)
 			{
-				/**None.....**/
+				//필터링 없음. 원본 바이트 그대로인 바이트...
 				case(FilterType::None): {
 					recon_x = filt_x;
 					break;
 				}
 
-				/**Sub...**/
+				//현재 바이트에서 같은 행의 이전 픽셀(byte) 값을 빼서 저장된 필터링 방식.
 				case(FilterType::Sub): {
 					recon_x = filt_x + Recon_a(scanLine, x);
 					break;
 				}
 
-				/**Up...**/
+				//현재 바이트에서 바로 이전 행의 픽셀(byte) 값을 빼서 저장된 필터링 방식.
 				case(FilterType::Up): {
 					recon_x = filt_x + Recon_b(scanLine, x);
 					break;
 				}
 
-				/**Average**/
+				//현재 바이트에서 왼쪽 픽셀과, 위쪽 픽셀의 평균값을 기준으로 차이가 저장된 필터링 방식.
 				case(FilterType::Average): {
 					recon_x = filt_x + Math::Floor((Recon_a(scanLine,x) + Recon_b(scanLine,x)) / 2);
 					break;
 				}
 
-				/**Paeth**/
+				/*현재 바이트에서 왼쪽, 위쪽, 왼쪽-위, 대각선 값 중에서 실제 픽셀 값과 가장 가까운
+				  예측값을 골라 차이값이 저장된 필터링 방식.*/
 				case(FilterType::Paeth): {
 					recon_x = filt_x + PaethPredictor(Recon_a(scanLine, x), Recon_b(scanLine, x), Recon_c(scanLine, x));
 					break;
@@ -341,8 +350,8 @@ hyunwoo::PngImporter::ImportResult hyunwoo::PngImporter::Import(Texture2D& outTe
 
 				/**잘못된 필터링 방법일 경우, 결과를 갱신하고 함수를 종료한다...**/
 				default: {
-					ret.Invalid_FilterType = true;
-					return ret;
+					outRet.Invalid_FilterType = true;
+					return outRet;
 				}
 			}
 
@@ -364,7 +373,7 @@ hyunwoo::PngImporter::ImportResult hyunwoo::PngImporter::Import(Texture2D& outTe
 	outTexture.Pixels.clear();
 	outTexture.Pixels.reserve(ihdrData.Width * ihdrData.Height);
 
-	const float inv255 = (1.f / 255.f);
+
 	while (idx < defiltered_stream.size()) 
 	{
 		switch (ihdrData.ColorType) {
@@ -385,7 +394,7 @@ hyunwoo::PngImporter::ImportResult hyunwoo::PngImporter::Import(Texture2D& outTe
 					colorChannel_G,
 					colorChannel_G,
 					colorChannel_G,
-					1.f
+					255
 				));
 				break;
 			}
@@ -436,7 +445,7 @@ hyunwoo::PngImporter::ImportResult hyunwoo::PngImporter::Import(Texture2D& outTe
 					colorChannel_R,
 					colorChannel_G,
 					colorChannel_B,
-					1.f
+					255
 				));
 				break;
 			}
@@ -460,7 +469,7 @@ hyunwoo::PngImporter::ImportResult hyunwoo::PngImporter::Import(Texture2D& outTe
 					colorChannel_R,
 					colorChannel_G,
 					colorChannel_B,
-					1.f
+					255
 				));
 				break;
 			}
@@ -468,11 +477,11 @@ hyunwoo::PngImporter::ImportResult hyunwoo::PngImporter::Import(Texture2D& outTe
 
 
 			/*+------------------------------------------------------+
-			  |				 True Color With Alpha(3bytes)	    	 |
+			  |				 True Color With Alpha(4bytes)	    	 |
 			  +-----------------+------------------------------------+
 			  |   ColorType: 2  |        BitDepth: 8,16 		     |
 			  +-----------------+------------------------------------+
-			  |  각 픽셀을 구성하는 색상 채널은 R,G,B 3개로 구성된다.		 |
+			  |  각 픽셀을 구성하는 색상 채널은 R,G,B,A 4개로 구성된다.    |
 			  +------------------------------------------------------+*/
 			case(ColorType::TrueColorWithAlpha):
 			{
@@ -492,8 +501,8 @@ hyunwoo::PngImporter::ImportResult hyunwoo::PngImporter::Import(Texture2D& outTe
 		}
 	}
 
-	ret.Success = true;
-	return ret;
+	outRet.Success = true;
+	return outRet;
 }
 
 
@@ -512,7 +521,7 @@ hyunwoo::PngImporter::ImportResult hyunwoo::PngImporter::Import(Texture2D& outTe
  *==============*/
 hyunwoo::PngImporter::ImportResult hyunwoo::PngImporter::Imports(std::vector<Texture2D>& outTextures, std::initializer_list<const wchar_t*> paths)
 {
-	ImportResult ret = { 0, };
+	ImportResult outRet = { 0, };
 
 	outTextures.clear();
 	outTextures.resize(paths.size());
@@ -520,12 +529,12 @@ hyunwoo::PngImporter::ImportResult hyunwoo::PngImporter::Imports(std::vector<Tex
 	uint32_t tex_idx = 0;
 	for (const auto path : paths)
 	{
-		if ((ret = Import(outTextures[tex_idx++], path)).Success == false) {
-			return ret;
+		if ((outRet = Import(outTextures[tex_idx++], path)).Success == false) {
+			return outRet;
 		}
 	}
 
-	return ret;
+	return outRet;
 }
 
 

@@ -1,8 +1,360 @@
-﻿  Source.cpp
-C:\Users\우수컴\source\repos\hyunwoos-RenderEngine\hyunwoos-RenderEngine\hyunwoos-RenderEngine\MathModule\Math.h(75,15): warning C4244: 'return': conversion from 'long double' to 'const int', possible loss of data
+﻿  RenderEngine.cpp
+C:\Users\우수컴\source\repos\hyunwoos-RenderEngine\hyunwoos-RenderEngine\hyunwoos-RenderEngine\MathModule\Math.h(75,14): warning C4244: 'return': conversion from 'double' to 'const int', possible loss of data
+  (compiling source file 'EngineModule/RenderEngine.cpp')
+  
+C:\Users\우수컴\source\repos\hyunwoos-RenderEngine\hyunwoos-RenderEngine\hyunwoos-RenderEngine\MathModule\Math.h(87,15): warning C4244: 'return': conversion from 'double' to 'const int', possible loss of data
+  (compiling source file 'EngineModule/RenderEngine.cpp')
+  
+C:\Users\우수컴\source\repos\hyunwoos-RenderEngine\hyunwoos-RenderEngine\hyunwoos-RenderEngine\MathModule\Math.h(91,16): warning C4244: 'return': conversion from 'float' to 'const int', possible loss of data
+  (compiling source file 'EngineModule/RenderEngine.cpp')
+  
+C:\Users\우수컴\source\repos\hyunwoos-RenderEngine\hyunwoos-RenderEngine\hyunwoos-RenderEngine\MathModule\Vector.h(7,9): warning C4099: 'hyunwoo::Vector2': type name first seen using 'class' now seen using 'struct'
+  (compiling source file 'EngineModule/RenderEngine.cpp')
+      C:\Users\우수컴\source\repos\hyunwoos-RenderEngine\hyunwoos-RenderEngine\hyunwoos-RenderEngine\MathModule\Math.h(7,8):
+      see declaration of 'hyunwoo::Vector2'
+  
+C:\Users\우수컴\source\repos\hyunwoos-RenderEngine\hyunwoos-RenderEngine\hyunwoos-RenderEngine\MathModule\Vector.h(22,17): warning C4099: 'hyunwoo::Vector2': type name first seen using 'class' now seen using 'struct'
+  (compiling source file 'EngineModule/RenderEngine.cpp')
+      C:\Users\우수컴\source\repos\hyunwoos-RenderEngine\hyunwoos-RenderEngine\hyunwoos-RenderEngine\MathModule\Math.h(7,8):
+      see declaration of 'hyunwoo::Vector2'
+  
+C:\Users\우수컴\source\repos\hyunwoos-RenderEngine\hyunwoos-RenderEngine\hyunwoos-RenderEngine\MathModule\Vector.h(199,34): warning C4244: 'initializing': conversion from 'int' to 'float', possible loss of data
+  (compiling source file 'EngineModule/RenderEngine.cpp')
+  
+C:\Users\우수컴\source\repos\hyunwoos-RenderEngine\hyunwoos-RenderEngine\hyunwoos-RenderEngine\MathModule\Vector.h(199,20): warning C4244: 'initializing': conversion from 'int' to 'const float', possible loss of data
+  (compiling source file 'EngineModule/RenderEngine.cpp')
+  
+C:\Users\우수컴\source\repos\hyunwoos-RenderEngine\hyunwoos-RenderEngine\hyunwoos-RenderEngine\MathModule\Vector.h(202,8): warning C4244: '/=': conversion from 'const float' to 'int', possible loss of data
+  (compiling source file 'EngineModule/RenderEngine.cpp')
+  
+C:\Users\우수컴\source\repos\hyunwoos-RenderEngine\hyunwoos-RenderEngine\hyunwoos-RenderEngine\MathModule\Vector.h(203,8): warning C4244: '/=': conversion from 'const float' to 'int', possible loss of data
+  (compiling source file 'EngineModule/RenderEngine.cpp')
+  
+C:\Users\우수컴\source\repos\hyunwoos-RenderEngine\hyunwoos-RenderEngine\hyunwoos-RenderEngine\MathModule\Color.h(177,61): warning C4244: 'initializing': conversion from 'DWORD' to 'float', possible loss of data
+  (compiling source file 'EngineModule/RenderEngine.cpp')
+  
+C:\Users\우수컴\source\repos\hyunwoos-RenderEngine\hyunwoos-RenderEngine\hyunwoos-RenderEngine\MathModule\Color.h(177,89): warning C4244: 'initializing': conversion from 'DWORD' to 'float', possible loss of data
+  (compiling source file 'EngineModule/RenderEngine.cpp')
+  
+C:\Users\우수컴\source\repos\hyunwoos-RenderEngine\hyunwoos-RenderEngine\hyunwoos-RenderEngine\MathModule\Color.h(177,118): warning C4244: 'initializing': conversion from 'DWORD' to 'float', possible loss of data
+  (compiling source file 'EngineModule/RenderEngine.cpp')
+  
+  PmxImporter.cpp
+C:\Users\우수컴\source\repos\hyunwoos-RenderEngine\hyunwoos-RenderEngine\hyunwoos-RenderEngine\MathModule\Math.h(75,14): warning C4244: 'return': conversion from 'double' to 'const int', possible loss of data
+  (compiling source file 'ImportModule/PmxImporter.cpp')
+  
+C:\Users\우수컴\source\repos\hyunwoos-RenderEngine\hyunwoos-RenderEngine\hyunwoos-RenderEngine\MathModule\Math.h(87,15): warning C4244: 'return': conversion from 'double' to 'const int', possible loss of data
+  (compiling source file 'ImportModule/PmxImporter.cpp')
+  
+C:\Users\우수컴\source\repos\hyunwoos-RenderEngine\hyunwoos-RenderEngine\hyunwoos-RenderEngine\MathModule\Math.h(91,16): warning C4244: 'return': conversion from 'float' to 'const int', possible loss of data
+  (compiling source file 'ImportModule/PmxImporter.cpp')
+  
+C:\Users\우수컴\source\repos\hyunwoos-RenderEngine\hyunwoos-RenderEngine\hyunwoos-RenderEngine\MathModule\Vector.h(7,9): warning C4099: 'hyunwoo::Vector2': type name first seen using 'class' now seen using 'struct'
+  (compiling source file 'ImportModule/PmxImporter.cpp')
+      C:\Users\우수컴\source\repos\hyunwoos-RenderEngine\hyunwoos-RenderEngine\hyunwoos-RenderEngine\MathModule\Math.h(7,8):
+      see declaration of 'hyunwoo::Vector2'
+  
+C:\Users\우수컴\source\repos\hyunwoos-RenderEngine\hyunwoos-RenderEngine\hyunwoos-RenderEngine\MathModule\Vector.h(22,17): warning C4099: 'hyunwoo::Vector2': type name first seen using 'class' now seen using 'struct'
+  (compiling source file 'ImportModule/PmxImporter.cpp')
+      C:\Users\우수컴\source\repos\hyunwoos-RenderEngine\hyunwoos-RenderEngine\hyunwoos-RenderEngine\MathModule\Math.h(7,8):
+      see declaration of 'hyunwoo::Vector2'
+  
+C:\Users\우수컴\source\repos\hyunwoos-RenderEngine\hyunwoos-RenderEngine\hyunwoos-RenderEngine\MathModule\Vector.h(199,34): warning C4244: 'initializing': conversion from 'int' to 'float', possible loss of data
+  (compiling source file 'ImportModule/PmxImporter.cpp')
+  
+C:\Users\우수컴\source\repos\hyunwoos-RenderEngine\hyunwoos-RenderEngine\hyunwoos-RenderEngine\MathModule\Vector.h(199,20): warning C4244: 'initializing': conversion from 'int' to 'const float', possible loss of data
+  (compiling source file 'ImportModule/PmxImporter.cpp')
+  
+C:\Users\우수컴\source\repos\hyunwoos-RenderEngine\hyunwoos-RenderEngine\hyunwoos-RenderEngine\MathModule\Vector.h(202,8): warning C4244: '/=': conversion from 'const float' to 'int', possible loss of data
+  (compiling source file 'ImportModule/PmxImporter.cpp')
+  
+C:\Users\우수컴\source\repos\hyunwoos-RenderEngine\hyunwoos-RenderEngine\hyunwoos-RenderEngine\MathModule\Vector.h(203,8): warning C4244: '/=': conversion from 'const float' to 'int', possible loss of data
+  (compiling source file 'ImportModule/PmxImporter.cpp')
+  
+C:\Users\우수컴\source\repos\hyunwoos-RenderEngine\hyunwoos-RenderEngine\hyunwoos-RenderEngine\MathModule\Color.h(177,61): warning C4244: 'initializing': conversion from 'DWORD' to 'float', possible loss of data
+  (compiling source file 'ImportModule/PmxImporter.cpp')
+  
+C:\Users\우수컴\source\repos\hyunwoos-RenderEngine\hyunwoos-RenderEngine\hyunwoos-RenderEngine\MathModule\Color.h(177,89): warning C4244: 'initializing': conversion from 'DWORD' to 'float', possible loss of data
+  (compiling source file 'ImportModule/PmxImporter.cpp')
+  
+C:\Users\우수컴\source\repos\hyunwoos-RenderEngine\hyunwoos-RenderEngine\hyunwoos-RenderEngine\MathModule\Color.h(177,118): warning C4244: 'initializing': conversion from 'DWORD' to 'float', possible loss of data
+  (compiling source file 'ImportModule/PmxImporter.cpp')
+  
+C:\Users\우수컴\source\repos\hyunwoos-RenderEngine\hyunwoos-RenderEngine\hyunwoos-RenderEngine\ImportModule\PmxImporter.h(73,3): warning C4309: 'initializing': truncation of constant value
+  (compiling source file 'ImportModule/PmxImporter.cpp')
+  
+C:\Users\우수컴\source\repos\hyunwoos-RenderEngine\hyunwoos-RenderEngine\hyunwoos-RenderEngine\ImportModule\PmxImporter.h(73,3): warning C4369: 'hyunwoo::PmxImporter::DefaultIndexType':  enumerator value '-1' cannot be represented as 'unsigned char', value is '-1'
+  (compiling source file 'ImportModule/PmxImporter.cpp')
+  
+C:\Users\우수컴\source\repos\hyunwoos-RenderEngine\hyunwoos-RenderEngine\hyunwoos-RenderEngine\ImportModule\PmxImporter.cpp(207,32): warning C4018: '<': signed/unsigned mismatch
+C:\Users\우수컴\source\repos\hyunwoos-RenderEngine\hyunwoos-RenderEngine\hyunwoos-RenderEngine\ImportModule\PmxImporter.cpp(282,67): warning C4267: 'initializing': conversion from 'size_t' to 'int32_t', possible loss of data
+C:\Users\우수컴\source\repos\hyunwoos-RenderEngine\hyunwoos-RenderEngine\hyunwoos-RenderEngine\ImportModule\PmxImporter.cpp(282,36): warning C4267: 'initializing': conversion from 'size_t' to 'const int32_t', possible loss of data
+  PngImporter.cpp
+C:\Users\우수컴\source\repos\hyunwoos-RenderEngine\hyunwoos-RenderEngine\hyunwoos-RenderEngine\MathModule\Math.h(75,14): warning C4244: 'return': conversion from 'double' to 'const int', possible loss of data
+  (compiling source file 'ImportModule/PngImporter.cpp')
+  
+C:\Users\우수컴\source\repos\hyunwoos-RenderEngine\hyunwoos-RenderEngine\hyunwoos-RenderEngine\MathModule\Math.h(87,15): warning C4244: 'return': conversion from 'double' to 'const int', possible loss of data
+  (compiling source file 'ImportModule/PngImporter.cpp')
+  
+C:\Users\우수컴\source\repos\hyunwoos-RenderEngine\hyunwoos-RenderEngine\hyunwoos-RenderEngine\MathModule\Math.h(91,16): warning C4244: 'return': conversion from 'float' to 'const int', possible loss of data
+  (compiling source file 'ImportModule/PngImporter.cpp')
+  
+C:\Users\우수컴\source\repos\hyunwoos-RenderEngine\hyunwoos-RenderEngine\hyunwoos-RenderEngine\MathModule\Vector.h(7,9): warning C4099: 'hyunwoo::Vector2': type name first seen using 'class' now seen using 'struct'
+  (compiling source file 'ImportModule/PngImporter.cpp')
+      C:\Users\우수컴\source\repos\hyunwoos-RenderEngine\hyunwoos-RenderEngine\hyunwoos-RenderEngine\MathModule\Math.h(7,8):
+      see declaration of 'hyunwoo::Vector2'
+  
+C:\Users\우수컴\source\repos\hyunwoos-RenderEngine\hyunwoos-RenderEngine\hyunwoos-RenderEngine\MathModule\Vector.h(22,17): warning C4099: 'hyunwoo::Vector2': type name first seen using 'class' now seen using 'struct'
+  (compiling source file 'ImportModule/PngImporter.cpp')
+      C:\Users\우수컴\source\repos\hyunwoos-RenderEngine\hyunwoos-RenderEngine\hyunwoos-RenderEngine\MathModule\Math.h(7,8):
+      see declaration of 'hyunwoo::Vector2'
+  
+C:\Users\우수컴\source\repos\hyunwoos-RenderEngine\hyunwoos-RenderEngine\hyunwoos-RenderEngine\MathModule\Vector.h(199,34): warning C4244: 'initializing': conversion from 'int' to 'float', possible loss of data
+  (compiling source file 'ImportModule/PngImporter.cpp')
+  
+C:\Users\우수컴\source\repos\hyunwoos-RenderEngine\hyunwoos-RenderEngine\hyunwoos-RenderEngine\MathModule\Vector.h(199,20): warning C4244: 'initializing': conversion from 'int' to 'const float', possible loss of data
+  (compiling source file 'ImportModule/PngImporter.cpp')
+  
+C:\Users\우수컴\source\repos\hyunwoos-RenderEngine\hyunwoos-RenderEngine\hyunwoos-RenderEngine\MathModule\Vector.h(202,8): warning C4244: '/=': conversion from 'const float' to 'int', possible loss of data
+  (compiling source file 'ImportModule/PngImporter.cpp')
+  
+C:\Users\우수컴\source\repos\hyunwoos-RenderEngine\hyunwoos-RenderEngine\hyunwoos-RenderEngine\MathModule\Vector.h(203,8): warning C4244: '/=': conversion from 'const float' to 'int', possible loss of data
+  (compiling source file 'ImportModule/PngImporter.cpp')
+  
+C:\Users\우수컴\source\repos\hyunwoos-RenderEngine\hyunwoos-RenderEngine\hyunwoos-RenderEngine\MathModule\Color.h(177,61): warning C4244: 'initializing': conversion from 'DWORD' to 'float', possible loss of data
+  (compiling source file 'ImportModule/PngImporter.cpp')
+  
+C:\Users\우수컴\source\repos\hyunwoos-RenderEngine\hyunwoos-RenderEngine\hyunwoos-RenderEngine\MathModule\Color.h(177,89): warning C4244: 'initializing': conversion from 'DWORD' to 'float', possible loss of data
+  (compiling source file 'ImportModule/PngImporter.cpp')
+  
+C:\Users\우수컴\source\repos\hyunwoos-RenderEngine\hyunwoos-RenderEngine\hyunwoos-RenderEngine\MathModule\Color.h(177,118): warning C4244: 'initializing': conversion from 'DWORD' to 'float', possible loss of data
+  (compiling source file 'ImportModule/PngImporter.cpp')
+  
+C:\Users\우수컴\source\repos\hyunwoos-RenderEngine\hyunwoos-RenderEngine\hyunwoos-RenderEngine\ImportModule\PngImporter.cpp(170,54): warning C4267: 'initializing': conversion from 'size_t' to 'uint32_t', possible loss of data
+C:\Users\우수컴\source\repos\hyunwoos-RenderEngine\hyunwoos-RenderEngine\hyunwoos-RenderEngine\ImportModule\PngImporter.cpp(170,29): warning C4267: 'initializing': conversion from 'size_t' to 'const uint32_t', possible loss of data
+C:\Users\우수컴\source\repos\hyunwoos-RenderEngine\hyunwoos-RenderEngine\hyunwoos-RenderEngine\ImportModule\PngImporter.cpp(274,15): warning C4018: '>=': signed/unsigned mismatch
+C:\Users\우수컴\source\repos\hyunwoos-RenderEngine\hyunwoos-RenderEngine\hyunwoos-RenderEngine\ImportModule\PngImporter.cpp(282,25): warning C4018: '>=': signed/unsigned mismatch
+C:\Users\우수컴\source\repos\hyunwoos-RenderEngine\hyunwoos-RenderEngine\hyunwoos-RenderEngine\ImportModule\PngImporter.cpp(313,26): warning C4018: '<': signed/unsigned mismatch
+  Color.cpp
+C:\Users\우수컴\source\repos\hyunwoos-RenderEngine\hyunwoos-RenderEngine\hyunwoos-RenderEngine\MathModule\Math.h(75,14): warning C4244: 'return': conversion from 'double' to 'const int', possible loss of data
+  (compiling source file 'MathModule/Color.cpp')
+  
+C:\Users\우수컴\source\repos\hyunwoos-RenderEngine\hyunwoos-RenderEngine\hyunwoos-RenderEngine\MathModule\Math.h(87,15): warning C4244: 'return': conversion from 'double' to 'const int', possible loss of data
+  (compiling source file 'MathModule/Color.cpp')
+  
+C:\Users\우수컴\source\repos\hyunwoos-RenderEngine\hyunwoos-RenderEngine\hyunwoos-RenderEngine\MathModule\Math.h(91,16): warning C4244: 'return': conversion from 'float' to 'const int', possible loss of data
+  (compiling source file 'MathModule/Color.cpp')
+  
+C:\Users\우수컴\source\repos\hyunwoos-RenderEngine\hyunwoos-RenderEngine\hyunwoos-RenderEngine\MathModule\Vector.h(7,9): warning C4099: 'hyunwoo::Vector2': type name first seen using 'class' now seen using 'struct'
+  (compiling source file 'MathModule/Color.cpp')
+      C:\Users\우수컴\source\repos\hyunwoos-RenderEngine\hyunwoos-RenderEngine\hyunwoos-RenderEngine\MathModule\Math.h(7,8):
+      see declaration of 'hyunwoo::Vector2'
+  
+C:\Users\우수컴\source\repos\hyunwoos-RenderEngine\hyunwoos-RenderEngine\hyunwoos-RenderEngine\MathModule\Vector.h(22,17): warning C4099: 'hyunwoo::Vector2': type name first seen using 'class' now seen using 'struct'
+  (compiling source file 'MathModule/Color.cpp')
+      C:\Users\우수컴\source\repos\hyunwoos-RenderEngine\hyunwoos-RenderEngine\hyunwoos-RenderEngine\MathModule\Math.h(7,8):
+      see declaration of 'hyunwoo::Vector2'
+  
+C:\Users\우수컴\source\repos\hyunwoos-RenderEngine\hyunwoos-RenderEngine\hyunwoos-RenderEngine\MathModule\Vector.h(199,34): warning C4244: 'initializing': conversion from 'int' to 'float', possible loss of data
+  (compiling source file 'MathModule/Color.cpp')
+  
+C:\Users\우수컴\source\repos\hyunwoos-RenderEngine\hyunwoos-RenderEngine\hyunwoos-RenderEngine\MathModule\Vector.h(199,20): warning C4244: 'initializing': conversion from 'int' to 'const float', possible loss of data
+  (compiling source file 'MathModule/Color.cpp')
+  
+C:\Users\우수컴\source\repos\hyunwoos-RenderEngine\hyunwoos-RenderEngine\hyunwoos-RenderEngine\MathModule\Vector.h(202,8): warning C4244: '/=': conversion from 'const float' to 'int', possible loss of data
+  (compiling source file 'MathModule/Color.cpp')
+  
+C:\Users\우수컴\source\repos\hyunwoos-RenderEngine\hyunwoos-RenderEngine\hyunwoos-RenderEngine\MathModule\Vector.h(203,8): warning C4244: '/=': conversion from 'const float' to 'int', possible loss of data
+  (compiling source file 'MathModule/Color.cpp')
+  
+C:\Users\우수컴\source\repos\hyunwoos-RenderEngine\hyunwoos-RenderEngine\hyunwoos-RenderEngine\MathModule\Color.h(177,61): warning C4244: 'initializing': conversion from 'DWORD' to 'float', possible loss of data
+  (compiling source file 'MathModule/Color.cpp')
+  
+C:\Users\우수컴\source\repos\hyunwoos-RenderEngine\hyunwoos-RenderEngine\hyunwoos-RenderEngine\MathModule\Color.h(177,89): warning C4244: 'initializing': conversion from 'DWORD' to 'float', possible loss of data
+  (compiling source file 'MathModule/Color.cpp')
+  
+C:\Users\우수컴\source\repos\hyunwoos-RenderEngine\hyunwoos-RenderEngine\hyunwoos-RenderEngine\MathModule\Color.h(177,118): warning C4244: 'initializing': conversion from 'DWORD' to 'float', possible loss of data
+  (compiling source file 'MathModule/Color.cpp')
+  
+  RenderResources.cpp
+C:\Users\우수컴\source\repos\hyunwoos-RenderEngine\hyunwoos-RenderEngine\hyunwoos-RenderEngine\MathModule\Math.h(75,14): warning C4244: 'return': conversion from 'double' to 'const int', possible loss of data
+  (compiling source file 'RenderModule/RenderResources.cpp')
+  
+C:\Users\우수컴\source\repos\hyunwoos-RenderEngine\hyunwoos-RenderEngine\hyunwoos-RenderEngine\MathModule\Math.h(87,15): warning C4244: 'return': conversion from 'double' to 'const int', possible loss of data
+  (compiling source file 'RenderModule/RenderResources.cpp')
+  
+C:\Users\우수컴\source\repos\hyunwoos-RenderEngine\hyunwoos-RenderEngine\hyunwoos-RenderEngine\MathModule\Math.h(91,16): warning C4244: 'return': conversion from 'float' to 'const int', possible loss of data
+  (compiling source file 'RenderModule/RenderResources.cpp')
+  
+C:\Users\우수컴\source\repos\hyunwoos-RenderEngine\hyunwoos-RenderEngine\hyunwoos-RenderEngine\MathModule\Vector.h(7,9): warning C4099: 'hyunwoo::Vector2': type name first seen using 'class' now seen using 'struct'
+  (compiling source file 'RenderModule/RenderResources.cpp')
+      C:\Users\우수컴\source\repos\hyunwoos-RenderEngine\hyunwoos-RenderEngine\hyunwoos-RenderEngine\MathModule\Math.h(7,8):
+      see declaration of 'hyunwoo::Vector2'
+  
+C:\Users\우수컴\source\repos\hyunwoos-RenderEngine\hyunwoos-RenderEngine\hyunwoos-RenderEngine\MathModule\Vector.h(22,17): warning C4099: 'hyunwoo::Vector2': type name first seen using 'class' now seen using 'struct'
+  (compiling source file 'RenderModule/RenderResources.cpp')
+      C:\Users\우수컴\source\repos\hyunwoos-RenderEngine\hyunwoos-RenderEngine\hyunwoos-RenderEngine\MathModule\Math.h(7,8):
+      see declaration of 'hyunwoo::Vector2'
+  
+C:\Users\우수컴\source\repos\hyunwoos-RenderEngine\hyunwoos-RenderEngine\hyunwoos-RenderEngine\MathModule\Vector.h(199,34): warning C4244: 'initializing': conversion from 'int' to 'float', possible loss of data
+  (compiling source file 'RenderModule/RenderResources.cpp')
+  
+C:\Users\우수컴\source\repos\hyunwoos-RenderEngine\hyunwoos-RenderEngine\hyunwoos-RenderEngine\MathModule\Vector.h(199,20): warning C4244: 'initializing': conversion from 'int' to 'const float', possible loss of data
+  (compiling source file 'RenderModule/RenderResources.cpp')
+  
+C:\Users\우수컴\source\repos\hyunwoos-RenderEngine\hyunwoos-RenderEngine\hyunwoos-RenderEngine\MathModule\Vector.h(202,8): warning C4244: '/=': conversion from 'const float' to 'int', possible loss of data
+  (compiling source file 'RenderModule/RenderResources.cpp')
+  
+C:\Users\우수컴\source\repos\hyunwoos-RenderEngine\hyunwoos-RenderEngine\hyunwoos-RenderEngine\MathModule\Vector.h(203,8): warning C4244: '/=': conversion from 'const float' to 'int', possible loss of data
+  (compiling source file 'RenderModule/RenderResources.cpp')
+  
+C:\Users\우수컴\source\repos\hyunwoos-RenderEngine\hyunwoos-RenderEngine\hyunwoos-RenderEngine\MathModule\Color.h(177,61): warning C4244: 'initializing': conversion from 'DWORD' to 'float', possible loss of data
+  (compiling source file 'RenderModule/RenderResources.cpp')
+  
+C:\Users\우수컴\source\repos\hyunwoos-RenderEngine\hyunwoos-RenderEngine\hyunwoos-RenderEngine\MathModule\Color.h(177,89): warning C4244: 'initializing': conversion from 'DWORD' to 'float', possible loss of data
+  (compiling source file 'RenderModule/RenderResources.cpp')
+  
+C:\Users\우수컴\source\repos\hyunwoos-RenderEngine\hyunwoos-RenderEngine\hyunwoos-RenderEngine\MathModule\Color.h(177,118): warning C4244: 'initializing': conversion from 'DWORD' to 'float', possible loss of data
+  (compiling source file 'RenderModule/RenderResources.cpp')
+  
+C:\Users\우수컴\source\repos\hyunwoos-RenderEngine\hyunwoos-RenderEngine\hyunwoos-RenderEngine\RenderModule\RenderResources.cpp(11,22): warning C4018: '<': signed/unsigned mismatch
+  Renderer.cpp
+C:\Users\우수컴\source\repos\hyunwoos-RenderEngine\hyunwoos-RenderEngine\hyunwoos-RenderEngine\MathModule\Math.h(75,14): warning C4244: 'return': conversion from 'double' to 'const int', possible loss of data
+  (compiling source file 'RenderModule/Renderer.cpp')
+  
+C:\Users\우수컴\source\repos\hyunwoos-RenderEngine\hyunwoos-RenderEngine\hyunwoos-RenderEngine\MathModule\Math.h(87,15): warning C4244: 'return': conversion from 'double' to 'const int', possible loss of data
+  (compiling source file 'RenderModule/Renderer.cpp')
+  
+C:\Users\우수컴\source\repos\hyunwoos-RenderEngine\hyunwoos-RenderEngine\hyunwoos-RenderEngine\MathModule\Math.h(91,16): warning C4244: 'return': conversion from 'float' to 'const int', possible loss of data
+  (compiling source file 'RenderModule/Renderer.cpp')
+  
+C:\Users\우수컴\source\repos\hyunwoos-RenderEngine\hyunwoos-RenderEngine\hyunwoos-RenderEngine\MathModule\Vector.h(7,9): warning C4099: 'hyunwoo::Vector2': type name first seen using 'class' now seen using 'struct'
+  (compiling source file 'RenderModule/Renderer.cpp')
+      C:\Users\우수컴\source\repos\hyunwoos-RenderEngine\hyunwoos-RenderEngine\hyunwoos-RenderEngine\MathModule\Math.h(7,8):
+      see declaration of 'hyunwoo::Vector2'
+  
+C:\Users\우수컴\source\repos\hyunwoos-RenderEngine\hyunwoos-RenderEngine\hyunwoos-RenderEngine\MathModule\Vector.h(22,17): warning C4099: 'hyunwoo::Vector2': type name first seen using 'class' now seen using 'struct'
+  (compiling source file 'RenderModule/Renderer.cpp')
+      C:\Users\우수컴\source\repos\hyunwoos-RenderEngine\hyunwoos-RenderEngine\hyunwoos-RenderEngine\MathModule\Math.h(7,8):
+      see declaration of 'hyunwoo::Vector2'
+  
+C:\Users\우수컴\source\repos\hyunwoos-RenderEngine\hyunwoos-RenderEngine\hyunwoos-RenderEngine\MathModule\Vector.h(199,34): warning C4244: 'initializing': conversion from 'int' to 'float', possible loss of data
+  (compiling source file 'RenderModule/Renderer.cpp')
+  
+C:\Users\우수컴\source\repos\hyunwoos-RenderEngine\hyunwoos-RenderEngine\hyunwoos-RenderEngine\MathModule\Vector.h(199,20): warning C4244: 'initializing': conversion from 'int' to 'const float', possible loss of data
+  (compiling source file 'RenderModule/Renderer.cpp')
+  
+C:\Users\우수컴\source\repos\hyunwoos-RenderEngine\hyunwoos-RenderEngine\hyunwoos-RenderEngine\MathModule\Vector.h(202,8): warning C4244: '/=': conversion from 'const float' to 'int', possible loss of data
+  (compiling source file 'RenderModule/Renderer.cpp')
+  
+C:\Users\우수컴\source\repos\hyunwoos-RenderEngine\hyunwoos-RenderEngine\hyunwoos-RenderEngine\MathModule\Vector.h(203,8): warning C4244: '/=': conversion from 'const float' to 'int', possible loss of data
+  (compiling source file 'RenderModule/Renderer.cpp')
+  
+C:\Users\우수컴\source\repos\hyunwoos-RenderEngine\hyunwoos-RenderEngine\hyunwoos-RenderEngine\MathModule\Color.h(177,61): warning C4244: 'initializing': conversion from 'DWORD' to 'float', possible loss of data
+  (compiling source file 'RenderModule/Renderer.cpp')
+  
+C:\Users\우수컴\source\repos\hyunwoos-RenderEngine\hyunwoos-RenderEngine\hyunwoos-RenderEngine\MathModule\Color.h(177,89): warning C4244: 'initializing': conversion from 'DWORD' to 'float', possible loss of data
+  (compiling source file 'RenderModule/Renderer.cpp')
+  
+C:\Users\우수컴\source\repos\hyunwoos-RenderEngine\hyunwoos-RenderEngine\hyunwoos-RenderEngine\MathModule\Color.h(177,118): warning C4244: 'initializing': conversion from 'DWORD' to 'float', possible loss of data
+  (compiling source file 'RenderModule/Renderer.cpp')
+  
+C:\Users\우수컴\source\repos\hyunwoos-RenderEngine\hyunwoos-RenderEngine\hyunwoos-RenderEngine\RenderModule\Renderer.cpp(143,38): warning C4244: '=': conversion from 'UINT' to 'float', possible loss of data
+C:\Users\우수컴\source\repos\hyunwoos-RenderEngine\hyunwoos-RenderEngine\hyunwoos-RenderEngine\RenderModule\Renderer.cpp(500,42): warning C4018: '>=': signed/unsigned mismatch
+C:\Users\우수컴\source\repos\hyunwoos-RenderEngine\hyunwoos-RenderEngine\hyunwoos-RenderEngine\RenderModule\Renderer.cpp(549,45): warning C4267: 'argument': conversion from 'size_t' to 'int', possible loss of data
+C:\Users\우수컴\source\repos\hyunwoos-RenderEngine\hyunwoos-RenderEngine\hyunwoos-RenderEngine\RenderModule\Renderer.cpp(617,33): warning C4244: 'initializing': conversion from 'T' to 'int', possible loss of data
+C:\Users\우수컴\source\repos\hyunwoos-RenderEngine\hyunwoos-RenderEngine\hyunwoos-RenderEngine\RenderModule\Renderer.cpp(617,33): warning C4244:         with
+C:\Users\우수컴\source\repos\hyunwoos-RenderEngine\hyunwoos-RenderEngine\hyunwoos-RenderEngine\RenderModule\Renderer.cpp(617,33): warning C4244:         [
+C:\Users\우수컴\source\repos\hyunwoos-RenderEngine\hyunwoos-RenderEngine\hyunwoos-RenderEngine\RenderModule\Renderer.cpp(617,33): warning C4244:             T=float
+C:\Users\우수컴\source\repos\hyunwoos-RenderEngine\hyunwoos-RenderEngine\hyunwoos-RenderEngine\RenderModule\Renderer.cpp(617,33): warning C4244:         ]
+C:\Users\우수컴\source\repos\hyunwoos-RenderEngine\hyunwoos-RenderEngine\hyunwoos-RenderEngine\RenderModule\Renderer.cpp(617,22): warning C4244: 'initializing': conversion from 'T' to 'const int', possible loss of data
+C:\Users\우수컴\source\repos\hyunwoos-RenderEngine\hyunwoos-RenderEngine\hyunwoos-RenderEngine\RenderModule\Renderer.cpp(617,22): warning C4244:         with
+C:\Users\우수컴\source\repos\hyunwoos-RenderEngine\hyunwoos-RenderEngine\hyunwoos-RenderEngine\RenderModule\Renderer.cpp(617,22): warning C4244:         [
+C:\Users\우수컴\source\repos\hyunwoos-RenderEngine\hyunwoos-RenderEngine\hyunwoos-RenderEngine\RenderModule\Renderer.cpp(617,22): warning C4244:             T=float
+C:\Users\우수컴\source\repos\hyunwoos-RenderEngine\hyunwoos-RenderEngine\hyunwoos-RenderEngine\RenderModule\Renderer.cpp(617,22): warning C4244:         ]
+C:\Users\우수컴\source\repos\hyunwoos-RenderEngine\hyunwoos-RenderEngine\hyunwoos-RenderEngine\RenderModule\Renderer.cpp(618,33): warning C4244: 'initializing': conversion from 'T' to 'int', possible loss of data
+C:\Users\우수컴\source\repos\hyunwoos-RenderEngine\hyunwoos-RenderEngine\hyunwoos-RenderEngine\RenderModule\Renderer.cpp(618,33): warning C4244:         with
+C:\Users\우수컴\source\repos\hyunwoos-RenderEngine\hyunwoos-RenderEngine\hyunwoos-RenderEngine\RenderModule\Renderer.cpp(618,33): warning C4244:         [
+C:\Users\우수컴\source\repos\hyunwoos-RenderEngine\hyunwoos-RenderEngine\hyunwoos-RenderEngine\RenderModule\Renderer.cpp(618,33): warning C4244:             T=float
+C:\Users\우수컴\source\repos\hyunwoos-RenderEngine\hyunwoos-RenderEngine\hyunwoos-RenderEngine\RenderModule\Renderer.cpp(618,33): warning C4244:         ]
+C:\Users\우수컴\source\repos\hyunwoos-RenderEngine\hyunwoos-RenderEngine\hyunwoos-RenderEngine\RenderModule\Renderer.cpp(618,22): warning C4244: 'initializing': conversion from 'T' to 'const int', possible loss of data
+C:\Users\우수컴\source\repos\hyunwoos-RenderEngine\hyunwoos-RenderEngine\hyunwoos-RenderEngine\RenderModule\Renderer.cpp(618,22): warning C4244:         with
+C:\Users\우수컴\source\repos\hyunwoos-RenderEngine\hyunwoos-RenderEngine\hyunwoos-RenderEngine\RenderModule\Renderer.cpp(618,22): warning C4244:         [
+C:\Users\우수컴\source\repos\hyunwoos-RenderEngine\hyunwoos-RenderEngine\hyunwoos-RenderEngine\RenderModule\Renderer.cpp(618,22): warning C4244:             T=float
+C:\Users\우수컴\source\repos\hyunwoos-RenderEngine\hyunwoos-RenderEngine\hyunwoos-RenderEngine\RenderModule\Renderer.cpp(618,22): warning C4244:         ]
+C:\Users\우수컴\source\repos\hyunwoos-RenderEngine\hyunwoos-RenderEngine\hyunwoos-RenderEngine\RenderModule\Renderer.cpp(619,33): warning C4244: 'initializing': conversion from 'T' to 'int', possible loss of data
+C:\Users\우수컴\source\repos\hyunwoos-RenderEngine\hyunwoos-RenderEngine\hyunwoos-RenderEngine\RenderModule\Renderer.cpp(619,33): warning C4244:         with
+C:\Users\우수컴\source\repos\hyunwoos-RenderEngine\hyunwoos-RenderEngine\hyunwoos-RenderEngine\RenderModule\Renderer.cpp(619,33): warning C4244:         [
+C:\Users\우수컴\source\repos\hyunwoos-RenderEngine\hyunwoos-RenderEngine\hyunwoos-RenderEngine\RenderModule\Renderer.cpp(619,33): warning C4244:             T=float
+C:\Users\우수컴\source\repos\hyunwoos-RenderEngine\hyunwoos-RenderEngine\hyunwoos-RenderEngine\RenderModule\Renderer.cpp(619,33): warning C4244:         ]
+C:\Users\우수컴\source\repos\hyunwoos-RenderEngine\hyunwoos-RenderEngine\hyunwoos-RenderEngine\RenderModule\Renderer.cpp(619,22): warning C4244: 'initializing': conversion from 'T' to 'const int', possible loss of data
+C:\Users\우수컴\source\repos\hyunwoos-RenderEngine\hyunwoos-RenderEngine\hyunwoos-RenderEngine\RenderModule\Renderer.cpp(619,22): warning C4244:         with
+C:\Users\우수컴\source\repos\hyunwoos-RenderEngine\hyunwoos-RenderEngine\hyunwoos-RenderEngine\RenderModule\Renderer.cpp(619,22): warning C4244:         [
+C:\Users\우수컴\source\repos\hyunwoos-RenderEngine\hyunwoos-RenderEngine\hyunwoos-RenderEngine\RenderModule\Renderer.cpp(619,22): warning C4244:             T=float
+C:\Users\우수컴\source\repos\hyunwoos-RenderEngine\hyunwoos-RenderEngine\hyunwoos-RenderEngine\RenderModule\Renderer.cpp(619,22): warning C4244:         ]
+C:\Users\우수컴\source\repos\hyunwoos-RenderEngine\hyunwoos-RenderEngine\hyunwoos-RenderEngine\RenderModule\Renderer.cpp(620,33): warning C4244: 'initializing': conversion from 'T' to 'int', possible loss of data
+C:\Users\우수컴\source\repos\hyunwoos-RenderEngine\hyunwoos-RenderEngine\hyunwoos-RenderEngine\RenderModule\Renderer.cpp(620,33): warning C4244:         with
+C:\Users\우수컴\source\repos\hyunwoos-RenderEngine\hyunwoos-RenderEngine\hyunwoos-RenderEngine\RenderModule\Renderer.cpp(620,33): warning C4244:         [
+C:\Users\우수컴\source\repos\hyunwoos-RenderEngine\hyunwoos-RenderEngine\hyunwoos-RenderEngine\RenderModule\Renderer.cpp(620,33): warning C4244:             T=float
+C:\Users\우수컴\source\repos\hyunwoos-RenderEngine\hyunwoos-RenderEngine\hyunwoos-RenderEngine\RenderModule\Renderer.cpp(620,33): warning C4244:         ]
+C:\Users\우수컴\source\repos\hyunwoos-RenderEngine\hyunwoos-RenderEngine\hyunwoos-RenderEngine\RenderModule\Renderer.cpp(620,22): warning C4244: 'initializing': conversion from 'T' to 'const int', possible loss of data
+C:\Users\우수컴\source\repos\hyunwoos-RenderEngine\hyunwoos-RenderEngine\hyunwoos-RenderEngine\RenderModule\Renderer.cpp(620,22): warning C4244:         with
+C:\Users\우수컴\source\repos\hyunwoos-RenderEngine\hyunwoos-RenderEngine\hyunwoos-RenderEngine\RenderModule\Renderer.cpp(620,22): warning C4244:         [
+C:\Users\우수컴\source\repos\hyunwoos-RenderEngine\hyunwoos-RenderEngine\hyunwoos-RenderEngine\RenderModule\Renderer.cpp(620,22): warning C4244:             T=float
+C:\Users\우수컴\source\repos\hyunwoos-RenderEngine\hyunwoos-RenderEngine\hyunwoos-RenderEngine\RenderModule\Renderer.cpp(620,22): warning C4244:         ]
+C:\Users\우수컴\source\repos\hyunwoos-RenderEngine\hyunwoos-RenderEngine\hyunwoos-RenderEngine\RenderModule\Renderer.cpp(626,44): warning C4244: 'argument': conversion from 'int' to 'float', possible loss of data
+C:\Users\우수컴\source\repos\hyunwoos-RenderEngine\hyunwoos-RenderEngine\hyunwoos-RenderEngine\RenderModule\Renderer.cpp(626,41): warning C4244: 'argument': conversion from 'int' to 'float', possible loss of data
+C:\Users\우수컴\source\repos\hyunwoos-RenderEngine\hyunwoos-RenderEngine\hyunwoos-RenderEngine\RenderModule\Renderer.cpp(638,68): warning C4244: 'initializing': conversion from 'float' to 'uint32_t', possible loss of data
+C:\Users\우수컴\source\repos\hyunwoos-RenderEngine\hyunwoos-RenderEngine\hyunwoos-RenderEngine\RenderModule\Renderer.cpp(638,38): warning C4244: 'initializing': conversion from 'float' to 'const uint32_t', possible loss of data
+C:\Users\우수컴\source\repos\hyunwoos-RenderEngine\hyunwoos-RenderEngine\hyunwoos-RenderEngine\RenderModule\Renderer.cpp(723,33): warning C4244: 'initializing': conversion from 'T' to 'int', possible loss of data
+C:\Users\우수컴\source\repos\hyunwoos-RenderEngine\hyunwoos-RenderEngine\hyunwoos-RenderEngine\RenderModule\Renderer.cpp(723,33): warning C4244:         with
+C:\Users\우수컴\source\repos\hyunwoos-RenderEngine\hyunwoos-RenderEngine\hyunwoos-RenderEngine\RenderModule\Renderer.cpp(723,33): warning C4244:         [
+C:\Users\우수컴\source\repos\hyunwoos-RenderEngine\hyunwoos-RenderEngine\hyunwoos-RenderEngine\RenderModule\Renderer.cpp(723,33): warning C4244:             T=float
+C:\Users\우수컴\source\repos\hyunwoos-RenderEngine\hyunwoos-RenderEngine\hyunwoos-RenderEngine\RenderModule\Renderer.cpp(723,33): warning C4244:         ]
+C:\Users\우수컴\source\repos\hyunwoos-RenderEngine\hyunwoos-RenderEngine\hyunwoos-RenderEngine\RenderModule\Renderer.cpp(723,22): warning C4244: 'initializing': conversion from 'T' to 'const int', possible loss of data
+C:\Users\우수컴\source\repos\hyunwoos-RenderEngine\hyunwoos-RenderEngine\hyunwoos-RenderEngine\RenderModule\Renderer.cpp(723,22): warning C4244:         with
+C:\Users\우수컴\source\repos\hyunwoos-RenderEngine\hyunwoos-RenderEngine\hyunwoos-RenderEngine\RenderModule\Renderer.cpp(723,22): warning C4244:         [
+C:\Users\우수컴\source\repos\hyunwoos-RenderEngine\hyunwoos-RenderEngine\hyunwoos-RenderEngine\RenderModule\Renderer.cpp(723,22): warning C4244:             T=float
+C:\Users\우수컴\source\repos\hyunwoos-RenderEngine\hyunwoos-RenderEngine\hyunwoos-RenderEngine\RenderModule\Renderer.cpp(723,22): warning C4244:         ]
+C:\Users\우수컴\source\repos\hyunwoos-RenderEngine\hyunwoos-RenderEngine\hyunwoos-RenderEngine\RenderModule\Renderer.cpp(724,33): warning C4244: 'initializing': conversion from 'T' to 'int', possible loss of data
+C:\Users\우수컴\source\repos\hyunwoos-RenderEngine\hyunwoos-RenderEngine\hyunwoos-RenderEngine\RenderModule\Renderer.cpp(724,33): warning C4244:         with
+C:\Users\우수컴\source\repos\hyunwoos-RenderEngine\hyunwoos-RenderEngine\hyunwoos-RenderEngine\RenderModule\Renderer.cpp(724,33): warning C4244:         [
+C:\Users\우수컴\source\repos\hyunwoos-RenderEngine\hyunwoos-RenderEngine\hyunwoos-RenderEngine\RenderModule\Renderer.cpp(724,33): warning C4244:             T=float
+C:\Users\우수컴\source\repos\hyunwoos-RenderEngine\hyunwoos-RenderEngine\hyunwoos-RenderEngine\RenderModule\Renderer.cpp(724,33): warning C4244:         ]
+C:\Users\우수컴\source\repos\hyunwoos-RenderEngine\hyunwoos-RenderEngine\hyunwoos-RenderEngine\RenderModule\Renderer.cpp(724,22): warning C4244: 'initializing': conversion from 'T' to 'const int', possible loss of data
+C:\Users\우수컴\source\repos\hyunwoos-RenderEngine\hyunwoos-RenderEngine\hyunwoos-RenderEngine\RenderModule\Renderer.cpp(724,22): warning C4244:         with
+C:\Users\우수컴\source\repos\hyunwoos-RenderEngine\hyunwoos-RenderEngine\hyunwoos-RenderEngine\RenderModule\Renderer.cpp(724,22): warning C4244:         [
+C:\Users\우수컴\source\repos\hyunwoos-RenderEngine\hyunwoos-RenderEngine\hyunwoos-RenderEngine\RenderModule\Renderer.cpp(724,22): warning C4244:             T=float
+C:\Users\우수컴\source\repos\hyunwoos-RenderEngine\hyunwoos-RenderEngine\hyunwoos-RenderEngine\RenderModule\Renderer.cpp(724,22): warning C4244:         ]
+C:\Users\우수컴\source\repos\hyunwoos-RenderEngine\hyunwoos-RenderEngine\hyunwoos-RenderEngine\RenderModule\Renderer.cpp(725,33): warning C4244: 'initializing': conversion from 'T' to 'int', possible loss of data
+C:\Users\우수컴\source\repos\hyunwoos-RenderEngine\hyunwoos-RenderEngine\hyunwoos-RenderEngine\RenderModule\Renderer.cpp(725,33): warning C4244:         with
+C:\Users\우수컴\source\repos\hyunwoos-RenderEngine\hyunwoos-RenderEngine\hyunwoos-RenderEngine\RenderModule\Renderer.cpp(725,33): warning C4244:         [
+C:\Users\우수컴\source\repos\hyunwoos-RenderEngine\hyunwoos-RenderEngine\hyunwoos-RenderEngine\RenderModule\Renderer.cpp(725,33): warning C4244:             T=float
+C:\Users\우수컴\source\repos\hyunwoos-RenderEngine\hyunwoos-RenderEngine\hyunwoos-RenderEngine\RenderModule\Renderer.cpp(725,33): warning C4244:         ]
+C:\Users\우수컴\source\repos\hyunwoos-RenderEngine\hyunwoos-RenderEngine\hyunwoos-RenderEngine\RenderModule\Renderer.cpp(725,22): warning C4244: 'initializing': conversion from 'T' to 'const int', possible loss of data
+C:\Users\우수컴\source\repos\hyunwoos-RenderEngine\hyunwoos-RenderEngine\hyunwoos-RenderEngine\RenderModule\Renderer.cpp(725,22): warning C4244:         with
+C:\Users\우수컴\source\repos\hyunwoos-RenderEngine\hyunwoos-RenderEngine\hyunwoos-RenderEngine\RenderModule\Renderer.cpp(725,22): warning C4244:         [
+C:\Users\우수컴\source\repos\hyunwoos-RenderEngine\hyunwoos-RenderEngine\hyunwoos-RenderEngine\RenderModule\Renderer.cpp(725,22): warning C4244:             T=float
+C:\Users\우수컴\source\repos\hyunwoos-RenderEngine\hyunwoos-RenderEngine\hyunwoos-RenderEngine\RenderModule\Renderer.cpp(725,22): warning C4244:         ]
+C:\Users\우수컴\source\repos\hyunwoos-RenderEngine\hyunwoos-RenderEngine\hyunwoos-RenderEngine\RenderModule\Renderer.cpp(726,33): warning C4244: 'initializing': conversion from 'T' to 'int', possible loss of data
+C:\Users\우수컴\source\repos\hyunwoos-RenderEngine\hyunwoos-RenderEngine\hyunwoos-RenderEngine\RenderModule\Renderer.cpp(726,33): warning C4244:         with
+C:\Users\우수컴\source\repos\hyunwoos-RenderEngine\hyunwoos-RenderEngine\hyunwoos-RenderEngine\RenderModule\Renderer.cpp(726,33): warning C4244:         [
+C:\Users\우수컴\source\repos\hyunwoos-RenderEngine\hyunwoos-RenderEngine\hyunwoos-RenderEngine\RenderModule\Renderer.cpp(726,33): warning C4244:             T=float
+C:\Users\우수컴\source\repos\hyunwoos-RenderEngine\hyunwoos-RenderEngine\hyunwoos-RenderEngine\RenderModule\Renderer.cpp(726,33): warning C4244:         ]
+C:\Users\우수컴\source\repos\hyunwoos-RenderEngine\hyunwoos-RenderEngine\hyunwoos-RenderEngine\RenderModule\Renderer.cpp(726,22): warning C4244: 'initializing': conversion from 'T' to 'const int', possible loss of data
+C:\Users\우수컴\source\repos\hyunwoos-RenderEngine\hyunwoos-RenderEngine\hyunwoos-RenderEngine\RenderModule\Renderer.cpp(726,22): warning C4244:         with
+C:\Users\우수컴\source\repos\hyunwoos-RenderEngine\hyunwoos-RenderEngine\hyunwoos-RenderEngine\RenderModule\Renderer.cpp(726,22): warning C4244:         [
+C:\Users\우수컴\source\repos\hyunwoos-RenderEngine\hyunwoos-RenderEngine\hyunwoos-RenderEngine\RenderModule\Renderer.cpp(726,22): warning C4244:             T=float
+C:\Users\우수컴\source\repos\hyunwoos-RenderEngine\hyunwoos-RenderEngine\hyunwoos-RenderEngine\RenderModule\Renderer.cpp(726,22): warning C4244:         ]
+C:\Users\우수컴\source\repos\hyunwoos-RenderEngine\hyunwoos-RenderEngine\hyunwoos-RenderEngine\RenderModule\Renderer.cpp(733,47): warning C4244: 'argument': conversion from 'int' to 'float', possible loss of data
+C:\Users\우수컴\source\repos\hyunwoos-RenderEngine\hyunwoos-RenderEngine\hyunwoos-RenderEngine\RenderModule\Renderer.cpp(733,44): warning C4244: 'argument': conversion from 'int' to 'float', possible loss of data
+C:\Users\우수컴\source\repos\hyunwoos-RenderEngine\hyunwoos-RenderEngine\hyunwoos-RenderEngine\RenderModule\Renderer.cpp(745,68): warning C4244: 'initializing': conversion from 'float' to 'uint32_t', possible loss of data
+C:\Users\우수컴\source\repos\hyunwoos-RenderEngine\hyunwoos-RenderEngine\hyunwoos-RenderEngine\RenderModule\Renderer.cpp(745,38): warning C4244: 'initializing': conversion from 'float' to 'const uint32_t', possible loss of data
+  Source.cpp
+C:\Users\우수컴\source\repos\hyunwoos-RenderEngine\hyunwoos-RenderEngine\hyunwoos-RenderEngine\MathModule\Math.h(75,14): warning C4244: 'return': conversion from 'double' to 'const int', possible loss of data
   (compiling source file 'Source.cpp')
   
-C:\Users\우수컴\source\repos\hyunwoos-RenderEngine\hyunwoos-RenderEngine\hyunwoos-RenderEngine\MathModule\Math.h(87,16): warning C4244: 'return': conversion from 'long double' to 'const int', possible loss of data
+C:\Users\우수컴\source\repos\hyunwoos-RenderEngine\hyunwoos-RenderEngine\hyunwoos-RenderEngine\MathModule\Math.h(87,15): warning C4244: 'return': conversion from 'double' to 'const int', possible loss of data
   (compiling source file 'Source.cpp')
   
 C:\Users\우수컴\source\repos\hyunwoos-RenderEngine\hyunwoos-RenderEngine\hyunwoos-RenderEngine\MathModule\Math.h(91,16): warning C4244: 'return': conversion from 'float' to 'const int', possible loss of data
@@ -30,12 +382,22 @@ C:\Users\우수컴\source\repos\hyunwoos-RenderEngine\hyunwoos-RenderEngine\hyun
 C:\Users\우수컴\source\repos\hyunwoos-RenderEngine\hyunwoos-RenderEngine\hyunwoos-RenderEngine\MathModule\Vector.h(203,8): warning C4244: '/=': conversion from 'const float' to 'int', possible loss of data
   (compiling source file 'Source.cpp')
   
-C:\Users\우수컴\source\repos\hyunwoos-RenderEngine\hyunwoos-RenderEngine\hyunwoos-RenderEngine\ImportModule\PmxImporter.h(85,3): warning C4309: 'initializing': truncation of constant value
+C:\Users\우수컴\source\repos\hyunwoos-RenderEngine\hyunwoos-RenderEngine\hyunwoos-RenderEngine\MathModule\Color.h(177,61): warning C4244: 'initializing': conversion from 'DWORD' to 'float', possible loss of data
   (compiling source file 'Source.cpp')
   
-C:\Users\우수컴\source\repos\hyunwoos-RenderEngine\hyunwoos-RenderEngine\hyunwoos-RenderEngine\ImportModule\PmxImporter.h(85,3): warning C4369: 'hyunwoo::PmxImporter::DefaultIndexType':  enumerator value '-1' cannot be represented as 'unsigned char', value is '-1'
+C:\Users\우수컴\source\repos\hyunwoos-RenderEngine\hyunwoos-RenderEngine\hyunwoos-RenderEngine\MathModule\Color.h(177,89): warning C4244: 'initializing': conversion from 'DWORD' to 'float', possible loss of data
   (compiling source file 'Source.cpp')
   
-C:\Users\우수컴\source\repos\hyunwoos-RenderEngine\hyunwoos-RenderEngine\hyunwoos-RenderEngine\Source.cpp(241,45): warning C4244: 'argument': conversion from 'int' to 'float', possible loss of data
-C:\Users\우수컴\source\repos\hyunwoos-RenderEngine\hyunwoos-RenderEngine\hyunwoos-RenderEngine\Source.cpp(241,43): warning C4244: 'argument': conversion from 'int' to 'float', possible loss of data
+C:\Users\우수컴\source\repos\hyunwoos-RenderEngine\hyunwoos-RenderEngine\hyunwoos-RenderEngine\MathModule\Color.h(177,118): warning C4244: 'initializing': conversion from 'DWORD' to 'float', possible loss of data
+  (compiling source file 'Source.cpp')
+  
+C:\Users\우수컴\source\repos\hyunwoos-RenderEngine\hyunwoos-RenderEngine\hyunwoos-RenderEngine\ImportModule\PmxImporter.h(73,3): warning C4309: 'initializing': truncation of constant value
+  (compiling source file 'Source.cpp')
+  
+C:\Users\우수컴\source\repos\hyunwoos-RenderEngine\hyunwoos-RenderEngine\hyunwoos-RenderEngine\ImportModule\PmxImporter.h(73,3): warning C4369: 'hyunwoo::PmxImporter::DefaultIndexType':  enumerator value '-1' cannot be represented as 'unsigned char', value is '-1'
+  (compiling source file 'Source.cpp')
+  
+C:\Users\우수컴\source\repos\hyunwoos-RenderEngine\hyunwoos-RenderEngine\hyunwoos-RenderEngine\Source.cpp(234,45): warning C4244: 'argument': conversion from 'int' to 'float', possible loss of data
+C:\Users\우수컴\source\repos\hyunwoos-RenderEngine\hyunwoos-RenderEngine\hyunwoos-RenderEngine\Source.cpp(234,43): warning C4244: 'argument': conversion from 'int' to 'float', possible loss of data
+  Generating Code...
   hyunwoos-RenderEngine.vcxproj -> C:\Users\우수컴\source\repos\hyunwoos-RenderEngine\hyunwoos-RenderEngine\x64\Debug\hyunwoos-RenderEngine.exe

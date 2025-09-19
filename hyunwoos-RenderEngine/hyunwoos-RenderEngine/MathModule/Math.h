@@ -72,7 +72,7 @@ public:
 	}
 
 	static const int Sqrt(const int rhs) {
-		return sqrtl(rhs);
+		return sqrt(rhs);
 	}
 
 	static const float Abs(const float rhs) {
@@ -84,7 +84,7 @@ public:
 	}
 
 	static const int Floor(const int rhs) {
-		return floorl(rhs);
+		return floor(rhs);
 	}
 
 	static const int Floor(const float rhs) {

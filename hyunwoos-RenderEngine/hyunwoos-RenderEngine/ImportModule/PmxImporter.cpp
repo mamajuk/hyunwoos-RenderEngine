@@ -16,7 +16,7 @@ hyunwoo::PmxImporter::ImportResult hyunwoo::PmxImporter::Import(const StorageDes
      *   로드할 데이터가 존재하지 않다면, 임포트를 진행할 이유가 없으니, 결과를 갱신하고
      *   함수를 종료한다...
      *******/
-    if (storageDesc.OutMesh==nullptr && storageDesc.OutTextures==nullptr && storageDesc.OutSubMeshTextureIdices==nullptr) {
+    if (storageDesc.OutMesh==nullptr && storageDesc.OutTextures==nullptr && storageDesc.OutMaterials==nullptr) {
         outRet.LoadDataIsNothing = true;
         return outRet;
     }
@@ -121,9 +121,8 @@ hyunwoo::PmxImporter::ImportResult hyunwoo::PmxImporter::Import(const StorageDes
             in.seekg(12, std::ios::cur);
             in.read((char*)&vertex.UvPos, 8);
         }
-        else {
-            in.seekg(sizeof(Vector3) * 2 + sizeof(Vector2), std::ios::cur);
-        }
+
+        else in.seekg(sizeof(Vector3) * 2 + sizeof(Vector2), std::ios::cur);
 
 
 
@@ -144,27 +143,27 @@ hyunwoo::PmxImporter::ImportResult hyunwoo::PmxImporter::Import(const StorageDes
         {
             //BDEF1
             case(WeightDeformType::BDEF1): {
-                in.seekg((int)header.Globals.Vertex_Index_Size, std::ios::cur);
+                in.seekg((int)header.Globals.Bone_Index_Size, std::ios::cur);
                 break;
             }
 
             //BDEF2
             case(WeightDeformType::BDEF2): {
-                in.seekg((int)header.Globals.Vertex_Index_Size * 2, std::ios::cur);
+                in.seekg((int)header.Globals.Bone_Index_Size * 2, std::ios::cur);
                 in.seekg(4, std::ios::cur);
                 break;
             }
 
             //BDEF4
             case(WeightDeformType::BDEF4): {
-                in.seekg((int)header.Globals.Vertex_Index_Size * 4, std::ios::cur);
+                in.seekg((int)header.Globals.Bone_Index_Size * 4, std::ios::cur);
                 in.seekg(16, std::ios::cur);
                 break;
             }
 
             //SDEF
             case(WeightDeformType::SDEF): {
-                in.seekg((int)header.Globals.Vertex_Index_Size * 2, std::ios::cur);
+                in.seekg((int)header.Globals.Bone_Index_Size * 2, std::ios::cur);
                 in.seekg(4, std::ios::cur);
                 in.seekg(12 * 3, std::ios::cur);
                 break;
@@ -271,6 +270,7 @@ hyunwoo::PmxImporter::ImportResult hyunwoo::PmxImporter::Import(const StorageDes
     /*****************************************************************************************
      *   해당 메시에 사용된 텍스쳐들을 처리한다....
      **********/
+    int32_t prevTex_buf_size = 0;
     int32_t texture_count = 0;
     in.read((char*)&texture_count, 4);
 
@@ -279,8 +279,8 @@ hyunwoo::PmxImporter::ImportResult hyunwoo::PmxImporter::Import(const StorageDes
      *-------*/
     if (storageDesc.OutTextures!=nullptr) 
     {
-        const int32_t prev_size    = storageDesc.OutTextures->size();
-        const int32_t new_size     = (prev_size + texture_count);
+        prevTex_buf_size       = storageDesc.OutTextures->size();
+        const int32_t new_size = (prevTex_buf_size + texture_count);
         storageDesc.OutTextures->resize(new_size);
 
 
@@ -291,7 +291,7 @@ hyunwoo::PmxImporter::ImportResult hyunwoo::PmxImporter::Import(const StorageDes
             const std::wstring parent_path = std::filesystem::path(path).parent_path().wstring();
             std::wstring       tex_path;
 
-            for (int32_t i = prev_size; i < new_size; i++) {
+            for (int32_t i = prevTex_buf_size; i < new_size; i++) {
                 in.read((char*)&texPath_size, 4);
                 tex_path.resize(texPath_size);
 
@@ -308,7 +308,7 @@ hyunwoo::PmxImporter::ImportResult hyunwoo::PmxImporter::Import(const StorageDes
                 const std::wstring& texture_path = w$(parent_path.c_str(), L"/", tex_path.c_str());
 
                 if ((outRet.TextureLoadResult = PngImporter::Import(outTex, texture_path)).Success == false) {
-                    outRet.Failed_TextureLoad = true;
+                    outRet.Failed_TextureStorage = true;
                     return outRet;
                 }
             }
@@ -387,7 +387,9 @@ hyunwoo::PmxImporter::ImportResult hyunwoo::PmxImporter::Import(const StorageDes
          *  Drawing Flags를 읽어들인다....
          * ( MaterialFlag )
          *------*/
-        in.seekg(1, std::ios::cur);
+        uint8_t drawing_flags;
+        in.read((char*)&drawing_flags, 1);
+
 
         /*-------------------------------------
          *  Edge colour, scale를 읽어들인다...
@@ -404,8 +406,19 @@ hyunwoo::PmxImporter::ImportResult hyunwoo::PmxImporter::Import(const StorageDes
         int32_t tex_idx = 0;
         in.read((char*)&tex_idx, (int)header.Globals.Texture_Index_Size);
 
-        if (storageDesc.OutSubMeshTextureIdices!=nullptr) {
-            storageDesc.OutSubMeshTextureIdices->push_back(tex_idx);
+        if (storageDesc.OutMaterials!=nullptr) 
+        {
+            //머터리얼을 저장하기위해서는, 텍스쳐 데이터의 저장도 필요하다...
+            if (storageDesc.OutTextures==nullptr) {
+                outRet.Failed_MaterialStorage = true;
+                outRet.Require_TextureStorage = true;
+                return outRet;
+            }
+
+            Material newMaterial      = { 0, };
+            newMaterial.TwoSide       = false;
+            newMaterial.MappedTexture = &(*storageDesc.OutTextures)[prevTex_buf_size + tex_idx];
+            storageDesc.OutMaterials->push_back(newMaterial);
         }
 
 
@@ -446,8 +459,9 @@ hyunwoo::PmxImporter::ImportResult hyunwoo::PmxImporter::Import(const StorageDes
         uint32_t subMesh_index_count = 0;
         in.read((char*)&subMesh_index_count, 4);
 
-        if (storageDesc.OutMesh!=nullptr) {
-            storageDesc.OutMesh->SubMesh_Triangle_Counts.push_back(subMesh_index_count / 3);
+        if (storageDesc.OutMesh!=nullptr) 
+        {
+            storageDesc.OutMesh->SubMeshs.push_back(Mesh::SubMesh{ (subMesh_index_count / 3) });
         }
     }
 

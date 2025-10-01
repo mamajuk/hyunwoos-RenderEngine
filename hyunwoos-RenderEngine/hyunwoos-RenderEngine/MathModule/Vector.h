@@ -97,6 +97,14 @@ struct hyunwoo::Vector2
 	//===========================================================
 	/////////			Operator methods...				/////////
 	//===========================================================
+	constexpr const Vector2 operator-() const {
+		return (*this * -1.f);
+	}
+
+	constexpr const bool operator!=(const Vector2& rhs) const {
+		return !operator==(rhs);
+	}
+
 	constexpr const bool operator==(const Vector2& rhs) const {
 		return ((x==rhs.x) && (y==rhs.y));
 	}
@@ -224,6 +232,14 @@ struct hyunwoo::Vector2Int
 	//===========================================================
 	/////////			Operator methods...				/////////
 	//===========================================================
+	constexpr const Vector2Int operator-() const {
+		return (*this * -1.f);
+	}
+
+	constexpr const bool operator!=(const Vector2Int& rhs) const {
+		return !operator==(rhs);
+	}
+
 	constexpr const bool operator==(const Vector2Int& rhs) const {
 		return ((x == rhs.x) && (y == rhs.y));
 	}
@@ -305,6 +321,7 @@ struct hyunwoo::Vector3
 	//////////			Constructor methods...			/////////
 	//===========================================================
 	constexpr Vector3(float x = 0.f, float y = 0.f, float z = 0.f) :x(x), y(y), z(z) {}
+	constexpr Vector3(const Vector2& xy, float z) : x(xy.x), y(xy.y), z(z) {}
 	constexpr Vector3(const Vector3&) = default;
 	constexpr ~Vector3() = default;
 
@@ -380,6 +397,14 @@ struct hyunwoo::Vector3
 	//===========================================================
 	/////////			Operator methods...				/////////
 	//===========================================================
+	constexpr const Vector3 operator-() const {
+		return (*this * -1.f);
+	}
+
+	constexpr const bool operator!=(const Vector3& rhs) const {
+		return !operator==(rhs);
+	}
+
 	constexpr const bool operator==(const Vector3& rhs) const {
 		return ((x == rhs.x) && (y == rhs.y) && (z==rhs.z));
 	}
@@ -462,6 +487,7 @@ struct hyunwoo::Vector3Int
 	//////////			Constructor methods...			/////////
 	//===========================================================
 	constexpr Vector3Int(int x = 0, int y = 0, int z = 0) :x(x), y(y), z(z) {}
+	constexpr Vector3Int(const Vector2Int& xy, int z) : x(xy.x), y(xy.y), z(z) {}
 	constexpr Vector3Int(const Vector3Int&) = default;
 	constexpr ~Vector3Int() = default;
 
@@ -528,6 +554,14 @@ struct hyunwoo::Vector3Int
 	//===========================================================
 	/////////			Operator methods...				/////////
 	//===========================================================
+	constexpr const Vector3Int operator-() const {
+		return (*this * -1.f);
+	}
+
+	constexpr const bool operator!=(const Vector3Int& rhs) const {
+		return !operator==(rhs);
+	}
+
 	constexpr const bool operator==(const Vector3Int& rhs) const {
 		return ((x == rhs.x) && (y == rhs.y) && (z == rhs.z));
 	}
@@ -609,6 +643,8 @@ struct hyunwoo::Vector4
 	//////////			Constructor methods...			/////////
 	//===========================================================
 	constexpr Vector4(float x = 0.f, float y = 0.f, float z = 0.f, float w = 0.f) :x(x), y(y), z(z), w(w) {}
+	constexpr Vector4(const Vector2& xy, float z, float w) : x(xy.x), y(xy.y), z(z), w(w) {}
+	constexpr Vector4(const Vector3& xyz, float w) : x(xyz.x), y(xyz.y), z(xyz.z), w(w) {}
 	constexpr Vector4(const Vector4&) = default;
 	constexpr ~Vector4() = default;
 
@@ -675,6 +711,14 @@ struct hyunwoo::Vector4
 	//===========================================================
 	/////////			Operator methods...				/////////
 	//===========================================================
+	constexpr const Vector4 operator-() const {
+		return (*this * -1.f);
+	}
+
+	constexpr const bool operator!=(const Vector4& rhs) const {
+		return !operator==(rhs);
+	}
+
 	constexpr const bool operator==(const Vector4& rhs) const {
 		return ((x == rhs.x) && (y == rhs.y) && (z == rhs.z) && (w==rhs.w));
 	}
@@ -757,6 +801,8 @@ struct hyunwoo::Vector4Int
 	//////////			Constructor methods...			/////////
 	//===========================================================
 	constexpr Vector4Int(int x = 0, int y = 0, int z = 0, int w = 0) :x(x), y(y), z(z), w(w) {}
+	constexpr Vector4Int(const Vector2Int& xy, float z, float w) : x(xy.x), y(xy.y), z(z), w(w) {}
+	constexpr Vector4Int(const Vector3Int& xyz, float w) : x(xyz.x), y(xyz.y), z(xyz.z), w(w) {}
 	constexpr Vector4Int(const Vector4Int&) = default;
 	constexpr ~Vector4Int() = default;
 
@@ -822,6 +868,14 @@ struct hyunwoo::Vector4Int
 	//===========================================================
 	/////////			Operator methods...				/////////
 	//===========================================================
+	constexpr const Vector4Int operator-() const {
+		return (*this * -1.f);
+	}
+
+	constexpr const bool operator!=(const Vector4Int& rhs) const {
+		return !operator==(rhs);
+	}
+
 	constexpr const bool operator==(const Vector4Int& rhs) const {
 		return ((x == rhs.x) && (y == rhs.y) && (z == rhs.z) && (w == rhs.w));
 	}

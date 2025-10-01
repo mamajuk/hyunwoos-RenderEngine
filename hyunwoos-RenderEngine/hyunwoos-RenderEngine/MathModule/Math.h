@@ -75,6 +75,10 @@ public:
 		return sqrt(rhs);
 	}
 
+	static const int Round(const float rhs) {
+		return lround(rhs);
+	}
+
 	static const float Abs(const float rhs) {
 		return fabsf(rhs);
 	}

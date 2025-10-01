@@ -60,6 +60,9 @@
     <ClCompile Include="ImportModule\PmxImporter.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="GeometryModule\Geometry.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="EngineModule\RenderEngine.h">
@@ -102,6 +105,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="ImportModule\PmxImporter.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="GeometryModule\Geometry.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
@@ -163,12 +169,20 @@
     <Image Include="Resources\feixieer\toon_defo.png">
       <Filter>Resource Files</Filter>
     </Image>
+    <Image Include="Resources\steve\char.png">
+      <Filter>Resource Files</Filter>
+    </Image>
   </ItemGroup>
   <ItemGroup>
     <None Include="Resources\Paymon\paymon.pmx" />
     <None Include="Resources\feixieer\feixieer.pmx" />
+    <None Include="Resources\Minecraft\Alex_1.8.pmx" />
+    <None Include="Resources\Minecraft\Steve_1.8.pmx" />
+    <None Include="Resources\Minecraft\Steve_old.pmx" />
+    <None Include="Resources\steve\steve.pmx" />
   </ItemGroup>
   <ItemGroup>
     <Text Include="Resources\feixieer\readme【一定要看】.txt" />
+    <Text Include="할일리스트.txt" />
   </ItemGroup>
 </Project>

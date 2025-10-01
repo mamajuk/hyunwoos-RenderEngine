@@ -36,14 +36,14 @@ hyunwoo::Vector2 hyunwoo::Renderer::NDCToScreen(const Vector4& ndcPos)
     ));
 }
 
-hyunwoo::Vector4 hyunwoo::Renderer::ClipToNDC(const Vector4& clipPos)
+hyunwoo::Vector3 hyunwoo::Renderer::ClipToNDC(const Vector4& clipPos)
 {
     /******************************************************************
      *   클립좌표계로 변환하기 전의 z값이 보존된 w값으로, 클립 좌표의 모든
      *   원소를 나누어 모든 축이 -1~1로 정규화된 NDC 좌표계로 변환한다...
      ******/
     const float wDiv = (clipPos.w==0.f? 0.f:(1.f / clipPos.w));
-    return Vector4((clipPos.x * wDiv), (clipPos.y * wDiv), (clipPos.z * wDiv), 1.f);
+    return Vector3((clipPos.x * wDiv), (clipPos.y * wDiv), (clipPos.z * wDiv));
 }
 
 hyunwoo::Vector2 hyunwoo::Renderer::WorldToScreen(const hyunwoo::Vector2& cartesianPos)
@@ -501,26 +501,52 @@ void hyunwoo::Renderer::SetPixel(const Color& color, const Vector2Int& screenPos
         return;
     }
 
-    SetPixel_internal(color, idx);
+    SetPixel_internal(color, idx, 0);
 }
 
-void hyunwoo::Renderer::SetPixel_internal(const Color& color, const uint32_t index)
+void hyunwoo::Renderer::SetPixel_internal(const Color& color, const uint32_t index, const float depth)
 {
-    //알파값이 255보다 작을 때에만, 알파 블랜딩을 적용한다...
-    if (UseAlphaBlending && color.A < 255) {
-        LinearColor goalColor    = color;
-        LinearColor prevColor    = LinearColor(m_backBufferBitmapPtr[index]);
+    /*************************************************************
+     *    뒤쪽에 그려져야하는 경우...
+     *********/
+    if (m_depthBufferPtr[index] < depth) {
+        if (UseAlphaBlending == false) return;
 
-        if (prevColor!=LinearColor::White) {
-            Color       prevColorInt;
-            prevColorInt.ARGB = m_backBufferBitmapPtr[index];
-        }
+        //배경색과의 알파블랜딩을 진행한다....
+        LinearColor frontColor = color;
+        LinearColor backColor  = ClearColor;
+        
+        //직전의 결과 색상과 앞쪽 색상과의 알파블랜딩을 진행한다...
+        LinearColor frontColor2 = m_backBufferBitmapPtr[index];
+        LinearColor backColor2  = (backColor + (frontColor - backColor) * frontColor.A);
+        LinearColor finalColor = (backColor2 + (frontColor2 - backColor2) * frontColor2.A);
 
-        m_backBufferBitmapPtr[index] = Color(prevColor + (goalColor - prevColor) * goalColor.A).ARGB;
+        m_backBufferBitmapPtr[index] = Color(finalColor).ARGB;
         return;
     }
 
-    m_backBufferBitmapPtr[index] = color.ARGB;
+
+
+
+    /*************************************************************
+     *   앞쪽에 그려져야하는 경우....
+     *********/
+
+    //깊이값을 갱신한다....
+    m_depthBufferPtr[index] = depth;
+
+    /*------------------------------------------
+     *  알파 블랜드를 사용할 경우, 알파값에 따라서
+     *  뒤쪽이 비치도록 한다....
+     *-----*/
+    if (UseAlphaBlending && color.A < 255) {
+
+        LinearColor goalColor = LinearColor(color);
+        LinearColor prevColor = LinearColor(m_backBufferBitmapPtr[index]);
+        m_backBufferBitmapPtr[index] = Color(prevColor + (goalColor - prevColor) * goalColor.A).ARGB;
+    }
+
+    else m_backBufferBitmapPtr[index] = color.ARGB;
 }
 
 
@@ -559,130 +585,26 @@ void hyunwoo::Renderer::DrawTextField(const std::wstring& out, const hyunwoo::Ve
 
 
 
+
 /*===================================================================================================================
  *    지정된 색상으로 삼각형을 그립니다....
  *=============*/
-void hyunwoo::Renderer::DrawTriangle(const Color& color, const Vector3& worldPos1, const Vector3& worldPos2, const Vector3& worldPos3)
+void hyunwoo::Renderer::DrawTriangle(const TriangleDescription& triangleDesc)
 {
-    const Vector2 screenPos1 = WorldToScreen(worldPos1);
-    const Vector2 screenPos2 = WorldToScreen(worldPos2);
-    const Vector2 screenPos3 = WorldToScreen(worldPos3);
-
-
-    /*****************************************************
-     *    와이어 프레임 모드일 경우, 선만 그리고 종료한다...
-     *******/
-    if (UseWireFrameMode) {
-        DrawLine(WireFrameColor, screenPos1, screenPos2);
-        DrawLine(WireFrameColor, screenPos1, screenPos3);
-        DrawLine(WireFrameColor, screenPos2, screenPos3);
-        return;
-    }
-
-
-    /*******************************************************
-     *    컨벡스 결합을 위해 필요한 값들을 계산한다...
-     *******/
-    const Vector2 u = (screenPos1 - screenPos3);
-    const Vector2 v = (screenPos2 - screenPos3);
-
-    const float uv   = Vector2::Dot(u, v);
-    const float uu   = Vector2::Dot(u, u);
-    const float vv   = Vector2::Dot(v, v);
-    const float deno = (uv * uv - uu * vv);
-
-
-    
-    /**********************************************************
-     *     퇴화 삼각형인가? ( 분모가 0 ) 맞다면 함수를 종료한다...
-     **********/
-    if (deno==0.0f) {
-        return;
-    }
-
-
-
-    /******************************************************************
-     *   두 점에 곱해지는 양의 스칼라값의 합이 1이 되도록 제한하면,
-     *   두 점 사이의 직선 사이의 점들만 만들어진다. 그럼 세 점에 곱해지는
-     *   양의 스칼라값의 합이 1이 되도록 제한하면, 세 점들에서 그려질 수 있는
-     *   직선 사이의 점들만 그려지되, 스칼라의 가중치에 따라 특정 직선에
-     *   치우져진 점이 만들어진다. 화면 해상도에 알맞는 픽셀들만 골라내어
-     *   삼각형을 찍기 위해서, 세 점들이 모두 포함되는 범위를 구한 후, 해당
-     *   범위에 있는 픽셀드을 순회한다. 그리고 한 점에서 다른 두 점을 향하는
-     *   벡터의 내적을 통한 연립으로 세 점에 가해지는 스칼라값(무게중심좌표)
-     *   를 구한다. 현재 처리할 점의 세 스칼라값의 범위가 0~1 사이면 삼각형
-     *   범위 안에 있는 점이니, 점을 찍으면 된다..
-     ********/
-    const int   xMin = Math::Min(screenPos1.x, screenPos2.x, screenPos3.x);
-    const int   xMax = Math::Max(screenPos1.x, screenPos2.x, screenPos3.x);
-    const int   yMin = Math::Min(screenPos1.y, screenPos2.y, screenPos3.y);
-    const int   yMax = Math::Max(screenPos1.y, screenPos2.y, screenPos3.y);
-    const float div  = (1.f / deno);
-
-    for (int y = yMin; y <= yMax; y++){
-        for (int x = xMin; x <= xMax; x++) {
-
-            const Vector2 p   = Vector2(x, y);
-            const Vector2 w   = (p - screenPos3);
-            const float   wu  = Vector2::Dot(w, u);
-            const float   wv  = Vector2::Dot(w, v);
-            const float   s   = (wv*uv - wu*vv) * div;
-            const float   t   = (wu*uv - wv*uu) * div;
-            const float   r   = (1.f - s - t);
-
-            /*-----------------------------------------
-             *   삼각형 범위 안에 있다면 점을 찍는다..
-             *-----*/
-            if ((s >= 0.f && s <= 1.f) && (t >= 0.f && t <= 1.f) && (r >= 0.f && r <= 1.f)) {
-                const uint32_t idx   = ((m_height - p.y) * m_width + p.x);
-                const float    depth = (worldPos1.z * s) + (worldPos2.z * t) + (worldPos3.z * r);
-
-                //점을 찍을 필요가 없다면, 다음으로 넘어간다....
-                if ((idx < 0 || idx>m_totalPixelNum) || m_depthBufferPtr[idx] < depth) {
-                    continue;
-                }
-
-                m_depthBufferPtr[idx] = depth;
-                SetPixel_internal(color, idx);
-            }
-        }
-    }
-}
-
-
-
-
-
-
-
-
-
-
-/*=============================================================================================================================
- *    지정된 텍스쳐로 삼각형을 그립니다....
- *=============*/
-void hyunwoo::Renderer::DrawTriangle(const Texture2D& texture, const Vector4& clipPos1, const Vector2& uvPos1, const Vector4& clipPos2, const Vector2& uvPos2, const Vector4& clipPos3, const Vector2& uvPos3)
-{
-    const Vector4 ndcPos1 = ClipToNDC(clipPos1);
-    const Vector4 ndcPos2 = ClipToNDC(clipPos2);
-    const Vector4 ndcPos3 = ClipToNDC(clipPos3);
-
-    const Vector2 screenPos1 = NDCToScreen(ndcPos1);
-    const Vector2 screenPos2 = NDCToScreen(ndcPos2);
-    const Vector2 screenPos3 = NDCToScreen(ndcPos3);
+    const Vector2& screenPos1 = triangleDesc.ScreenPositions[0];
+    const Vector2& screenPos2 = triangleDesc.ScreenPositions[1];
+    const Vector2& screenPos3 = triangleDesc.ScreenPositions[2];
 
 
     /*******************************************************************
      *    와이어 프레임 모드일 경우, 선만 그리고 종료한다...
      *******/
-    if (UseWireFrameMode) {
+    if (UseWireFrameMode || triangleDesc.WireFrameMode) {
         DrawLine(WireFrameColor, screenPos1, screenPos2);
         DrawLine(WireFrameColor, screenPos1, screenPos3);
         DrawLine(WireFrameColor, screenPos2, screenPos3);
         return;
     }
-
 
 
 
@@ -712,7 +634,7 @@ void hyunwoo::Renderer::DrawTriangle(const Texture2D& texture, const Vector4& cl
      *   두 점에 곱해지는 양의 스칼라값의 합이 1이 되도록 제한하면,
      *   두 점 사이의 직선 사이의 점들만 만들어진다. 그럼 세 점에 곱해지는
      *   양의 스칼라값의 합이 1이 되도록 제한하면, 세 점들에서 그려질 수 있는
-     *   직선 사이의 점들만 그려지되, 스칼라의 가중치에 따라 특정 직선에 
+     *   직선 사이의 점들만 그려지되, 스칼라의 가중치에 따라 특정 직선에
      *   치우져진 점이 만들어진다. 화면 해상도에 알맞는 픽셀들만 골라내어
      *   삼각형을 찍기 위해서, 세 점들이 모두 포함되는 범위를 구한 후, 해당
      *   범위에 있는 픽셀드을 순회한다. 그리고 한 점에서 다른 두 점을 향하는
@@ -724,51 +646,52 @@ void hyunwoo::Renderer::DrawTriangle(const Texture2D& texture, const Vector4& cl
     const int   xMax = Math::Max(screenPos1.x, screenPos2.x, screenPos3.x);
     const int   yMin = Math::Min(screenPos1.y, screenPos2.y, screenPos3.y);
     const int   yMax = Math::Max(screenPos1.y, screenPos2.y, screenPos3.y);
-    const float div  = (1.f / deno);
+    const float div = (1.f / deno);
 
-    for (int y = yMin; y <= yMax; y++) 
+    for (int y = yMin; y <= yMax; y++)
     {
-        for (int x = xMin; x <= xMax; x++) 
+        for (int x = xMin; x <= xMax; x++)
         {
-            const Vector2  p     = Vector2(x, y);
-            const Vector2  w     = (p - screenPos3);
-            const float    wu    = Vector2::Dot(w, u);
-            const float    wv    = Vector2::Dot(w, v);
-            const float    s     = (wv * uv - wu * vv) * div;
-            const float    t     = (wu * uv - wv * uu) * div;
-            const float    r     = (1.f - s - t);
+            const Vector2  p  = Vector2(x, y);
+            const Vector2  w  = (p - screenPos3);
+            const float    wu = Vector2::Dot(w, u);
+            const float    wv = Vector2::Dot(w, v);
+            const float    s  = (wv * uv - wu * vv) * div;
+            const float    t  = (wu * uv - wv * uu) * div;
+            const float    r  = (1.f - s - t);
 
             /*-------------------------------------------------
              *   삼각형 범위 안에 있다면 점을 찍는다..
              *-----*/
             if ((s >= 0.f && s <= 1.f) && (t >= 0.f && t <= 1.f) && (r >= 0.f && r <= 1.f)) {
                 const uint32_t idx   = ((m_height - p.y) * m_width + p.x);
-                const float    depth = (clipPos1.w * s) + (clipPos2.w * t) + (clipPos3.w * r);
 
-                //점을 찍을 필요가 없다면, 다음으로 넘어간다....
-                if ((idx < 0 || idx>m_totalPixelNum) || m_depthBufferPtr[idx] < depth) {
+                //점의 인덱스가 유효한 범위 안에 없다면 넘어간다...
+                if (idx < 0 || idx>m_totalPixelNum) {
                     continue;
                 }
 
-                Vector2 uvPos = (uvPos1 * s) + (uvPos2 * t) + (uvPos3 * r);
-                uvPos.x *= (texture.Width -1);
-                uvPos.y *= (texture.Height-1);
 
-                m_depthBufferPtr[idx] = depth;
-                SetPixel_internal(texture.GetPixel(uvPos), idx);
+                //깊이버퍼 안의 깊이값과 비교했을 때, 가려진다면 넘어간다...
+                const float depth = (triangleDesc.Depths[0] * s) + (triangleDesc.Depths[1] * t) + (triangleDesc.Depths[2] * r);
+
+                //텍스쳐 맵핑으로 삼각형을 채운다....
+                if (triangleDesc.MappedTexture!=nullptr) {
+                    Vector2 uvPos = (triangleDesc.Uvs[0] * s) + (triangleDesc.Uvs[1] * t) + (triangleDesc.Uvs[2] * r);
+                    uvPos.x *= (triangleDesc.MappedTexture->Width - 1);
+                    uvPos.y *= (triangleDesc.MappedTexture->Height - 1);
+
+                    SetPixel_internal(triangleDesc.MappedTexture->GetPixel(uvPos), idx, depth);
+                }
+
+                //주어진 색상으로 삼각형을 채운다...
+                else SetPixel_internal(triangleDesc.FillUpColor, idx, depth);
             }
         }
     }
+
+
 }
-
-
-
-
-
-
-
-
-
 
 
 
@@ -789,6 +712,8 @@ UINT hyunwoo::Renderer::GetWidth()  const {
 UINT hyunwoo::Renderer::GetHeight() const {
     return m_height;
 }
+
+
 
 
 

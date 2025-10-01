@@ -367,7 +367,7 @@ hyunwoo::Quaternion hyunwoo::Quaternion::FromTo(const Vector3& from, const Vecto
 {
 	const float   c    = Vector3::Dot(from.GetNormalized(), to.GetNormalized()) * angleScale * .5f;
 	const float   s    = Math::Sin(Math::Acos(Math::Clamp(c, -1.f, 1.f)));
-	const Vector3 axis = Vector3::Cross(from, to);
+	const Vector3 axis = Vector3::Cross(to, from);
 
 	/*******************************************************
 	 *   두 벡터가 평행하면 회전축은 0벡터다. 하지만 이는

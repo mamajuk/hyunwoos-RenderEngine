@@ -1,0 +1,20 @@
+[ ](1): DisplayObject 관련
+    	[√](1-1): Mesh
+    	[√](1-2): Material
+    	[ ](1-3): Transform
+        
+
+[  ](2): 원근투영 관련
+         [√](2-1): 원근투영 행렬 P 만들기
+         [ ](2-2): 원근투영 보정
+
+
+①: 쿼터니언의 이해(ㅇ)
+④: PmxImporter의 개발( ㅇ )
+③: DisplayObject -> Transform -> 월드/로컬 이해, Triangle->Vertex(오브젝트 좌표, uv좌표) 개발, 인덱스 버퍼
+④: 원근투영 -> 원근투영 보정( ... )
+⑤: 삼각형 클립핑
+⑥: 절두체 컬링, 콜라이더 개발
+⑦: VmdImpoter의 개발, 애니메이션 그래프 개발.
+⑧: DisplayObject를 상속한 AnimateObject 개발. Bone 클래스
+          

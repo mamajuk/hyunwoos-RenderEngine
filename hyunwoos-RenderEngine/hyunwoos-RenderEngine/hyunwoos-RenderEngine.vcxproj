@@ -131,6 +131,7 @@
   <ItemGroup>
     <ClCompile Include="EngineModule\InputManager.cpp" />
     <ClCompile Include="EngineModule\RenderEngine.cpp" />
+    <ClCompile Include="GeometryModule\Geometry.cpp" />
     <ClCompile Include="ImportModule\PmxImporter.cpp" />
     <ClCompile Include="ImportModule\PngImporter.cpp" />
     <ClCompile Include="MathModule\Color.cpp" />
@@ -155,6 +156,7 @@
     <ClInclude Include="MathModule\Matrix.h" />
     <ClInclude Include="MathModule\Quaternion.h" />
     <ClInclude Include="MathModule\Vector.h" />
+    <ClInclude Include="GeometryModule\Geometry.h" />
     <ClInclude Include="RenderModule\Renderer.h" />
     <ClInclude Include="RenderModule\RenderResources.h" />
     <ClInclude Include="UtilityModule\BitStream.h" />
@@ -178,16 +180,22 @@
     <Image Include="Resources\Paymon\Texture\脸.png" />
     <Image Include="Resources\Paymon\Texture\衣服.png" />
     <Image Include="Resources\Paymon\Texture\表情.png" />
+    <Image Include="Resources\steve\char.png" />
     <Image Include="Resources\test1.png" />
     <Image Include="Resources\test2.png" />
     <Image Include="Resources\test3.png" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Resources\feixieer\feixieer.pmx" />
+    <None Include="Resources\Minecraft\Alex_1.8.pmx" />
+    <None Include="Resources\Minecraft\Steve_1.8.pmx" />
+    <None Include="Resources\Minecraft\Steve_old.pmx" />
     <None Include="Resources\Paymon\paymon.pmx" />
+    <None Include="Resources\steve\steve.pmx" />
   </ItemGroup>
   <ItemGroup>
     <Text Include="Resources\feixieer\readme【一定要看】.txt" />
+    <Text Include="할일리스트.txt" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

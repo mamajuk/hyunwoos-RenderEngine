@@ -79,14 +79,14 @@ public:
 	 ******/
 	enum class MaterialFlag
 	{
-		No_Cull        = 0,
-		Ground_Shadow  = 1,
-		Draw_Shadow    = 2,
-		Receive_Shadow = 3,
-		Has_Edge	   = 4,
-		Vertex_Colour  = 5,
-		Point_Drawing  = 6,
-		Line_Drawing   = 7
+		No_Cull        = 1,
+		Ground_Shadow  = 2,
+		Draw_Shadow    = 4,
+		Receive_Shadow = 8,
+		Has_Edge	   = 16,
+		Vertex_Colour  = 32,
+		Point_Drawing  = 64,
+		Line_Drawing   = 128
 	};
 
 
@@ -149,11 +149,13 @@ public:
 	 ********/
 	struct ImportResult
 	{
-		bool Success		   : 1;
-		bool Failed_OpenFile   : 1;
-		bool IsNotPmxFile	   : 1;
-		bool LoadDataIsNothing : 1;
-		bool Failed_TextureLoad: 1;
+		bool Success		        : 1;
+		bool Failed_OpenFile        : 1;
+		bool IsNotPmxFile	        : 1;
+		bool LoadDataIsNothing      : 1;
+		bool Failed_TextureStorage  : 1;
+		bool Failed_MaterialStorage : 1;
+		bool Require_TextureStorage : 1;
 
 		PngImporter::ImportResult TextureLoadResult;
 	};
@@ -166,9 +168,9 @@ public:
 	 ********/
 	struct StorageDescription
 	{
-		Mesh*					OutMesh				    = nullptr;
-		std::vector<Texture2D>* OutTextures			    = nullptr;
-		std::vector<uint32_t>*  OutSubMeshTextureIdices = nullptr;
+		Mesh*					OutMesh		 = nullptr;
+		std::vector<Texture2D>* OutTextures	 = nullptr;
+		std::vector<Material>*  OutMaterials = nullptr;
 	};
 
 

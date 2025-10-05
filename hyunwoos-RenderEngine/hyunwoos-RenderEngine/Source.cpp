@@ -44,7 +44,7 @@ protected:
 		renderer.WireFrameColor   = Color::Black;
 		renderer.ClearColor       = Color::White;
 		SetTargetFrameRate(60);
-		
+
 		/********************************************************
 		 *   메시를 불러온다...
 		 *****/
@@ -67,6 +67,7 @@ protected:
 
 		m_mesh.RecalculateBoundingBox();
 		m_mesh.CreateBoundingBoxMesh(m_mesh_boundingBox);
+
 	}
 
 
@@ -96,6 +97,7 @@ protected:
 		}
 
 		Example9_DrawSubMeshs(m_mesh, m_textures, 100.f, 1.f, 200.f, deltaTime);
+		//Example12_TriangleClippingTest2D(100.f, deltaTime);
 		Example1_ShowInfo(deltaTime);
 	}
 
@@ -590,11 +592,11 @@ private:
 		Renderer::TriangleDescription triangle_desc;
 
 		for (uint32_t i = 0; i < mesh.Triangles.size(); i++) {
-			const Triangle triangle = mesh.Triangles[i];
+			const IndexedTriangle triangle = mesh.Triangles[i];
 			
-			const Vertex& vertex1 = mesh.Vertices[triangle.indices[0]];
-			const Vertex& vertex2 = mesh.Vertices[triangle.indices[1]];
-			const Vertex& vertex3 = mesh.Vertices[triangle.indices[2]];
+			const Vertex& vertex1 = mesh.Vertices[triangle.Indices[0]];
+			const Vertex& vertex2 = mesh.Vertices[triangle.Indices[1]];
+			const Vertex& vertex3 = mesh.Vertices[triangle.Indices[2]];
 
 			const Vector4 objPos1 = Vector4(vertex1.ObjPos.x, vertex1.ObjPos.y, vertex1.ObjPos.z, 1.f);
 			const Vector4 objPos2 = Vector4(vertex2.ObjPos.x, vertex2.ObjPos.y, vertex2.ObjPos.z, 1.f);
@@ -656,7 +658,7 @@ private:
 		 *    사각형의 회전과 위치를 구성하는 행렬을 만든다....
 		 ********/
 		const float fov = 100.f;
-		const float n   = 1.f;
+		const float n   = 10.f;
 		const float f   = 50.f;
 		const float k   = (-n-f) / (n-f);
 		const float l   = -n - (k*n);
@@ -679,13 +681,6 @@ private:
 			Vector4::BasisW
 		);
 
-		const Matrix4x4 S2 = Matrix4x4(
-			(Vector4::BasisX * 10.f),
-			(Vector4::BasisY * 10.f),
-			(Vector4::BasisZ * 10.f),
-			Vector4::BasisW
-		);
-
 		const Matrix4x4 P = Matrix4x4(
 			Vector4(d,   0.f,   0.f, 0.f),
 			Vector4(0.f, (d*a), 0.f, 0.f),
@@ -699,13 +694,16 @@ private:
 		/********************************************************************
 		 *   절두체 컬링을 진행한다....
 		 *******/
-		Frustum frustum = Frustum(finalMat);
+		Vector4 test     = Vector4(0.f, 0.f, n, 1.f);
+		Vector4 testClip = (P * test);
+		Vector3 testNDC  = renderer.ClipToNDC(testClip);
 
 
 		/*----------------------------------------------------
 		 *   메시의 바운딩스피어가 절두체를 벗어났는지를 판별하고,
 		 *   맞다면 삼각형 그리기를 넘어간다....
 		 *-----*/
+		Frustum    frustum			 = Frustum(finalMat);
 		const bool useFrustumCulling = (m_useBoundingSphere? frustum.IsOverlapped(mesh.BoundSphere):frustum.IsOverlapped(mesh.BoundBox))==false;
 
 		renderer.DrawTextField(w$(
@@ -729,28 +727,28 @@ private:
 		/*---------------------------------------------------
 		 *  메시의 바운딩 스피어를 랜더링한다....
 		 *-----*/
-		Renderer::TriangleDescription bounds_triangle_desc;
-		bounds_triangle_desc.FillUpColor = Color::Red;
+		//Renderer::TriangleDescription bounds_triangle_desc;
+		//bounds_triangle_desc.FillUpColor = Color::Red;
 
-		const Mesh& drawBoundMesh = (m_useBoundingSphere? m_mesh_boundingSphere:m_mesh_boundingBox);
-		for (uint32_t i = 0; i < drawBoundMesh.Triangles.size(); i++) {
-			const Triangle& triangle = drawBoundMesh.Triangles[i];
-			const Vertex&   vertex1  = drawBoundMesh.Vertices[triangle.indices[0]];
-			const Vertex&   vertex2  = drawBoundMesh.Vertices[triangle.indices[1]];
-			const Vertex&   vertex3  = drawBoundMesh.Vertices[triangle.indices[2]];
+		//const Mesh& drawBoundMesh = (m_useBoundingSphere? m_mesh_boundingSphere:m_mesh_boundingBox);
+		//for (uint32_t i = 0; i < drawBoundMesh.Triangles.size(); i++) {
+		//	const IndexedTriangle& triangle = drawBoundMesh.Triangles[i];
+		//	const Vertex&   vertex1  = drawBoundMesh.Vertices[triangle.Indices[0]];
+		//	const Vertex&   vertex2  = drawBoundMesh.Vertices[triangle.Indices[1]];
+		//	const Vertex&   vertex3  = drawBoundMesh.Vertices[triangle.Indices[2]];
 
-			const Vector4 clipPos1 = (finalMat * Vector4(vertex1.ObjPos, 1.f));
-			const Vector4 clipPos2 = (finalMat * Vector4(vertex2.ObjPos, 1.f));
-			const Vector4 clipPos3 = (finalMat * Vector4(vertex3.ObjPos, 1.f));
+		//	const Vector4 clipPos1 = (finalMat * Vector4(vertex1.ObjPos, 1.f));
+		//	const Vector4 clipPos2 = (finalMat * Vector4(vertex2.ObjPos, 1.f));
+		//	const Vector4 clipPos3 = (finalMat * Vector4(vertex3.ObjPos, 1.f));
 
-			const Vector2 screenPos1 = renderer.NDCToScreen(renderer.ClipToNDC(clipPos1));
-			const Vector2 screenPos2 = renderer.NDCToScreen(renderer.ClipToNDC(clipPos2));
-			const Vector2 screenPos3 = renderer.NDCToScreen(renderer.ClipToNDC(clipPos3));
+		//	const Vector2 screenPos1 = renderer.NDCToScreen(renderer.ClipToNDC(clipPos1));
+		//	const Vector2 screenPos2 = renderer.NDCToScreen(renderer.ClipToNDC(clipPos2));
+		//	const Vector2 screenPos3 = renderer.NDCToScreen(renderer.ClipToNDC(clipPos3));
 
-			bounds_triangle_desc.SetScreenPositions(screenPos1, screenPos2, screenPos3);
-			bounds_triangle_desc.SetDepths(clipPos1.w, clipPos2.w, clipPos3.w);
-			renderer.DrawTriangle(bounds_triangle_desc);
-		}
+		//	bounds_triangle_desc.SetScreenPositions(screenPos1, screenPos2, screenPos3);
+		//	bounds_triangle_desc.SetDepths(clipPos1.w, clipPos2.w, clipPos3.w);
+		//	renderer.DrawTriangle(bounds_triangle_desc);
+		//}
 
 
 		/**************************************************************
@@ -768,17 +766,18 @@ private:
 				triangle_desc.MappedTexture = mat.MappedTexture;
 			}
 
-
-			const Mesh::SubMesh& subMesh = mesh.SubMeshs[subMeshIdx];
-			const uint32_t		 goal_idx = (triangleIdx + subMesh.Triangle_Count);
+			
+			const Mesh::SubMesh&		subMesh  = mesh.SubMeshs[subMeshIdx];
+			const uint32_t				goal_idx = (triangleIdx + subMesh.Triangle_Count);
+			Renderer::ClipTriangleList  clip_triangle_list;
 
 			while(triangleIdx < goal_idx){
 
-				const Triangle& triangle = mesh.Triangles[triangleIdx++];
+				const IndexedTriangle& triangle = mesh.Triangles[triangleIdx++];
 
-				const Vertex& vertex1 = mesh.Vertices[triangle.indices[0]];
-				const Vertex& vertex2 = mesh.Vertices[triangle.indices[1]];
-				const Vertex& vertex3 = mesh.Vertices[triangle.indices[2]];
+				const Vertex& vertex1 = mesh.Vertices[triangle.Indices[0]];
+				const Vertex& vertex2 = mesh.Vertices[triangle.Indices[1]];
+				const Vertex& vertex3 = mesh.Vertices[triangle.Indices[2]];
 
 				const Vector4 objPos1 = Vector4(vertex1.ObjPos, 1.f);
 				const Vector4 objPos2 = Vector4(vertex2.ObjPos, 1.f);
@@ -807,19 +806,56 @@ private:
 				}
 
 
-				triangle_desc.ScreenPositions[0] = renderer.NDCToScreen(ndcPos1);
-				triangle_desc.ScreenPositions[1] = renderer.NDCToScreen(ndcPos2);
-				triangle_desc.ScreenPositions[2] = renderer.NDCToScreen(ndcPos3);
 
-				triangle_desc.Depths[0] = clipPos1.w;
-				triangle_desc.Depths[1] = clipPos2.w;
-				triangle_desc.Depths[2] = clipPos3.w;
+				/*--------------------------------------------
+				 *   삼각형 클립핑을 진행한다....
+				 **********/
+				clip_triangle_list.triangleCount = 1;
+				clip_triangle_list.Triangles[0]  = Renderer::ClipTriangle{ 
+					Renderer::ClipVertex{ clipPos1, vertex1.UvPos }, 
+					Renderer::ClipVertex{ clipPos2, vertex2.UvPos },
+					Renderer::ClipVertex{ clipPos3, vertex3.UvPos }
+				};
 
-				triangle_desc.Uvs[0] = vertex1.UvPos;
-				triangle_desc.Uvs[1] = vertex2.UvPos;
-				triangle_desc.Uvs[2] = vertex3.UvPos;
+				//+Z, -Z 평면에 대한 클립핑을 적용한다...
+				renderer.ClippingTriangle(clip_triangle_list, renderer.ClippingTest_Far, renderer.SolveT_Far);
+				renderer.ClippingTriangle(clip_triangle_list, renderer.ClippingTest_Near, renderer.SolveT_Near);
 
-				renderer.DrawTriangle(triangle_desc);
+				//+X, -X 평면에 대한 클립핑을 적용한다...
+				renderer.ClippingTriangle(clip_triangle_list, renderer.ClippingTest_Right, renderer.SolveT_Right);
+				renderer.ClippingTriangle(clip_triangle_list, renderer.ClippingTest_Left, renderer.SolveT_Left);
+
+				//+Y, -Y 평면에 대한 클립핑을 적용한다...
+				renderer.ClippingTriangle(clip_triangle_list, renderer.ClippingTest_Up, renderer.SolveT_Up);
+				renderer.ClippingTriangle(clip_triangle_list, renderer.ClippingTest_Down, renderer.SolveT_Down);
+
+
+
+				/*------------------------------------------
+				 *   분할된 삼각형들을 랜더링한다...
+				 *******/
+				for (uint32_t i = 0; i < clip_triangle_list.triangleCount; i++) {
+					const Renderer::ClipTriangle& triangle = clip_triangle_list.Triangles[i];
+
+					const Renderer::ClipVertex& vertex1 = triangle.Vertices[0];
+					const Renderer::ClipVertex& vertex2 = triangle.Vertices[1];
+					const Renderer::ClipVertex& vertex3 = triangle.Vertices[2];
+
+					triangle_desc.ScreenPositions[0] = renderer.NDCToScreen(renderer.ClipToNDC(vertex1.ClipPos));
+					triangle_desc.ScreenPositions[1] = renderer.NDCToScreen(renderer.ClipToNDC(vertex2.ClipPos));
+					triangle_desc.ScreenPositions[2] = renderer.NDCToScreen(renderer.ClipToNDC(vertex3.ClipPos));
+
+					triangle_desc.Uvs[0] = vertex1.UvPos;
+					triangle_desc.Uvs[1] = vertex2.UvPos;
+					triangle_desc.Uvs[2] = vertex3.UvPos;
+
+					triangle_desc.Depths[0] = vertex1.ClipPos.w;
+					triangle_desc.Depths[1] = vertex2.ClipPos.w;
+					triangle_desc.Depths[2] = vertex3.ClipPos.w;
+
+					renderer.DrawTriangle(triangle_desc);
+				}
+
 			}
 		}
 	}
@@ -1007,6 +1043,400 @@ private:
 			L"\nvector2_screenPos: ", v2_screenPos,
 			L"\n\noneProjTwo: ", oneProjTwo,
 			L"\ncos: ", c),
+			Vector2Int(0, 200)
+		);
+	}
+	void Example12_TriangleClippingTest2D(float moveSpeed, float deltaTime)
+	{
+		Renderer&			renderer	 = GetRenderer();
+		const InputManager& input		 = GetInputManager();
+		const float			moveSpeedSec = (moveSpeed * deltaTime);
+
+
+		/****************************************************************************************
+		 *   삼각형을 구성하는 세 점의 위치를 조작한다...
+		 *******/
+		static float fov = 60.f;
+		static float f   = 500.f;
+		static float n   = 100.f;
+
+		static Vector2 p1  = Vector2(-66.f, 320.f);
+		static Vector2 p2  = Vector2(48.f, 302.f);
+		static Vector2 p3  = Vector2(-1.f, 233.f);
+
+
+		p1 += Vector2(
+			input.GetAxis(KeyCode::A, KeyCode::D) * moveSpeedSec,
+			input.GetAxis(KeyCode::S, KeyCode::W) * moveSpeedSec
+		);
+
+		p2 += Vector2(
+			input.GetAxis(KeyCode::J, KeyCode::L) * moveSpeedSec,
+			input.GetAxis(KeyCode::K, KeyCode::I) * moveSpeedSec
+		);
+
+		p3 += Vector2(
+			input.GetAxis(KeyCode::Left, KeyCode::Right) * moveSpeedSec,
+			input.GetAxis(KeyCode::Down, KeyCode::Up) * moveSpeedSec
+		);
+
+		n   += input.GetAxis(KeyCode::NUMPAD_5, KeyCode::NUMPAD_8);
+		f   += input.GetAxis(KeyCode::NUMPAD_6, KeyCode::NUMPAD_9);
+		fov += input.GetAxis(KeyCode::NUMPAD_1, KeyCode::NUMPAD_3);
+
+
+
+		/*************************************************************************************
+		 *   세 점을 사영공간으로 변환시킨다....
+		 *******/
+		const float rad = (Math::Angle2Rad * fov * .5f);
+		const float d   = (1.f / Math::Tan(rad));
+		const float a   = renderer.GetAspectRatio();
+		const float k   = (-n-f) / (n-f);
+		const float l   = -n-(k*n);
+
+		const Matrix4x4 P = Matrix4x4(
+			Vector4(d, 0.f, 0.f, 0.f),
+			Vector4(0.f, (d*a), 0.f, 0.f),
+			Vector4(0.f, 0.f, k, 1.f),
+			Vector4(0.f, 0.f, l, 0.f)
+		);
+
+		const Vector4 clip1 = (P * Vector4(p1.x, 0.f, p1.y, 1.f));
+		const Vector4 clip2 = (P * Vector4(p2.x, 0.f, p2.y, 1.f));
+		const Vector4 clip3 = (P * Vector4(p3.x, 0.f, p3.y, 1.f));
+
+		const Vector3 ndc1 = renderer.ClipToNDC(clip1);
+		const Vector3 ndc2 = renderer.ClipToNDC(clip2);
+		const Vector3 ndc3 = renderer.ClipToNDC(clip3);
+
+		const Vector2 screenPos1 = renderer.NDCToScreen(ndc1);
+		const Vector2 screenPos2 = renderer.NDCToScreen(ndc1);
+		const Vector2 screenPos3 = renderer.NDCToScreen(ndc1);
+
+
+
+		/*********************************************************************************
+		 *   클립핑에 필요한 람다 함수들을 정의한다....
+		 *******/
+		struct ClipVertex
+		{
+			Vector4 ClipPos;
+			Vector3 WorldPos;
+		};
+
+		struct ClipTriangle
+		{
+			ClipVertex Vertices[3];
+		};
+
+		struct ClippingDescription
+		{
+			uint32_t from, to1, to2;
+		};
+
+		struct ClipTriangleList
+		{
+			uint32_t     triangleCount          = 0;
+			Vector3      green_highlight_point  = Vector3(3000.f);
+			Vector3      red_highlight_point2   = Vector3(3000.f);
+			Vector3      purple_highlight_point = Vector3(3000.f);
+			ClipTriangle Triangles[20];
+		};
+
+		/*---------------------------------------
+		 *   삼각형을 절단하는 람다 함수의 정의...
+		 *******/
+		static const auto ClippingTriangle = [&](ClipTriangleList& outTriangleList, std::function<bool(const Vector4& clipPos)> checkClipping, std::function<float(const Vector4& fromClipPos, const Vector4& toClipPos)> SolveT)
+		{
+			uint32_t		    clipping_desc_count = 0;
+			ClippingDescription clipping_descs[3];
+
+			const uint32_t clipping_test_count = outTriangleList.triangleCount;
+			for (uint32_t i = 0; i < clipping_test_count; i++) 
+			{
+				ClipTriangle& cur_triangle = outTriangleList.Triangles[i];
+
+				/*-------------------------------------------------------
+				 *   클립핑이 적용되어야할 점에 대한 서술자를 작성한다....
+				 *******/
+				clipping_desc_count = 0;
+
+				//첫번째 점에 대한 클립핑 서술자를 작성한다...
+				if (checkClipping(cur_triangle.Vertices[0].ClipPos) == true) {
+					clipping_descs[clipping_desc_count++] = ClippingDescription{ 0, 1, 2 };
+				}
+
+				//두번째 점에 대한 클립핑 서술자를 작성한다...
+				if (checkClipping(cur_triangle.Vertices[1].ClipPos) == true) {
+					clipping_descs[clipping_desc_count++] = ClippingDescription{ 1, 0, 2 };
+				}
+
+				//세번째 점에 대한 클립핑 서술자를 작성한다...
+				if (checkClipping(cur_triangle.Vertices[2].ClipPos) == true) {
+					clipping_descs[clipping_desc_count++] = ClippingDescription{ 2, 0, 1 };
+				}
+
+
+				/*--------------------------------------------------------
+				 *   클립핑할 점이 하나일 경우의 처리...
+				 *******/
+				if (clipping_desc_count == 1) {
+					const ClippingDescription& desc = clipping_descs[0];
+
+					const ClipVertex  fromVertex = cur_triangle.Vertices[desc.from];
+					const ClipVertex& toVertex1  = cur_triangle.Vertices[desc.to1];
+					const ClipVertex& toVertex2  = cur_triangle.Vertices[desc.to2];
+
+					const float t1 = SolveT(fromVertex.ClipPos, toVertex1.ClipPos);
+					const float t2 = SolveT(fromVertex.ClipPos, toVertex2.ClipPos);
+
+					//첫번째 삼각형의 버텍스를 갱신한다...
+					cur_triangle.Vertices[desc.from].ClipPos  = (fromVertex.ClipPos * t1) + (toVertex1.ClipPos * (1.f-t1));
+					cur_triangle.Vertices[desc.from].WorldPos = (fromVertex.WorldPos * t1) + (toVertex1.WorldPos * (1.f-t1));
+
+					//두번째 삼각형의 버텍스를 갱신한다...
+					ClipTriangle& nxt_triangle = outTriangleList.Triangles[outTriangleList.triangleCount++];
+					nxt_triangle.Vertices[0]		  = cur_triangle.Vertices[desc.from];
+					nxt_triangle.Vertices[1]		  = toVertex2;
+					nxt_triangle.Vertices[2].ClipPos  = (fromVertex.ClipPos * t2) + (toVertex2.ClipPos * (1.f-t2));
+					nxt_triangle.Vertices[2].WorldPos = (fromVertex.WorldPos * t2) + (toVertex2.WorldPos * (1.f-t2));
+				}
+
+
+
+				/*---------------------------------------------------------
+				 *   클립핑할 점이 두 개일 경우의 처리...
+				 *******/
+				else if(clipping_desc_count==2){
+					const ClippingDescription& desc1 = clipping_descs[0];
+					const ClippingDescription& desc2 = clipping_descs[1];
+
+					const ClipVertex  fromVertex1 = cur_triangle.Vertices[desc1.from];
+					const ClipVertex  fromVertex2 = cur_triangle.Vertices[desc2.from];
+					const ClipVertex& toVertex    = cur_triangle.Vertices[(desc1.to1 == desc2.to1 ? desc1.to1 : desc2.to2)];
+
+					const float t1 = SolveT(fromVertex1.ClipPos, toVertex.ClipPos);
+					const float t2 = SolveT(fromVertex2.ClipPos, toVertex.ClipPos);
+
+					//기존 삼각형의 버텍스를 갱신한다...
+					cur_triangle.Vertices[desc1.from].ClipPos  = (toVertex.ClipPos * (1.f - t1)) + (fromVertex1.ClipPos * t1);
+					cur_triangle.Vertices[desc1.from].WorldPos = (toVertex.WorldPos * (1.f - t1)) + (fromVertex1.WorldPos * t1);
+
+					cur_triangle.Vertices[desc2.from].ClipPos = (toVertex.ClipPos * (1.f - t2)) + (fromVertex2.ClipPos * t2);
+					cur_triangle.Vertices[desc2.from].WorldPos = (toVertex.WorldPos * (1.f - t2)) + (fromVertex2.WorldPos * t2);
+				}
+
+
+				/*------------------------------------------------------
+				 *  클립핑할 점이 세 개일 경우의 처리...
+				 *******/
+				else if (clipping_desc_count==3) {
+					cur_triangle = outTriangleList.Triangles[outTriangleList.triangleCount-1];
+					outTriangleList.triangleCount--;
+				}
+
+			}
+		};
+
+
+		/*--------------------------------------------
+		 *   +Z, -Z에 대한 람다함수를 정의한다...
+		 *******/
+		static const auto Condition_far = [](const Vector4& clipPos)->float {
+			return (clipPos.z > clipPos.w);
+		};
+
+		static const auto SolveT_far = [](const Vector4& fromClipPos, const Vector4& toClipPos)->float {
+			return (toClipPos.w - toClipPos.z) / (-toClipPos.z + fromClipPos.z + toClipPos.w - fromClipPos.w);
+		};
+
+		static const auto Condition_near = [](const Vector4& clipPos)->float {
+			return (clipPos.z < -clipPos.w);
+		};
+
+		static const auto SolveT_near = [](const Vector4& fromClipPos, const Vector4& toClipPos)->float {
+			return (-toClipPos.w - toClipPos.z) / (-toClipPos.z + fromClipPos.z - toClipPos.w + fromClipPos.w);
+		};
+
+
+		/*--------------------------------------------
+		 *   +X, -X에 대한 람다함수를 정의한다...
+		 *******/
+		static const auto Condition_right = [](const Vector4& clipPos)->float {
+			return (clipPos.x > clipPos.w);
+		};
+
+		static const auto SolveT_right = [](const Vector4& fromClipPos, const Vector4& toClipPos)->float {
+			return (toClipPos.w - toClipPos.x) / (-toClipPos.x + fromClipPos.x + toClipPos.w - fromClipPos.w);
+		};
+
+		static const auto Condition_left = [](const Vector4& clipPos)->float {
+			return (clipPos.x < -clipPos.w);
+		};
+
+		static const auto SolveT_left = [](const Vector4& fromClipPos, const Vector4& toClipPos)->float {
+			return (-toClipPos.w - toClipPos.x) / (-toClipPos.x + fromClipPos.x - toClipPos.w + fromClipPos.w);
+		};
+
+
+		/*--------------------------------------------
+		 *   +Y, -Y에 대한 람다함수를 정의한다...
+		 *******/
+		static const auto Condition_up = [](const Vector4& clipPos)->float {
+			return (clipPos.y > clipPos.w);
+		};
+
+		static const auto SolveT_up = [](const Vector4& fromClipPos, const Vector4& toClipPos)->float {
+			return (toClipPos.w - toClipPos.y) / (-toClipPos.y + fromClipPos.y + toClipPos.w - fromClipPos.w);
+		};
+
+		static const auto Condition_down = [](const Vector4& clipPos)->float {
+			return (clipPos.y < -clipPos.w);
+		};
+
+		static const auto SolveT_down = [](const Vector4& fromClipPos, const Vector4& toClipPos)->float {
+			return (-toClipPos.w - toClipPos.y) / (-toClipPos.y + fromClipPos.y - toClipPos.w + fromClipPos.w);
+		};
+
+
+
+
+
+
+		/********************************************************************************
+		 *   삼각형 클립핑을 적용한다....
+		 ******/
+		ClipTriangleList triangle_list;
+		triangle_list.triangleCount = 1;
+		triangle_list.Triangles[0]  = ClipTriangle{ ClipVertex{ clip1, p1 },ClipVertex{ clip2, p2 },ClipVertex{ clip3, p3 } };
+
+		//+Z, -Z에 대한 클립핑을 적용한다...
+		ClippingTriangle(triangle_list, Condition_far, SolveT_far);
+		ClippingTriangle(triangle_list, Condition_near, SolveT_near);
+
+		//+X, -X에 대한 클립핑을 적용한다...
+		ClippingTriangle(triangle_list, Condition_right, SolveT_right);
+		ClippingTriangle(triangle_list, Condition_left, SolveT_left);
+
+
+
+
+		/*********************************************************************************
+		 *  화면에 각 요소들을 출력한다....
+		 *******/
+		const Vector2 yOffset = (Vector2::Down * (float)renderer.GetHeight() * .4f);
+		const auto    DrawRect = [&](const Vector2& rectCenterScreenPos, const Color& color, const float size = 5.f)
+		{
+			for (float y = -size; y <= size; y += 1.f) {
+				for (float x = -size; x <= size; x += 1.f) {
+					renderer.SetPixel(color, (rectCenterScreenPos + Vector2(x, y)));
+				}
+			}
+		};
+
+
+
+		/*-------------------------------
+		 *   near/far 영역을 표시한다....
+		 ******/
+		const Vector2 n_startScreenPos = renderer.WorldToScreen(Vector2(renderer.GetWidth() * -.5f, n) + yOffset);
+		const Vector2 n_endScreenPos   = renderer.WorldToScreen(Vector2(renderer.GetWidth() * .5f, n) + yOffset);
+
+		const Vector2 f_startScreenPos = renderer.WorldToScreen(Vector2(renderer.GetWidth() * -.5f, f) + yOffset);
+		const Vector2 f_endScreenPos   = renderer.WorldToScreen(Vector2(renderer.GetWidth() * .5f, f) + yOffset);
+
+		const Vector2 form_startScreenPos = renderer.WorldToScreen(Vector2(renderer.GetWidth() * -1.f, d) + yOffset);
+		const Vector2 form_endScreenPos   = renderer.WorldToScreen(Vector2(renderer.GetWidth() * 1.f, d) + yOffset);
+
+		renderer.DrawLine(Color::Black, n_startScreenPos, n_endScreenPos);
+		renderer.DrawTextField(w$(L"near: ", n), n_endScreenPos+(Vector2::Left * 200.f));
+
+		renderer.DrawLine(Color::Black, f_startScreenPos, f_endScreenPos);
+		renderer.DrawTextField(w$(L"far: ", f), f_endScreenPos+(Vector2::Left * 200.f));
+
+		renderer.DrawLine(Color::Blue, form_startScreenPos, form_endScreenPos);
+
+
+
+		/*------------------------
+		 *   시야각을 표시한다....
+		 ********/
+		const float rad_left  = (Math::Angle2Rad * (90.f + fov * .5f));
+		const float rad_right = (Math::Angle2Rad * (90.f - fov * .5f));
+
+		const Vector2 originPos       = renderer.WorldToScreen(yOffset);
+		const Vector2 insight_left    = renderer.WorldToScreen(Vector2(Math::Cos(rad_left), Math::Sin(rad_left)) * 1000.f + yOffset);
+		const Vector2 insight_right   = renderer.WorldToScreen(Vector2(Math::Cos(rad_right), Math::Sin(rad_right)) * 1000.f + yOffset);
+		const Vector2 insight_forward = renderer.WorldToScreen(Vector2::Up * 1000.f);
+
+		renderer.DrawLine(Color::Black, originPos, insight_left);
+		renderer.DrawLine(Color::Black, originPos, insight_right);
+		renderer.DrawLine(Color::Green, originPos, insight_forward);
+
+
+
+		/*------------------------------
+		 *   클립핑 된 점들을 표시한다...
+		 ********/
+		const Vector2 p1_screenPos = renderer.WorldToScreen(p1 + yOffset);
+		const Vector2 p2_screenPos = renderer.WorldToScreen(p2 + yOffset);
+		const Vector2 p3_screenPos = renderer.WorldToScreen(p3 + yOffset);
+
+		renderer.DrawLine(Color::Black, p1_screenPos, p2_screenPos);
+		renderer.DrawLine(Color::Black, p1_screenPos, p3_screenPos);
+		renderer.DrawLine(Color::Black, p2_screenPos, p3_screenPos);
+
+		for (uint32_t i = 0; i < triangle_list.triangleCount; i++) {
+			const ClipTriangle& triangle = triangle_list.Triangles[i];
+
+			const Vector2 screenPos1 = renderer.WorldToScreen(triangle.Vertices[0].WorldPos + yOffset);
+			const Vector2 screenPos2 = renderer.WorldToScreen(triangle.Vertices[1].WorldPos + yOffset);
+			const Vector2 screenPos3 = renderer.WorldToScreen(triangle.Vertices[2].WorldPos + yOffset);
+
+			renderer.DrawLine(Color::Red, screenPos1, screenPos2);
+			renderer.DrawLine(Color::Red, screenPos1, screenPos3);
+			renderer.DrawLine(Color::Red, screenPos2, screenPos3);
+
+			DrawRect(screenPos1, Color::Blue);
+			DrawRect(screenPos2, Color::Blue);
+			DrawRect(screenPos3, Color::Blue);
+		}
+
+
+
+		/*-------------------------------
+		 *  세 점들을 표시한다....
+		 ********/
+		DrawRect(p1_screenPos, Color::Black);
+		DrawRect(p2_screenPos, Color::Black);
+		DrawRect(p3_screenPos, Color::Black);
+
+		DrawRect(renderer.WorldToScreen(triangle_list.green_highlight_point + yOffset), Color::Green);
+		DrawRect(renderer.WorldToScreen(triangle_list.red_highlight_point2 + yOffset), Color::Red);
+		DrawRect(renderer.WorldToScreen(triangle_list.purple_highlight_point + yOffset), Color::Purple);
+
+
+
+		/*--------------------------
+		 *  디버그 출력...
+		 *******/
+		renderer.DrawTextField(w$(
+			L"p1: ", p1,
+			L"\np2: ", p2,
+			L"\np3: ", p3,
+			L"\n\nfov: ", fov,
+			L"\nn: ", n,
+			L"\nf: ", f,
+			L"\nd: ", d,
+			L"\n\nP\n", P,
+			L"\n\nclip1: ", clip1,
+			L"\nndc1: ", ndc1,
+			L"\n\nclip2: ", clip2,
+			L"\nndc2: ", ndc2,
+			L"\n\nclip3: ", clip3,
+			L"\nndc3: ", ndc3,
+			L"\n\ntriangle_count: (", triangle_list.triangleCount, L"/", sizeof(triangle_list.Triangles)/sizeof(ClipTriangle), L")"),
 			Vector2Int(0, 200)
 		);
 	}

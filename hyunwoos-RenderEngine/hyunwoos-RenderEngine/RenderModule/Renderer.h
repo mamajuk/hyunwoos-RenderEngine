@@ -11,7 +11,7 @@ namespace hyunwoo {
 
 /*==============================================================================================================================================
  *    그래픽 출력에 관한 메소드들을 제공하는 클래스입니다....
- *==============*/
+ *************/
 class hyunwoo::Renderer final
 {
 	//==========================================================================================
@@ -28,6 +28,36 @@ public:
 		bool CreateBitmapIsFailed : 1;
 		bool CreateMemDCIsFailed  : 1;
 	};
+
+
+	/**************************************************
+	 *   삼각형 클립핑에 필요한 별칭과 구조체들입니다...
+	 *******/
+	using ClippingTestFunc = bool(const Vector4& clipPos);
+	using SolveTFunc	   = float(const Vector4& fromClipPos, const Vector4& toClipPos);
+
+	struct ClipVertex
+	{
+		Vector4 ClipPos;
+		Vector2 UvPos;
+	};
+
+	struct ClipTriangle
+	{
+		ClipVertex Vertices[3];
+	};
+
+	struct ClippingDescription
+	{
+		uint32_t from, to1, to2;
+	};
+
+	struct ClipTriangleList
+	{
+		uint32_t	 triangleCount;
+		ClipTriangle Triangles[20];
+	};
+
 
 
 	/*********************************************
@@ -82,9 +112,11 @@ public:
 	bool		UseWireFrameMode   : 1 = false;
 	bool		UseBackfaceCulling : 1 = true;
 	bool		UseAlphaBlending   : 1 = true;
-	bool		DrawTriangleNormal  : 1 = false;
-	Color		WireFrameColor         = LinearColor::Black;
-	Color		ClearColor             = LinearColor::White;
+	bool		DrawTriangleNormal : 1 = false;
+
+	Color		WireFrameColor         = Color::Black;
+	Color		ClearColor             = Color::White;
+	Color	    InvalidTriangleColor   = Color::Pink;
 
 
 	/*************************************
@@ -143,7 +175,7 @@ public:
 	InitResult Init(HWND renderTargetHwnd, UINT initWidth, UINT initHeight);
 
 
-	/***************************
+	/*********************************
 	 *   좌표계 변환 메소드....
 	 ******/
 	Vector2 NDCToScreen(const Vector4& ndcPos);
@@ -151,6 +183,26 @@ public:
 	Vector2 WorldToScreen(const Vector2& cartesianPos);
 	Vector2 ScreenToWorld(const Vector2& screenPos);
 	
+
+	/********************************
+	 *   클립핑 관련 메소드...
+	 *******/
+	static bool  ClippingTest_Far(const Vector4& clipPos);
+	static bool  ClippingTest_Near(const Vector4& clipPos);
+	static bool  ClippingTest_Right(const Vector4& clipPos);
+	static bool  ClippingTest_Left(const Vector4& clipPos);
+	static bool  ClippingTest_Up(const Vector4& clipPos);
+	static bool  ClippingTest_Down(const Vector4& clipPos);
+
+	static float SolveT_Far(const Vector4& fromClipPos, const Vector4& toClipPos);
+	static float SolveT_Near(const Vector4& fromClipPos, const Vector4& toClipPos);
+	static float SolveT_Right(const Vector4& fromClipPos, const Vector4& toClipPos);
+	static float SolveT_Left(const Vector4& fromClipPos, const Vector4& toClipPos);
+	static float SolveT_Up(const Vector4& fromClipPos, const Vector4& toClipPos);
+	static float SolveT_Down(const Vector4& fromClipPos, const Vector4& toClipPos);
+
+	void ClippingTriangle(ClipTriangleList& clipTriangleList, ClippingTestFunc* clippingTestFunc, SolveTFunc* solveTFunc);
+
 
 	/*******************************
 	 *   그래픽 출력 관련 메소드....

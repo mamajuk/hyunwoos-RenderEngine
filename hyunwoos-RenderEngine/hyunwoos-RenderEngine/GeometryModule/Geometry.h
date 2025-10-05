@@ -25,7 +25,7 @@ struct hyunwoo::BoundingBox
 
 
 /*===========================================================================================================================================
- *   경계 볼륨를 나타내는 구조체입니다...
+ *   경계 구를 나타내는 구조체입니다...
  ********/
 struct hyunwoo::BoundingSphere
 {
@@ -139,12 +139,12 @@ public:
 	//=============================================================================================
 public:
 	Frustum() = default;
-	Frustum(const Matrix4x4& finalMat) { SetPlanesFromFinalMatrix(finalMat); }
+	Frustum(const Matrix4x4& PerspectiveProjectionMat) { SetPlanesFromFinalMatrix(PerspectiveProjectionMat); }
 	Frustum(const Plane& leftPlane, const Plane& rightPlane, const Plane& backPlane, const Plane& forwardPlane, const Plane& upPlane, const Plane& downPlane): Planes{leftPlane, rightPlane, backPlane, forwardPlane, upPlane, downPlane} {};
 
 
-	void SetPlanesFromFinalMatrix(const Matrix4x4& finalMat);
-	
+	void SetPlanesFromFinalMatrix(const Matrix4x4& PerspectiveProjectionMat);
+
 	const bool IsOverlapped(const Vector4& affinePoint);
 	const bool IsOverlapped(const BoundingBox& boundingBox);
 	const bool IsOverlapped(const BoundingSphere& boundingSphere);

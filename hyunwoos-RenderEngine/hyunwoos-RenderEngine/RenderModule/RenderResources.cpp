@@ -147,7 +147,7 @@ void hyunwoo::Mesh::RecalculateBoundingBox()
 void hyunwoo::Mesh::CreateBoundingBoxMesh(Mesh& outMesh)
 {
 	std::vector<Vertex>& vertices    = outMesh.Vertices;
-	std::vector<Triangle>& triangles = outMesh.Triangles;
+	std::vector<IndexedTriangle>& triangles = outMesh.Triangles;
 
 	vertices.clear();
 	triangles.clear();
@@ -169,9 +169,9 @@ void hyunwoo::Mesh::CreateBoundingBoxMesh(Mesh& outMesh)
 		Rect rects[4];
 	};
 
-	const Vector3& min = BoundBox.Min;
-	const Vector3& max = BoundBox.Max;
-	const Vector2  rectSize = (Vector2::One * .15f);
+	const Vector3& min		    = BoundBox.Min;
+	const Vector3& max			= BoundBox.Max;
+	const Vector2  rectSize		= (Vector2::One * .15f);
 	const Vector2  rectSizeHalf = (rectSize * .5f);
 
 	const auto AddPillar = [&](J_Pillar& outPillar, const Vector3& pillarCenterPos, const float angle)
@@ -216,8 +216,8 @@ void hyunwoo::Mesh::CreateBoundingBoxMesh(Mesh& outMesh)
 		for (uint32_t i = 0; i < 2; i++) {
 			const Rect& rect = outPillar.rects[rectStartIdxTable[i]];
 
-			triangles.push_back(Triangle{ rect.LeftTopIdx, rect.RightTopIdx, rect.RightBottomIdx });
-			triangles.push_back(Triangle{ rect.LeftTopIdx, rect.LeftBottomIdx, rect.RightBottomIdx });
+			triangles.push_back(IndexedTriangle{ rect.LeftTopIdx, rect.RightTopIdx, rect.RightBottomIdx });
+			triangles.push_back(IndexedTriangle{ rect.LeftTopIdx, rect.LeftBottomIdx, rect.RightBottomIdx });
 		}
 
 		/*----------------------------------------------
@@ -227,11 +227,11 @@ void hyunwoo::Mesh::CreateBoundingBoxMesh(Mesh& outMesh)
 			const Rect& from = outPillar.rects[i];
 			const Rect& to = outPillar.rects[i + 1];
 
-			triangles.push_back(Triangle{ from.LeftBottomIdx, from.RightBottomIdx, to.RightBottomIdx });
-			triangles.push_back(Triangle{ from.LeftBottomIdx, to.LeftBottomIdx, to.RightBottomIdx });
+			triangles.push_back(IndexedTriangle{ from.LeftBottomIdx, from.RightBottomIdx, to.RightBottomIdx });
+			triangles.push_back(IndexedTriangle{ from.LeftBottomIdx, to.LeftBottomIdx, to.RightBottomIdx });
 
-			triangles.push_back(Triangle{ from.RightBottomIdx, from.RightTopIdx, to.RightTopIdx });
-			triangles.push_back(Triangle{ from.RightBottomIdx, to.RightBottomIdx, to.RightTopIdx });
+			triangles.push_back(IndexedTriangle{ from.RightBottomIdx, from.RightTopIdx, to.RightTopIdx });
+			triangles.push_back(IndexedTriangle{ from.RightBottomIdx, to.RightBottomIdx, to.RightTopIdx });
 		}
 
 
@@ -241,11 +241,11 @@ void hyunwoo::Mesh::CreateBoundingBoxMesh(Mesh& outMesh)
 		const Rect& middle_top = outPillar.rects[1];
 		const Rect& middle_bottom = outPillar.rects[2];
 
-		triangles.push_back(Triangle{ middle_top.RightTopIdx, middle_top.LeftTopIdx, middle_bottom.LeftTopIdx });
-		triangles.push_back(Triangle{ middle_top.RightTopIdx, middle_bottom.LeftTopIdx, middle_bottom.RightTopIdx });
+		triangles.push_back(IndexedTriangle{ middle_top.RightTopIdx, middle_top.LeftTopIdx, middle_bottom.LeftTopIdx });
+		triangles.push_back(IndexedTriangle{ middle_top.RightTopIdx, middle_bottom.LeftTopIdx, middle_bottom.RightTopIdx });
 
-		triangles.push_back(Triangle{ middle_top.LeftTopIdx, middle_top.LeftBottomIdx, middle_bottom.LeftBottomIdx });
-		triangles.push_back(Triangle{ middle_top.LeftTopIdx, middle_bottom.LeftBottomIdx, middle_bottom.LeftTopIdx });
+		triangles.push_back(IndexedTriangle{ middle_top.LeftTopIdx, middle_top.LeftBottomIdx, middle_bottom.LeftBottomIdx });
+		triangles.push_back(IndexedTriangle{ middle_top.LeftTopIdx, middle_bottom.LeftBottomIdx, middle_bottom.LeftTopIdx });
 	};
 
 
@@ -280,8 +280,8 @@ void hyunwoo::Mesh::CreateBoundingBoxMesh(Mesh& outMesh)
 			const Rect& fromRect = up.rects[i];
 			const Rect& toRect   = left.rects[i];
 
-			triangles.push_back(Triangle{ fromRect.LeftTopIdx,toRect.LeftTopIdx, fromRect.RightTopIdx });
-			triangles.push_back(Triangle{ toRect.LeftTopIdx, toRect.LeftBottomIdx, fromRect.RightTopIdx });
+			triangles.push_back(IndexedTriangle{ fromRect.LeftTopIdx,toRect.LeftTopIdx, fromRect.RightTopIdx });
+			triangles.push_back(IndexedTriangle{ toRect.LeftTopIdx, toRect.LeftBottomIdx, fromRect.RightTopIdx });
 		}
 
 		//연결면의 가로면들을 처리한다...
@@ -294,11 +294,11 @@ void hyunwoo::Mesh::CreateBoundingBoxMesh(Mesh& outMesh)
 			const Rect& fromRect2 = up.rects[sideRectIdxTable[i] + 1];
 			const Rect& toRect2   = left.rects[sideRectIdxTable[i] + 1];
 
-			triangles.push_back(Triangle{ fromRect1.RightTopIdx, toRect1.LeftBottomIdx, fromRect2.LeftBottomIdx });
-			triangles.push_back(Triangle{ fromRect1.RightTopIdx, toRect2.LeftBottomIdx, fromRect2.RightTopIdx });
+			triangles.push_back(IndexedTriangle{ fromRect1.RightTopIdx, toRect1.LeftBottomIdx, fromRect2.LeftBottomIdx });
+			triangles.push_back(IndexedTriangle{ fromRect1.RightTopIdx, toRect2.LeftBottomIdx, fromRect2.RightTopIdx });
 
-			triangles.push_back(Triangle{ fromRect1.LeftTopIdx, toRect1.LeftTopIdx, fromRect2.LeftTopIdx });
-			triangles.push_back(Triangle{ fromRect2.LeftTopIdx, toRect1.LeftTopIdx, toRect2.LeftTopIdx });
+			triangles.push_back(IndexedTriangle{ fromRect1.LeftTopIdx, toRect1.LeftTopIdx, fromRect2.LeftTopIdx });
+			triangles.push_back(IndexedTriangle{ fromRect2.LeftTopIdx, toRect1.LeftTopIdx, toRect2.LeftTopIdx });
 		}
 	};
 
@@ -329,7 +329,7 @@ void hyunwoo::Mesh::CreateBoundingBoxMesh(Mesh& outMesh)
 void hyunwoo::Mesh::CreateBoundingSphereMesh(Mesh& outMesh)
 {
 	std::vector<Vertex>& vertices    = outMesh.Vertices;
-	std::vector<Triangle>& triangles = outMesh.Triangles;
+	std::vector<IndexedTriangle>& triangles = outMesh.Triangles;
 
 	vertices.clear();
 	triangles.clear();
@@ -381,20 +381,20 @@ void hyunwoo::Mesh::CreateBoundingSphereMesh(Mesh& outMesh)
 			vertices.push_back(Vertex{ (rotBack - up), Vector2::Zero });
 
 			//앞쪽의 연결방식을 구성한다...
-			triangles.push_back(Triangle{ cur_forward_up, last_forward_up, cur_forward_down });
-			triangles.push_back(Triangle{ cur_forward_down, last_forward_up, last_forward_down });
+			triangles.push_back(IndexedTriangle{ cur_forward_up, last_forward_up, cur_forward_down });
+			triangles.push_back(IndexedTriangle{ cur_forward_down, last_forward_up, last_forward_down });
 
 			//뒤쪽의 연결방식을 구성한다...
-			triangles.push_back(Triangle{ cur_back_up, last_back_up, cur_back_down });
-			triangles.push_back(Triangle{ cur_back_down, last_back_up, last_back_down });
+			triangles.push_back(IndexedTriangle{ cur_back_up, last_back_up, cur_back_down });
+			triangles.push_back(IndexedTriangle{ cur_back_down, last_back_up, last_back_down });
 
 			//위쪽의 연결방식을 구성한다...
-			triangles.push_back(Triangle{ cur_forward_up, last_forward_up, cur_back_up });
-			triangles.push_back(Triangle{ cur_back_up, last_forward_up, last_back_up });
+			triangles.push_back(IndexedTriangle{ cur_forward_up, last_forward_up, cur_back_up });
+			triangles.push_back(IndexedTriangle{ cur_back_up, last_forward_up, last_back_up });
 	
 			//아래쪽의 연결방식을 구성한다...
-			triangles.push_back(Triangle{ cur_forward_down, last_forward_down, cur_back_down });
-			triangles.push_back(Triangle{ cur_back_down, last_forward_down, last_back_down });
+			triangles.push_back(IndexedTriangle{ cur_forward_down, last_forward_down, cur_back_down });
+			triangles.push_back(IndexedTriangle{ cur_back_down, last_forward_down, last_back_down });
 		}
 
 
@@ -405,20 +405,20 @@ void hyunwoo::Mesh::CreateBoundingSphereMesh(Mesh& outMesh)
 		const uint32_t last_back_down	 = (last_forward_up + 3);
 
 		//앞쪽의 연결방식을 구성한다...
-		triangles.push_back(Triangle{ first_forward_up, last_forward_up, first_forward_down });
-		triangles.push_back(Triangle{ first_forward_down, last_forward_up, last_forward_down });
+		triangles.push_back(IndexedTriangle{ first_forward_up, last_forward_up, first_forward_down });
+		triangles.push_back(IndexedTriangle{ first_forward_down, last_forward_up, last_forward_down });
 
 		//뒤쪽의 연결방식을 구성한다...
-		triangles.push_back(Triangle{ first_back_up, last_back_up, first_back_down });
-		triangles.push_back(Triangle{ first_back_down, last_back_up, last_back_down });
+		triangles.push_back(IndexedTriangle{ first_back_up, last_back_up, first_back_down });
+		triangles.push_back(IndexedTriangle{ first_back_down, last_back_up, last_back_down });
 
 		//위쪽의 연결방식을 구성한다...
-		triangles.push_back(Triangle{ first_forward_up, last_forward_up, first_back_up });
-		triangles.push_back(Triangle{ first_back_up, last_forward_up, last_back_up });
+		triangles.push_back(IndexedTriangle{ first_forward_up, last_forward_up, first_back_up });
+		triangles.push_back(IndexedTriangle{ first_back_up, last_forward_up, last_back_up });
 		
 		//아래쪽의 연결방식을 구성한다...
-		triangles.push_back(Triangle{ first_forward_down, last_forward_down, first_back_down });
-		triangles.push_back(Triangle{ first_back_down, last_forward_down, last_back_down });
+		triangles.push_back(IndexedTriangle{ first_forward_down, last_forward_down, first_back_down });
+		triangles.push_back(IndexedTriangle{ first_back_down, last_forward_down, last_back_down });
 	};
 
 

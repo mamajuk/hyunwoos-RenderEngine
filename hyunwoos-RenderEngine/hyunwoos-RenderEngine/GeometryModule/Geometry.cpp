@@ -130,9 +130,9 @@ const hyunwoo::Plane::TestResult hyunwoo::Plane::Test(const BoundingSphere& boun
 /*===================================================================================================================
  *   주어진 최종 행렬로부터, 절두체 영역의 바깥을 향하는 정규화된 평면들을 만든다...
  ******/
-void hyunwoo::Frustum::SetPlanesFromFinalMatrix(const Matrix4x4& finalMat)
+void hyunwoo::Frustum::SetPlanesFromFinalMatrix(const Matrix4x4& PerspectiveProjectionMat)
 {
-	const Matrix4x4 transpose = finalMat.GetTranspose();
+	const Matrix4x4 transpose = PerspectiveProjectionMat.GetTranspose();
 
 	LeftDirPlane  = Plane(-(transpose.BasisW + transpose.BasisX));
 	RightDirPlane = Plane(transpose.BasisX - transpose.BasisW);

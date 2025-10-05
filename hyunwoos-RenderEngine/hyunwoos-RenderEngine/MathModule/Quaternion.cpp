@@ -461,13 +461,7 @@ hyunwoo::Quaternion& hyunwoo::Quaternion::operator*=(const Quaternion& rhs)
  *=============*/
 const hyunwoo::Vector3 hyunwoo::Quaternion::operator *(const hyunwoo::Vector3& rhs) const
 {   
-	/**********************************************************
-	 *   기존 qvq*은 시계방향 회전이다. 따라서 q*vq로 진행해야
-	 *   왼손좌표게에서의 반시계 회전이 보장된다.
-	 *******/
 	const Vector3 t = Vector3::Cross(XYZ, rhs) * 2.f;
-
-	//return (*this * Quaternion(0, rhs) * GetConjugate()).XYZ;
 	return Vector3::Cross(XYZ, t) + (t * W) + rhs;
 }
 

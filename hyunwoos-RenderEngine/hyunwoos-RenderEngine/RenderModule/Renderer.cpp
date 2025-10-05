@@ -80,6 +80,209 @@ hyunwoo::Vector2 hyunwoo::Renderer::ScreenToWorld(const hyunwoo::Vector2& screen
 
 
 
+
+
+
+
+/*=====================================================================================================================
+ *   클립 좌표계의 삼각형들의 목록을 모두 순회해서 클립핑을 진행하고, 클립 좌표계의 삼각형들의 목
+ *****************/
+void hyunwoo::Renderer::ClippingTriangle(ClipTriangleList& clipTriangleList, ClippingTestFunc* clippingTestFunc, SolveTFunc* solveTFunc)
+{
+    uint32_t		    clipping_desc_count = 0;
+    ClippingDescription clipping_descs[3];
+
+    const uint32_t clipping_test_count = clipTriangleList.triangleCount;
+    for (uint32_t i = 0; i < clipping_test_count; i++)
+    {
+        ClipTriangle& cur_triangle = clipTriangleList.Triangles[i];
+
+        /*-------------------------------------------------------
+         *   클립핑이 적용되어야할 점에 대한 서술자를 작성한다....
+         *******/
+        clipping_desc_count = 0;
+
+        //첫번째 점에 대한 클립핑 서술자를 작성한다...
+        if (clippingTestFunc(cur_triangle.Vertices[0].ClipPos) == true) {
+            clipping_descs[clipping_desc_count++] = ClippingDescription{ 0, 1, 2 };
+        }
+
+        //두번째 점에 대한 클립핑 서술자를 작성한다...
+        if (clippingTestFunc(cur_triangle.Vertices[1].ClipPos) == true) {
+            clipping_descs[clipping_desc_count++] = ClippingDescription{ 1, 0, 2 };
+        }
+
+        //세번째 점에 대한 클립핑 서술자를 작성한다...
+        if (clippingTestFunc(cur_triangle.Vertices[2].ClipPos) == true) {
+            clipping_descs[clipping_desc_count++] = ClippingDescription{ 2, 0, 1 };
+        }
+
+
+        /*--------------------------------------------------------
+         *   클립핑할 점이 하나일 경우의 처리...
+         *******/
+        if (clipping_desc_count == 1) {
+            const ClippingDescription& desc = clipping_descs[0];
+
+            const ClipVertex  fromVertex = cur_triangle.Vertices[desc.from];
+            const ClipVertex& toVertex1 = cur_triangle.Vertices[desc.to1];
+            const ClipVertex& toVertex2 = cur_triangle.Vertices[desc.to2];
+
+            const float t1 = solveTFunc(fromVertex.ClipPos, toVertex1.ClipPos);
+            const float t2 = solveTFunc(fromVertex.ClipPos, toVertex2.ClipPos);
+
+            //첫번째 삼각형의 버텍스를 갱신한다...
+            cur_triangle.Vertices[desc.from].ClipPos = (fromVertex.ClipPos * t1) + (toVertex1.ClipPos * (1.f - t1));
+            cur_triangle.Vertices[desc.from].UvPos   = (fromVertex.UvPos * t1) + (toVertex1.UvPos * (1.f - t1));
+
+            //두번째 삼각형의 버텍스를 갱신한다...
+            ClipTriangle& nxt_triangle = clipTriangleList.Triangles[clipTriangleList.triangleCount++];
+            nxt_triangle.Vertices[0] = cur_triangle.Vertices[desc.from];
+            nxt_triangle.Vertices[1] = toVertex2;
+            nxt_triangle.Vertices[2].ClipPos = (fromVertex.ClipPos * t2) + (toVertex2.ClipPos * (1.f - t2));
+            nxt_triangle.Vertices[2].UvPos   = (fromVertex.UvPos * t2) + (toVertex2.UvPos * (1.f - t2));
+        }
+
+
+
+        /*---------------------------------------------------------
+         *   클립핑할 점이 두 개일 경우의 처리...
+         *******/
+        else if (clipping_desc_count == 2) {
+            const ClippingDescription& desc1 = clipping_descs[0];
+            const ClippingDescription& desc2 = clipping_descs[1];
+
+            const ClipVertex  fromVertex1 = cur_triangle.Vertices[desc1.from];
+            const ClipVertex  fromVertex2 = cur_triangle.Vertices[desc2.from];
+            const ClipVertex& toVertex = cur_triangle.Vertices[(desc1.to1 == desc2.to1 ? desc1.to1 : desc2.to2)];
+
+            const float t1 = solveTFunc(fromVertex1.ClipPos, toVertex.ClipPos);
+            const float t2 = solveTFunc(fromVertex2.ClipPos, toVertex.ClipPos);
+
+            //기존 삼각형의 버텍스를 갱신한다...
+            cur_triangle.Vertices[desc1.from].ClipPos = (toVertex.ClipPos * (1.f - t1)) + (fromVertex1.ClipPos * t1);
+            cur_triangle.Vertices[desc1.from].UvPos = (toVertex.UvPos * (1.f - t1)) + (fromVertex1.UvPos * t1);
+
+            cur_triangle.Vertices[desc2.from].ClipPos = (toVertex.ClipPos * (1.f - t2)) + (fromVertex2.ClipPos * t2);
+            cur_triangle.Vertices[desc2.from].UvPos = (toVertex.UvPos * (1.f - t2)) + (fromVertex2.UvPos * t2);
+        }
+
+
+        /*------------------------------------------------------
+         *  클립핑할 점이 세 개일 경우의 처리...
+         *******/
+        else if (clipping_desc_count == 3) {
+            cur_triangle = clipTriangleList.Triangles[clipTriangleList.triangleCount - 1];
+            clipTriangleList.triangleCount--;
+        }
+
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+/*=================================================================================================================
+ *   주어진 클립 좌표가 클립핑이 되어야하는지를 판별하는 메소드들....
+ **************/
+bool hyunwoo::Renderer::ClippingTest_Far(const Vector4& clipPos)
+{
+    return (clipPos.z > clipPos.w);
+}
+
+bool hyunwoo::Renderer::ClippingTest_Near(const Vector4& clipPos)
+{
+    return (clipPos.z < -clipPos.w);
+}
+
+bool hyunwoo::Renderer::ClippingTest_Right(const Vector4& clipPos)
+{
+    return (clipPos.x > clipPos.w);
+}
+
+bool hyunwoo::Renderer::ClippingTest_Left(const Vector4& clipPos)
+{
+    return (clipPos.x < -clipPos.w);
+}
+
+bool hyunwoo::Renderer::ClippingTest_Up(const Vector4& clipPos)
+{
+    return (clipPos.y > clipPos.w);
+}
+
+bool hyunwoo::Renderer::ClippingTest_Down(const Vector4& clipPos)
+{
+    return (clipPos.y < -clipPos.w);
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+/*=================================================================================================================
+ *   두 클립 좌표 간의 선형보간을 했을 때, 특정 클립 좌표가 나오도록하는 상수 T를 구하는 메소드들....
+ **************/
+float hyunwoo::Renderer::SolveT_Far(const Vector4& fromClipPos, const Vector4& toClipPos)
+{
+    return (toClipPos.w - toClipPos.z) / (-toClipPos.z + fromClipPos.z + toClipPos.w - fromClipPos.w);
+}
+
+float hyunwoo::Renderer::SolveT_Near(const Vector4& fromClipPos, const Vector4& toClipPos)
+{
+    return (-toClipPos.w - toClipPos.z) / (-toClipPos.z + fromClipPos.z - toClipPos.w + fromClipPos.w);
+}
+
+float hyunwoo::Renderer::SolveT_Right(const Vector4& fromClipPos, const Vector4& toClipPos)
+{
+    return (toClipPos.w - toClipPos.x) / (-toClipPos.x + fromClipPos.x + toClipPos.w - fromClipPos.w);
+}
+
+float hyunwoo::Renderer::SolveT_Left(const Vector4& fromClipPos, const Vector4& toClipPos)
+{
+    return (-toClipPos.w - toClipPos.x) / (-toClipPos.x + fromClipPos.x - toClipPos.w + fromClipPos.w);
+}
+
+float hyunwoo::Renderer::SolveT_Up(const Vector4& fromClipPos, const Vector4& toClipPos)
+{
+    return (toClipPos.w - toClipPos.y) / (-toClipPos.y + fromClipPos.y + toClipPos.w - fromClipPos.w);
+}
+
+float hyunwoo::Renderer::SolveT_Down(const Vector4& fromClipPos, const Vector4& toClipPos)
+{
+    return (-toClipPos.w - toClipPos.y) / (-toClipPos.y + fromClipPos.y - toClipPos.w + fromClipPos.w);
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 /*================================================================================================================
  *   랜더러를 초기화하는 메소드.
  *===========*/

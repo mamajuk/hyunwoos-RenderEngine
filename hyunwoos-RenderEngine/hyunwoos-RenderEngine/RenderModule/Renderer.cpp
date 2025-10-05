@@ -85,7 +85,7 @@ hyunwoo::Vector2 hyunwoo::Renderer::ScreenToWorld(const hyunwoo::Vector2& screen
 
 
 /*=====================================================================================================================
- *   클립 좌표계의 삼각형들의 목록을 모두 순회해서 클립핑을 진행하고, 클립 좌표계의 삼각형들의 목
+ *   주어진 클립 삼각형들을, 
  *****************/
 void hyunwoo::Renderer::ClippingTriangle(ClipTriangleList& clipTriangleList, ClippingTestFunc* clippingTestFunc, SolveTFunc* solveTFunc)
 {
@@ -97,7 +97,7 @@ void hyunwoo::Renderer::ClippingTriangle(ClipTriangleList& clipTriangleList, Cli
     {
         ClipTriangle& cur_triangle = clipTriangleList.Triangles[i];
 
-        /*-------------------------------------------------------
+        /****************************************************************
          *   클립핑이 적용되어야할 점에 대한 서술자를 작성한다....
          *******/
         clipping_desc_count = 0;
@@ -118,15 +118,16 @@ void hyunwoo::Renderer::ClippingTriangle(ClipTriangleList& clipTriangleList, Cli
         }
 
 
-        /*--------------------------------------------------------
+
+        /***************************************************************
          *   클립핑할 점이 하나일 경우의 처리...
          *******/
         if (clipping_desc_count == 1) {
             const ClippingDescription& desc = clipping_descs[0];
 
             const ClipVertex  fromVertex = cur_triangle.Vertices[desc.from];
-            const ClipVertex& toVertex1 = cur_triangle.Vertices[desc.to1];
-            const ClipVertex& toVertex2 = cur_triangle.Vertices[desc.to2];
+            const ClipVertex& toVertex1  = cur_triangle.Vertices[desc.to1];
+            const ClipVertex& toVertex2  = cur_triangle.Vertices[desc.to2];
 
             const float t1 = solveTFunc(fromVertex.ClipPos, toVertex1.ClipPos);
             const float t2 = solveTFunc(fromVertex.ClipPos, toVertex2.ClipPos);
@@ -145,31 +146,31 @@ void hyunwoo::Renderer::ClippingTriangle(ClipTriangleList& clipTriangleList, Cli
 
 
 
-        /*---------------------------------------------------------
+        /*****************************************************************
          *   클립핑할 점이 두 개일 경우의 처리...
          *******/
         else if (clipping_desc_count == 2) {
             const ClippingDescription& desc1 = clipping_descs[0];
             const ClippingDescription& desc2 = clipping_descs[1];
 
-            const ClipVertex  fromVertex1 = cur_triangle.Vertices[desc1.from];
-            const ClipVertex  fromVertex2 = cur_triangle.Vertices[desc2.from];
-            const ClipVertex& toVertex = cur_triangle.Vertices[(desc1.to1 == desc2.to1 ? desc1.to1 : desc2.to2)];
+            const ClipVertex& fromVertex1 = cur_triangle.Vertices[desc1.from];
+            const ClipVertex& fromVertex2 = cur_triangle.Vertices[desc2.from];
+            const ClipVertex& toVertex    = cur_triangle.Vertices[(3 - desc1.from - desc2.from)];
 
             const float t1 = solveTFunc(fromVertex1.ClipPos, toVertex.ClipPos);
             const float t2 = solveTFunc(fromVertex2.ClipPos, toVertex.ClipPos);
 
             //기존 삼각형의 버텍스를 갱신한다...
             cur_triangle.Vertices[desc1.from].ClipPos = (toVertex.ClipPos * (1.f - t1)) + (fromVertex1.ClipPos * t1);
-            cur_triangle.Vertices[desc1.from].UvPos = (toVertex.UvPos * (1.f - t1)) + (fromVertex1.UvPos * t1);
+            cur_triangle.Vertices[desc1.from].UvPos   = (toVertex.UvPos * (1.f - t1)) + (fromVertex1.UvPos * t1);
 
             cur_triangle.Vertices[desc2.from].ClipPos = (toVertex.ClipPos * (1.f - t2)) + (fromVertex2.ClipPos * t2);
-            cur_triangle.Vertices[desc2.from].UvPos = (toVertex.UvPos * (1.f - t2)) + (fromVertex2.UvPos * t2);
+            cur_triangle.Vertices[desc2.from].UvPos   = (toVertex.UvPos * (1.f - t2)) + (fromVertex2.UvPos * t2);
         }
 
 
-        /*------------------------------------------------------
-         *  클립핑할 점이 세 개일 경우의 처리...
+        /*******************************************************************
+         *  클립핑할 점이 세 개일 경우, 해당 삼각형을 목록에서 제거한다..
          *******/
         else if (clipping_desc_count == 3) {
             cur_triangle = clipTriangleList.Triangles[clipTriangleList.triangleCount - 1];

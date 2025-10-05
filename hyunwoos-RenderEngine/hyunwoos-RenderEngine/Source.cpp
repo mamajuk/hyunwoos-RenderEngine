@@ -658,7 +658,7 @@ private:
 		 *    사각형의 회전과 위치를 구성하는 행렬을 만든다....
 		 ********/
 		const float fov = 100.f;
-		const float n   = 10.f;
+		const float n   = 5.f;
 		const float f   = 50.f;
 		const float k   = (-n-f) / (n-f);
 		const float l   = -n - (k*n);

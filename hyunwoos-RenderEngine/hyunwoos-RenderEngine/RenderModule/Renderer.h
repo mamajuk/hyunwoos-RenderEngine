@@ -175,6 +175,7 @@ public:
 	InitResult Init(HWND renderTargetHwnd, UINT initWidth, UINT initHeight);
 
 
+
 	/*********************************
 	 *   좌표계 변환 메소드....
 	 ******/
@@ -183,6 +184,7 @@ public:
 	Vector2 WorldToScreen(const Vector2& cartesianPos);
 	Vector2 ScreenToWorld(const Vector2& screenPos);
 	
+
 
 	/********************************
 	 *   클립핑 관련 메소드...
@@ -202,6 +204,7 @@ public:
 	static float SolveT_Down(const Vector4& fromClipPos, const Vector4& toClipPos);
 
 	void ClippingTriangle(ClipTriangleList& clipTriangleList, ClippingTestFunc* clippingTestFunc, SolveTFunc* solveTFunc);
+
 
 
 	/*******************************

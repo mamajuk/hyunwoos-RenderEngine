@@ -30,6 +30,7 @@ public:
 	};
 
 
+
 	/**************************************************
 	 *   삼각형 클립핑에 필요한 별칭과 구조체들입니다...
 	 *******/
@@ -40,16 +41,17 @@ public:
 	{
 		Vector4 ClipPos;
 		Vector2 UvPos;
+
+		ClipVertex() = default;
+		ClipVertex(const Vector4& clipPos, const Vector2& uvPos) :ClipPos(clipPos), UvPos(uvPos) {}
 	};
 
 	struct ClipTriangle
 	{
 		ClipVertex Vertices[3];
-	};
 
-	struct ClippingDescription
-	{
-		uint32_t from, to1, to2;
+		ClipTriangle() = default;
+		ClipTriangle(const ClipVertex& clip_vertex1, const ClipVertex& clip_vertex2, const ClipVertex& clip_vertex3) : Vertices{ clip_vertex1, clip_vertex2, clip_vertex3 } {}
 	};
 
 	struct ClipTriangleList

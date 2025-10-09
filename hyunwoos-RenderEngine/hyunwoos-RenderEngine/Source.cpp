@@ -10,6 +10,8 @@
 #include "UtilityModule/Zlib.h"
 #include "UtilityModule/BitStream.h"
 #include "GeometryModule/Geometry.h"
+#include "EngineModule/Transform.h"
+#include "EngineModule/UniqueableObject.h"
 using namespace hyunwoo;
 using KeyCode = hyunwoo::InputManager::KeyCode;
 
@@ -45,6 +47,7 @@ protected:
 		renderer.ClearColor       = Color::White;
 		SetTargetFrameRate(60);
 
+		return;
 		/********************************************************
 		 *   메시를 불러온다...
 		 *****/
@@ -96,8 +99,8 @@ protected:
 			m_useBoundingSphere = !m_useBoundingSphere;
 		}
 
+		//Example13_TestUniqueObject();
 		Example9_DrawSubMeshs(m_mesh, m_textures, 100.f, 1.f, 200.f, deltaTime);
-		//Example12_TriangleClippingTest2D(100.f, deltaTime);
 		Example1_ShowInfo(deltaTime);
 	}
 
@@ -727,28 +730,62 @@ private:
 		/*---------------------------------------------------
 		 *  메시의 바운딩 스피어를 랜더링한다....
 		 *-----*/
-		//Renderer::TriangleDescription bounds_triangle_desc;
-		//bounds_triangle_desc.FillUpColor = Color::Red;
+		Renderer::ClipTriangleList    clip_triangle_list;
+		Renderer::TriangleDescription bounds_triangle_desc;
+		bounds_triangle_desc.FillUpColor = Color::Red;
 
-		//const Mesh& drawBoundMesh = (m_useBoundingSphere? m_mesh_boundingSphere:m_mesh_boundingBox);
-		//for (uint32_t i = 0; i < drawBoundMesh.Triangles.size(); i++) {
-		//	const IndexedTriangle& triangle = drawBoundMesh.Triangles[i];
-		//	const Vertex&   vertex1  = drawBoundMesh.Vertices[triangle.Indices[0]];
-		//	const Vertex&   vertex2  = drawBoundMesh.Vertices[triangle.Indices[1]];
-		//	const Vertex&   vertex3  = drawBoundMesh.Vertices[triangle.Indices[2]];
+		const Mesh& drawBoundMesh = (m_useBoundingSphere? m_mesh_boundingSphere:m_mesh_boundingBox);
+		for (uint32_t i = 0; i < drawBoundMesh.Triangles.size(); i++) {
+			const IndexedTriangle& triangle = drawBoundMesh.Triangles[i];
+			const Vertex&   vertex1  = drawBoundMesh.Vertices[triangle.Indices[0]];
+			const Vertex&   vertex2  = drawBoundMesh.Vertices[triangle.Indices[1]];
+			const Vertex&   vertex3  = drawBoundMesh.Vertices[triangle.Indices[2]];
 
-		//	const Vector4 clipPos1 = (finalMat * Vector4(vertex1.ObjPos, 1.f));
-		//	const Vector4 clipPos2 = (finalMat * Vector4(vertex2.ObjPos, 1.f));
-		//	const Vector4 clipPos3 = (finalMat * Vector4(vertex3.ObjPos, 1.f));
+			const Vector4 clipPos1 = (finalMat * Vector4(vertex1.ObjPos, 1.f));
+			const Vector4 clipPos2 = (finalMat * Vector4(vertex2.ObjPos, 1.f));
+			const Vector4 clipPos3 = (finalMat * Vector4(vertex3.ObjPos, 1.f));
 
-		//	const Vector2 screenPos1 = renderer.NDCToScreen(renderer.ClipToNDC(clipPos1));
-		//	const Vector2 screenPos2 = renderer.NDCToScreen(renderer.ClipToNDC(clipPos2));
-		//	const Vector2 screenPos3 = renderer.NDCToScreen(renderer.ClipToNDC(clipPos3));
+			const Vector2 screenPos1 = renderer.NDCToScreen(renderer.ClipToNDC(clipPos1));
+			const Vector2 screenPos2 = renderer.NDCToScreen(renderer.ClipToNDC(clipPos2));
+			const Vector2 screenPos3 = renderer.NDCToScreen(renderer.ClipToNDC(clipPos3));
 
-		//	bounds_triangle_desc.SetScreenPositions(screenPos1, screenPos2, screenPos3);
-		//	bounds_triangle_desc.SetDepths(clipPos1.w, clipPos2.w, clipPos3.w);
-		//	renderer.DrawTriangle(bounds_triangle_desc);
-		//}
+			clip_triangle_list.triangleCount = 1;
+			clip_triangle_list.Triangles[0]  = Renderer::ClipTriangle(
+				Renderer::ClipVertex(clipPos1, vertex1.UvPos),
+				Renderer::ClipVertex(clipPos2, vertex2.UvPos),
+				Renderer::ClipVertex(clipPos3, vertex3.UvPos)
+			);
+
+			//+Z, -Z 평면에 대한 클립핑을 적용한다...
+			renderer.ClippingTriangle(clip_triangle_list, renderer.ClippingTest_Far, renderer.SolveT_Far);
+			renderer.ClippingTriangle(clip_triangle_list, renderer.ClippingTest_Near, renderer.SolveT_Near);
+
+			//+X, -X 평면에 대한 클립핑을 적용한다...
+			renderer.ClippingTriangle(clip_triangle_list, renderer.ClippingTest_Right, renderer.SolveT_Right);
+			renderer.ClippingTriangle(clip_triangle_list, renderer.ClippingTest_Left, renderer.SolveT_Left);
+
+			//+Y, -Y 평면에 대한 클립핑을 적용한다...
+			renderer.ClippingTriangle(clip_triangle_list, renderer.ClippingTest_Up, renderer.SolveT_Up);
+			renderer.ClippingTriangle(clip_triangle_list, renderer.ClippingTest_Down, renderer.SolveT_Down);
+
+			for (uint32_t i = 0; i < clip_triangle_list.triangleCount; i++) {
+				const Renderer::ClipTriangle& clip_triangle = clip_triangle_list.Triangles[i];
+
+				bounds_triangle_desc.SetScreenPositions(
+					renderer.NDCToScreen(renderer.ClipToNDC(clip_triangle.Vertices[0].ClipPos)),
+					renderer.NDCToScreen(renderer.ClipToNDC(clip_triangle.Vertices[1].ClipPos)),
+					renderer.NDCToScreen(renderer.ClipToNDC(clip_triangle.Vertices[2].ClipPos))
+				);
+
+				bounds_triangle_desc.SetDepths(
+					clip_triangle.Vertices[0].ClipPos.w, 
+					clip_triangle.Vertices[1].ClipPos.w, 
+					clip_triangle.Vertices[2].ClipPos.w
+				);
+
+				renderer.DrawTriangle(bounds_triangle_desc);
+			}
+		}
 
 
 		/**************************************************************
@@ -767,9 +804,8 @@ private:
 			}
 
 			
-			const Mesh::SubMesh&		subMesh  = mesh.SubMeshs[subMeshIdx];
-			const uint32_t				goal_idx = (triangleIdx + subMesh.Triangle_Count);
-			Renderer::ClipTriangleList  clip_triangle_list;
+			const Mesh::SubMesh& subMesh  = mesh.SubMeshs[subMeshIdx];
+			const uint32_t		 goal_idx = (triangleIdx + subMesh.Triangle_Count);
 
 			while(triangleIdx < goal_idx){
 
@@ -1439,6 +1475,97 @@ private:
 			L"\n\ntriangle_count: (", triangle_list.triangleCount, L"/", sizeof(triangle_list.Triangles)/sizeof(ClipTriangle), L")"),
 			Vector2Int(0, 200)
 		);
+	}
+	void Example13_TestUniqueObject()
+	{
+		class TestObject final : public UniqueableObject
+		{
+		public:
+			uint32_t Value;
+
+			TestObject(uint32_t value) :Value(value) {};
+		};
+
+
+		static std::vector<TestObject>			obj_list;
+		static std::vector<WeakPtr<TestObject>> ptr_list;
+
+		/**************************************************
+		 *  초기화를 진행한다....
+		 ******/
+		if (obj_list.size()==0) {
+
+			for (uint32_t i = 0; i < 20; i++) {
+				obj_list.push_back(TestObject(i));
+			}
+
+			for (uint32_t i = 0; i < 20; i++) {
+				ptr_list.push_back(WeakPtr<TestObject>(&obj_list[i]));
+			}
+		}
+
+
+		/***************************************************
+		 *   원본 데이터 목록을 출력한다...
+		 *******/
+		static std::wstring output;
+
+		const InputManager& input = GetInputManager();
+
+		static uint32_t i = 0;
+		if (input.WasPressedThisFrame(KeyCode::Space)) {
+			obj_list[i++].Make_UnUnique();
+		}
+
+		static uint32_t i2 = 0;
+		if (input.WasPressedThisFrame(KeyCode::Right)) {
+			obj_list[i2 + 1] = std::move(obj_list[i2]);
+
+			i2++;
+		}
+
+		static uint32_t i3 = 19;
+		if (input.WasPressedThisFrame(KeyCode::Left)) {
+			obj_list[i3-1] = std::move(obj_list[i3]);
+
+			i3--;
+		}
+
+		if (input.WasPressedThisFrame(KeyCode::Shift)) {
+			TestObject& obj = obj_list[i];
+			obj.Value++;
+		}
+
+
+		output.clear();
+		output += L"object_list\n";
+		for (uint32_t i = 0; i < obj_list.size(); i++) {
+			output += (const std::wstring&)w$(
+				L"obj[", i, L"].value: ", obj_list[i].Value, L"\n"
+			);
+		}
+		
+		GetRenderer().DrawTextField(output, Vector2Int(400));
+
+
+		output.clear();
+		output += L"ptr_list\n";
+		for (uint32_t i = 0; i < ptr_list.size(); i++) {
+			TestObject* raw_ptr = ptr_list[i].Get();
+
+			if (raw_ptr!=nullptr) {
+				output += (const std::wstring&)w$(
+					L"ptr[", i, L"]->value: ", raw_ptr->Value, L"\n"
+				);
+				continue;
+			}
+
+			output += (const std::wstring&)w$(
+				L"ptr[", i, L"]: nullptr\n"
+			);
+		}
+
+		GetRenderer().DrawTextField(output, Vector2Int(800));
 	}
 };
 

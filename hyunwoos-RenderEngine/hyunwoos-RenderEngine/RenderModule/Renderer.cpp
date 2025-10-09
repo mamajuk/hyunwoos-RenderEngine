@@ -89,10 +89,15 @@ hyunwoo::Vector2 hyunwoo::Renderer::ScreenToWorld(const hyunwoo::Vector2& screen
  *****************/
 void hyunwoo::Renderer::ClippingTriangle(ClipTriangleList& clipTriangleList, ClippingTestFunc* clippingTestFunc, SolveTFunc* solveTFunc)
 {
+    struct ClippingDescription
+    {
+        uint32_t from, to1, to2;
+    };
+
     uint32_t		    clipping_desc_count = 0;
+    const uint32_t      clipping_test_count = clipTriangleList.triangleCount;
     ClippingDescription clipping_descs[3];
 
-    const uint32_t clipping_test_count = clipTriangleList.triangleCount;
     for (uint32_t i = 0; i < clipping_test_count; i++)
     {
         ClipTriangle& cur_triangle = clipTriangleList.Triangles[i];
@@ -138,8 +143,8 @@ void hyunwoo::Renderer::ClippingTriangle(ClipTriangleList& clipTriangleList, Cli
 
             //두번째 삼각형의 버텍스를 갱신한다...
             ClipTriangle& nxt_triangle = clipTriangleList.Triangles[clipTriangleList.triangleCount++];
-            nxt_triangle.Vertices[0] = cur_triangle.Vertices[desc.from];
-            nxt_triangle.Vertices[1] = toVertex2;
+            nxt_triangle.Vertices[0]         = cur_triangle.Vertices[desc.from];
+            nxt_triangle.Vertices[1]         = toVertex2;
             nxt_triangle.Vertices[2].ClipPos = (fromVertex.ClipPos * t2) + (toVertex2.ClipPos * (1.f - t2));
             nxt_triangle.Vertices[2].UvPos   = (fromVertex.UvPos * t2) + (toVertex2.UvPos * (1.f - t2));
         }
@@ -153,19 +158,19 @@ void hyunwoo::Renderer::ClippingTriangle(ClipTriangleList& clipTriangleList, Cli
             const ClippingDescription& desc1 = clipping_descs[0];
             const ClippingDescription& desc2 = clipping_descs[1];
 
-            const ClipVertex& fromVertex1 = cur_triangle.Vertices[desc1.from];
-            const ClipVertex& fromVertex2 = cur_triangle.Vertices[desc2.from];
+            ClipVertex&       fromVertex1 = cur_triangle.Vertices[desc1.from];
+            ClipVertex&       fromVertex2 = cur_triangle.Vertices[desc2.from];
             const ClipVertex& toVertex    = cur_triangle.Vertices[(3 - desc1.from - desc2.from)];
 
             const float t1 = solveTFunc(fromVertex1.ClipPos, toVertex.ClipPos);
             const float t2 = solveTFunc(fromVertex2.ClipPos, toVertex.ClipPos);
 
             //기존 삼각형의 버텍스를 갱신한다...
-            cur_triangle.Vertices[desc1.from].ClipPos = (toVertex.ClipPos * (1.f - t1)) + (fromVertex1.ClipPos * t1);
-            cur_triangle.Vertices[desc1.from].UvPos   = (toVertex.UvPos * (1.f - t1)) + (fromVertex1.UvPos * t1);
+            fromVertex1.ClipPos = (toVertex.ClipPos * (1.f - t1)) + (fromVertex1.ClipPos * t1);
+            fromVertex1.UvPos   = (toVertex.UvPos * (1.f - t1)) + (fromVertex1.UvPos * t1);
 
-            cur_triangle.Vertices[desc2.from].ClipPos = (toVertex.ClipPos * (1.f - t2)) + (fromVertex2.ClipPos * t2);
-            cur_triangle.Vertices[desc2.from].UvPos   = (toVertex.UvPos * (1.f - t2)) + (fromVertex2.UvPos * t2);
+            fromVertex2.ClipPos = (toVertex.ClipPos * (1.f - t2)) + (fromVertex2.ClipPos * t2);
+            fromVertex2.UvPos   = (toVertex.UvPos * (1.f - t2)) + (fromVertex2.UvPos * t2);
         }
 
 

@@ -147,8 +147,11 @@
     <ClCompile Include="UtilityModule\Zlib.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="EngineModule\UniqueableObject.h" />
     <ClInclude Include="EngineModule\InputManager.h" />
     <ClInclude Include="EngineModule\RenderEngine.h" />
+    <ClInclude Include="EngineModule\SmartPointer.h" />
+    <ClInclude Include="EngineModule\Transform.h" />
     <ClInclude Include="ImportModule\PmxImporter.h" />
     <ClInclude Include="ImportModule\PngImporter.h" />
     <ClInclude Include="MathModule\Color.h" />

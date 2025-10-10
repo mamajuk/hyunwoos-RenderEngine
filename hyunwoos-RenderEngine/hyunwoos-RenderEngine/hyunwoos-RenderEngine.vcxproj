@@ -131,6 +131,8 @@
   <ItemGroup>
     <ClCompile Include="EngineModule\InputManager.cpp" />
     <ClCompile Include="EngineModule\RenderEngine.cpp" />
+    <ClCompile Include="EngineModule\Transform.cpp" />
+    <ClCompile Include="EngineModule\UniqueableObject.cpp" />
     <ClCompile Include="GeometryModule\Geometry.cpp" />
     <ClCompile Include="ImportModule\PmxImporter.cpp" />
     <ClCompile Include="ImportModule\PngImporter.cpp" />

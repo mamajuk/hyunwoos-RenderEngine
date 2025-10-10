@@ -14,7 +14,8 @@ namespace hyunwoo {
 
 
 /*=======================================================================================================================================================================
- *   고유 전역 식별자값을 가지는 기반 클래스입니다....
+ *   필요시 고유의 값이 배정되어 유효성 여부를 판별할 수 있는 기반 클래스입니다. 
+ *   ( ※자식 클래스들은 복사/이동 생성자 및 가상 소멸자 구현시, 반드시 UniqueableObject의 복사/이동 생성자 및 소멸자가 호출되어야 합니다. 그렇지 않으면 Undefined Behavior입니다... ※ )
  **********/
 class hyunwoo::UniqueableObject
 {
@@ -74,6 +75,22 @@ private:
 
 
 
+
+
+
+	//==========================================================================================================
+	////////////////						   Virtual methods..							////////////////////
+	//==========================================================================================================
+protected:
+	virtual void OnUniqued() {};
+	virtual void OnUnUniqued() {};
+
+
+
+
+
+
+
 	//======================================================================================================
 	////////////////						   Public methods..							////////////////////
 	//======================================================================================================
@@ -90,7 +107,7 @@ public:
 		operator=(std::move(prev));
 	}
 
-	~UniqueableObject()
+	virtual ~UniqueableObject()
 	{
 		Make_UnUnique();
 	}
@@ -115,30 +132,36 @@ public:
 			UniqueableObject::m_descs.push_back(UniqueableObject::MemoryUsageDescriptor{
 				this, 1
 			});
+
+			OnUniqued();
 		}
 
 		/*************************************************
 		 *  여유있는 MemoryUsageDescriptor를 배정한다..
 		 *******/
 		else {
-			uint32_t							 desc_idx = UniqueableObject::m_free_list.back();
-			UniqueableObject::MemoryUsageDescriptor& desc = UniqueableObject::m_descs[desc_idx];
+			uint32_t							     desc_idx = UniqueableObject::m_free_list.back();
+			UniqueableObject::MemoryUsageDescriptor& desc     = UniqueableObject::m_descs[desc_idx];
 
 			m_uuid.Table_idx  = UniqueableObject::m_free_list.back();
 			m_uuid.Generation = desc.Generation;
 			desc.Raw_ptr      = this;
 			UniqueableObject::m_free_list.pop_back();
+
+			OnUniqued();
 		}
 	}
 
 	void Make_UnUnique()
 	{
 		/***************************************************
-		 *   해당 UUID값과 대응되는 MemoryUsageDescriptor를
-		 *   해제한다...
+		 *   고유한 상태라면, 배정된 MemoryUsageDescriptor를
+		 *   회수한다....
 		 ******/
 		if (m_uuid.Value != 0)
 		{
+			OnUnUniqued();
+
 			MemoryUsageDescriptor& desc = m_descs[m_uuid.Table_idx];
 
 			if (desc.Generation == m_uuid.Generation) {
@@ -203,9 +226,6 @@ public:
 
 };
 
-std::vector<hyunwoo::UniqueableObject::MemoryUsageDescriptor> hyunwoo::UniqueableObject::m_descs     = { hyunwoo::UniqueableObject::MemoryUsageDescriptor( nullptr, 1 )};
-std::vector<uint32_t>									      hyunwoo::UniqueableObject::m_free_list = { 0 };
-
 
 
 
@@ -219,7 +239,7 @@ std::vector<uint32_t>									      hyunwoo::UniqueableObject::m_free_list = { 0
 
 
 /*=======================================================================================================================================================================
- *   포인터 유효성 검증용 스마트 포인터입니다. 단, UniqueObject를 상속받지 않은 T 객체를 가리킬 경우 UB입니다....
+ *   포인터 유효성 검증용 스마트 포인터입니다. 템플릿 타입 T는 반드시 UniqueableObject를 상속한 타입이여야 합니다....
  **********/
 template<typename T>
 class hyunwoo::WeakPtr final
@@ -239,17 +259,44 @@ private:
 	////////////////						   Public methods..						     ////////////////////
 	//=======================================================================================================
 public:
+	WeakPtr() :m_uuid()
+	{
+		static_assert(std::is_convertible_v<T*, UniqueableObject*>, "WeakPtr<T>'s T is not base of UniqueableObject!!");
+	}
+
 	WeakPtr(hyunwoo::UniqueableObject* const raw_ptr)
 	:m_uuid()
 	{
+		static_assert(std::is_convertible_v<T*, UniqueableObject*>, "WeakPtr<T>'s T is not base of UniqueableObject!!");
 		operator=(raw_ptr);
 	}
+
 
 	void Reset()
 	{
 		m_uuid.Value = 0;
 	}
 
+	T* Get() const
+	{
+		/****************************************************************
+		 *   해당 객체가 유효하면 raw_ptr을, 아니라면 nullptr을 반환한다...
+		 ******/
+		UniqueableObject::MemoryUsageDescriptor& desc = UniqueableObject::m_descs[m_uuid.Table_idx];
+
+		if (desc.Generation == m_uuid.Generation) {
+			return static_cast<T*>(desc.Raw_ptr);
+		}
+
+		return nullptr;
+	}
+
+
+
+
+	//===========================================================================================================
+	////////////////						   Operator methods..						     ////////////////////
+	//===========================================================================================================
 	void operator=(hyunwoo::UniqueableObject* const raw_ptr)
 	{
 		/**************************************************************
@@ -270,28 +317,13 @@ public:
 		m_uuid.Value = uuid.Value;
 	}
 
-	T* operator*() 
+	T* operator*() const
 	{
 		return Get();
 	}
 
-	T* operator->() 
+	T* operator->() const
 	{
 		return Get();
 	}
-
-	T* Get()
-	{
-		/****************************************************************
-		 *   해당 객체가 유효하면 raw_ptr을, 아니라면 nullptr을 반환한다...
-		 ******/
-		UniqueableObject::MemoryUsageDescriptor& desc = UniqueableObject::m_descs[m_uuid.Table_idx];
-
-		if (desc.Generation==m_uuid.Generation) {
-			return static_cast<T*>(desc.Raw_ptr);
-		}
-
-		return nullptr;
-	}
-
 };

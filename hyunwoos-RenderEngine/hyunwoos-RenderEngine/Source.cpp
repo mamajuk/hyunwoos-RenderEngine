@@ -47,6 +47,7 @@ protected:
 		renderer.ClearColor       = Color::White;
 		SetTargetFrameRate(60);
 
+
 		return;
 		/********************************************************
 		 *   메시를 불러온다...
@@ -99,8 +100,8 @@ protected:
 			m_useBoundingSphere = !m_useBoundingSphere;
 		}
 
-		//Example13_TestUniqueObject();
-		Example9_DrawSubMeshs(m_mesh, m_textures, 100.f, 1.f, 200.f, deltaTime);
+		Example13_TestUniqueObject();
+		//Example9_DrawSubMeshs(m_mesh, m_textures, 100.f, 1.f, 200.f, deltaTime);
 		Example1_ShowInfo(deltaTime);
 	}
 
@@ -1478,17 +1479,20 @@ private:
 	}
 	void Example13_TestUniqueObject()
 	{
-		class TestObject final : public UniqueableObject
+		class TestObject : public UniqueableObject
 		{
 		public:
 			uint32_t Value;
 
-			TestObject(uint32_t value) :Value(value) {};
+			TestObject();
+			TestObject(uint32_t value) :Value(value){};
 		};
 
 
 		static std::vector<TestObject>			obj_list;
 		static std::vector<WeakPtr<TestObject>> ptr_list;
+
+		
 
 		/**************************************************
 		 *  초기화를 진행한다....

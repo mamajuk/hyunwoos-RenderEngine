@@ -125,14 +125,11 @@ public:
 		 *  여유있는 MemoryUsageDescriptor가 없다면,
 		 *  새로운 MemoryUsageDescriptor를 배정한다..
 		 *******/
-		if (UniqueableObject::m_free_list.empty()) {
-			m_uuid.Table_idx = UniqueableObject::m_descs.size();
+		if (m_free_list.empty()) {
+			m_uuid.Table_idx  = m_descs.size();
 			m_uuid.Generation = 1;
 
-			UniqueableObject::m_descs.push_back(UniqueableObject::MemoryUsageDescriptor{
-				this, 1
-			});
-
+			UniqueableObject::m_descs.push_back(MemoryUsageDescriptor{this, 1});
 			OnUniqued();
 		}
 
@@ -140,14 +137,14 @@ public:
 		 *  여유있는 MemoryUsageDescriptor를 배정한다..
 		 *******/
 		else {
-			uint32_t							     desc_idx = UniqueableObject::m_free_list.back();
-			UniqueableObject::MemoryUsageDescriptor& desc     = UniqueableObject::m_descs[desc_idx];
+			uint32_t			   desc_idx = m_free_list.back();
+			MemoryUsageDescriptor& desc     = m_descs[desc_idx];
 
-			m_uuid.Table_idx  = UniqueableObject::m_free_list.back();
+			m_uuid.Table_idx  = m_free_list.back();
 			m_uuid.Generation = desc.Generation;
 			desc.Raw_ptr      = this;
-			UniqueableObject::m_free_list.pop_back();
 
+			m_free_list.pop_back();
 			OnUniqued();
 		}
 	}
@@ -239,7 +236,8 @@ public:
 
 
 /*=======================================================================================================================================================================
- *   포인터 유효성 검증용 스마트 포인터입니다. 템플릿 타입 T는 반드시 UniqueableObject를 상속한 타입이여야 합니다....
+ *   포인터 유효성 검증용 스마트 포인터입니다. 템플릿 타입 T는 반드시 UniqueableObject를 상속한 타입이여야 합니다.
+ *   nullptr이 아닌 raw_ptr로 스마트 포인터에 대입 연산자를 시도할 경우, Undefine Behavior입니다....
  **********/
 template<typename T>
 class hyunwoo::WeakPtr final
@@ -264,7 +262,7 @@ public:
 		static_assert(std::is_convertible_v<T*, UniqueableObject*>, "WeakPtr<T>'s T is not base of UniqueableObject!!");
 	}
 
-	WeakPtr(hyunwoo::UniqueableObject* const raw_ptr)
+	WeakPtr(T* const raw_ptr)
 	:m_uuid()
 	{
 		static_assert(std::is_convertible_v<T*, UniqueableObject*>, "WeakPtr<T>'s T is not base of UniqueableObject!!");
@@ -297,7 +295,7 @@ public:
 	//===========================================================================================================
 	////////////////						   Operator methods..						     ////////////////////
 	//===========================================================================================================
-	void operator=(hyunwoo::UniqueableObject* const raw_ptr)
+	void operator=(T* const raw_ptr)
 	{
 		/**************************************************************
 		 *   nullptr이 대입되었을 경우, 유효하지 않은 UUID값으로 갱신한다..

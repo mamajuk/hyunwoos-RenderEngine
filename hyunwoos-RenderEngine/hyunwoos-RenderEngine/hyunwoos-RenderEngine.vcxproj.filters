@@ -187,6 +187,27 @@
     <Image Include="Resources\steve\char.png">
       <Filter>Resource Files</Filter>
     </Image>
+    <Image Include="Resources\one.png">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="Resources\two.png">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="Resources\zero.png">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="Resources\five.png">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="Resources\four.png">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="Resources\six.png">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="Resources\three.png">
+      <Filter>Resource Files</Filter>
+    </Image>
   </ItemGroup>
   <ItemGroup>
     <None Include="Resources\Paymon\paymon.pmx" />

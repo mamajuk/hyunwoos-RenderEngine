@@ -50,7 +50,7 @@ struct hyunwoo::Plane
 	/////////////							Defines..							   //////////////
 	//==========================================================================================
 public:
-	struct TestResult
+	struct TestResult final
 	{
 		bool Overlapped : 1;
 		bool Outside	: 1;

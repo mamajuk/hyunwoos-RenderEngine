@@ -177,6 +177,9 @@
     <Image Include="Resources\feixieer\tex\表情.png" />
     <Image Include="Resources\feixieer\tex\面.png" />
     <Image Include="Resources\feixieer\toon_defo.png" />
+    <Image Include="Resources\five.png" />
+    <Image Include="Resources\four.png" />
+    <Image Include="Resources\one.png" />
     <Image Include="Resources\Paymon\Texture\mc3.png" />
     <Image Include="Resources\Paymon\Texture\toon.png" />
     <Image Include="Resources\Paymon\Texture\头发.png" />
@@ -185,10 +188,14 @@
     <Image Include="Resources\Paymon\Texture\脸.png" />
     <Image Include="Resources\Paymon\Texture\衣服.png" />
     <Image Include="Resources\Paymon\Texture\表情.png" />
+    <Image Include="Resources\six.png" />
     <Image Include="Resources\steve\char.png" />
     <Image Include="Resources\test1.png" />
     <Image Include="Resources\test2.png" />
     <Image Include="Resources\test3.png" />
+    <Image Include="Resources\three.png" />
+    <Image Include="Resources\two.png" />
+    <Image Include="Resources\zero.png" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Resources\feixieer\feixieer.pmx" />

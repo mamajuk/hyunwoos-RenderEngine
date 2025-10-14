@@ -48,7 +48,6 @@ protected:
 		SetTargetFrameRate(60);
 
 
-		return;
 		/********************************************************
 		 *   메시를 불러온다...
 		 *****/
@@ -100,8 +99,7 @@ protected:
 			m_useBoundingSphere = !m_useBoundingSphere;
 		}
 
-		Example13_TestUniqueObject();
-		//Example9_DrawSubMeshs(m_mesh, m_textures, 100.f, 1.f, 200.f, deltaTime);
+		Example9_DrawSubMeshs(m_mesh, m_textures, 100.f, 1.f, 200.f, deltaTime);
 		Example1_ShowInfo(deltaTime);
 	}
 
@@ -274,13 +272,13 @@ private:
 		}
 
 	}
-	void Example5_DrawRectangle(const Texture2D& tex, float moveSpeed, float scaleSpeed, float rotSpeed, float deltaTime)
+	void Example5_DrawRectangle(const Texture2D& tex, float deltaTime)
 	{
 		const InputManager& input         = GetInputManager();
 		Renderer&			renderer      = GetRenderer();
-		const float         moveSpeedSec  = (moveSpeed  * deltaTime);
-		const float         rotSpeedSec   = (rotSpeed   * deltaTime);
-		const float         scaleSpeedSec = (scaleSpeed * deltaTime);
+		const float         moveSpeedSec  = (100.f * deltaTime);
+		const float         rotSpeedSec   = (100.f * deltaTime);
+		const float         scaleSpeedSec = (1.f   * deltaTime);
 
 		static Vector2 worldPos = (Vector2::One * 100.f);
 		static Vector2 size		= (Vector2::One * 2.f);
@@ -1488,7 +1486,6 @@ private:
 			TestObject(uint32_t value) :Value(value){};
 		};
 
-
 		static std::vector<TestObject>			obj_list;
 		static std::vector<WeakPtr<TestObject>> ptr_list;
 
@@ -1499,11 +1496,11 @@ private:
 		 ******/
 		if (obj_list.size()==0) {
 
-			for (uint32_t i = 0; i < 20; i++) {
+			for (uint32_t i = 0; i < 30; i++) {
 				obj_list.push_back(TestObject(i));
 			}
 
-			for (uint32_t i = 0; i < 20; i++) {
+			for (uint32_t i = 0; i < 30; i++) {
 				ptr_list.push_back(WeakPtr<TestObject>(&obj_list[i]));
 			}
 		}
@@ -1528,7 +1525,7 @@ private:
 			i2++;
 		}
 
-		static uint32_t i3 = 19;
+		static uint32_t i3 = 29;
 		if (input.WasPressedThisFrame(KeyCode::Left)) {
 			obj_list[i3-1] = std::move(obj_list[i3]);
 
@@ -1570,6 +1567,188 @@ private:
 		}
 
 		GetRenderer().DrawTextField(output, Vector2Int(800));
+	}
+	void Example14_TestTransform(std::vector<Texture2D>& textures, float deltaTime)
+	{
+		Renderer&			renderer	 = GetRenderer();
+		const InputManager& input		 = GetInputManager();
+		const float         slowScale	 = (input.IsInProgress(KeyCode::Space) ? .2f : 1.f);
+		const float			moveSpeedSec = (deltaTime * 100.f * slowScale);
+		const float			rotSpeedSec  = (deltaTime * 100.f * slowScale);
+
+
+
+		/*********************************************************
+		 *   객체들을 초기화한다....
+		 *********/
+		static std::vector<Transform> tr_list;
+
+		if (tr_list.size()==0) {
+			tr_list.resize(6);
+			
+			Transform& tr_0 = tr_list[0];
+			tr_0.SetLocalPositionAndScaleAndRotation(
+				Vector3(0.f, 0.f, 0.f),
+				Vector3::One * 100.f,
+				Quaternion::Identity
+			);
+
+			Transform& tr_1 = tr_list[1];
+			tr_1.SetLocalPositionAndScaleAndRotation(
+				Vector3(100.f, 0.f, 0.f),
+				Vector3::One * 100.f,
+				Quaternion::Identity
+			);
+
+			Transform& tr_2 = tr_list[2];
+			tr_2.SetLocalPositionAndScaleAndRotation(
+				Vector3(0.f, 100.f, 0.f),
+				Vector3::One * 100.f,
+				Quaternion::Identity
+			);
+
+			Transform& tr_3 = tr_list[3];
+			tr_3.SetLocalPositionAndScaleAndRotation(
+				Vector3(0.f, 60.f, 0.f),
+				Vector3::One * 100.f,
+				Quaternion::Identity
+			);
+
+			Transform& tr_4 = tr_list[4];
+			tr_4.SetLocalPositionAndScaleAndRotation(
+				Vector3(0.f, 40.f, 0.f),
+				Vector3::One * 100.f,
+				Quaternion::Identity
+			);
+
+			Transform& tr_5 = tr_list[5];
+			tr_5.SetLocalPositionAndScaleAndRotation(
+				Vector3(0.f, 200.f, 0.f),
+				Vector3::One * 100.f,
+				Quaternion::Identity
+			);
+		}
+		
+
+
+
+		/*********************************************************
+		 *    선택한 객체를 조작한다....
+		 *********/
+		static uint32_t tr_idx = 0;
+
+		for (uint32_t i = 0; i < tr_list.size(); i++) {
+
+			//현재 조작중인 대상이 부모를 제거한다...
+			if (input.WasPressedThisFrame(KeyCode::X)) {
+				tr_list[tr_idx].SetParent(nullptr);
+			}
+
+			if (input.WasPressedThisFrame(KeyCode(uint32_t(KeyCode::NUMPAD_0) + i)))
+			{
+				//현재 조작중인 대상을, 선택한 대상의 자식으로 넣는다....
+				if (input.IsInProgress(KeyCode::Z)) {
+					tr_list[tr_idx].SetParent(&tr_list[i]);
+				}
+
+				//조작 대상을, 선택한 대상으로 변경한다....
+				else tr_idx = i;
+			}
+		}
+
+		Transform& tr = tr_list[tr_idx];
+		tr.SetWorldPositionAndScaleAndRotation(
+			tr.GetWorldPosition() + Vector3(input.GetAxis(KeyCode::Left, KeyCode::Right), input.GetAxis(KeyCode::Down, KeyCode::Up), 0.f) * moveSpeedSec,
+			tr.GetWorldScale()    + (Vector3::One * input.GetAxis(KeyCode::S, KeyCode::W)),
+			Quaternion::AngleAxis(input.GetAxis(KeyCode::Q, KeyCode::E) * rotSpeedSec, Vector3::Back) * tr.GetWorldRotation()
+		);
+
+
+
+
+		/*********************************************************
+		 *    모든 사각형들을 랜더링한다....
+		 ********/
+		const float wHalf = .5f;
+		const float hHalf = .5f;
+
+		Vector4 objPos1 = Vector4(-wHalf, hHalf, 0.f, 1.f);
+		Vector4 objPos2 = Vector4(wHalf, hHalf, 0.f, 1.f);
+		Vector4 objPos3 = Vector4(-wHalf, -hHalf, 0.f, 1.f);
+		Vector4 objPos4 = Vector4(wHalf, -hHalf, 0.f, 1.f);
+
+		Vector2 uvPos1 = Vector2(0.f, 0.f);
+		Vector2 uvPos2 = Vector2(1.f, 0.f);
+		Vector2 uvPos3 = Vector2(0.f, 1.f);
+		Vector2 uvPos4 = Vector2(1.f, 1.f);
+
+		static std::wstring debugTxt;
+		debugTxt.clear();
+		debugTxt += (const std::wstring&)w$(L"selected idx: ", tr_idx, L"\n(add parent mode: z~ / remove parent: x)\n\n");
+		
+		Renderer::TriangleDescription triangle_desc;
+		for (uint32_t i = 0; i < tr_list.size(); i++) 
+		{
+			Transform& cur = tr_list[i];
+
+			Matrix4x4 TRS = cur.GetTRS();
+			Vector4   objPos1 = Vector4(-wHalf, hHalf, 0.f, 1.f);
+			Vector4   objPos2 = Vector4(wHalf, hHalf, 0.f, 1.f);
+			Vector4   objPos3 = Vector4(-wHalf, -hHalf, 0.f, 1.f);
+			Vector4   objPos4 = Vector4(wHalf, -hHalf, 0.f, 1.f);
+
+			Vector2 screenPos1 = renderer.WorldToScreen(TRS * objPos1);
+			Vector2 screenPos2 = renderer.WorldToScreen(TRS * objPos2);
+			Vector2 screenPos3 = renderer.WorldToScreen(TRS * objPos3);
+			Vector2 screenPos4 = renderer.WorldToScreen(TRS * objPos4);
+
+			triangle_desc.MappedTexture = &textures[i];
+			triangle_desc.SetDepths(i, i, i);
+
+
+			/*------------------------------------------
+			 *   첫번째 삼각형을 그린다...
+			 ********/
+			triangle_desc.SetUvPositions(uvPos1, uvPos2, uvPos3);
+			triangle_desc.SetScreenPositions(screenPos1, screenPos2, screenPos3);
+			renderer.DrawTriangle(triangle_desc);
+
+
+			/*------------------------------------------
+			 *   두번째 삼각형을 그린다...
+			 ********/
+			triangle_desc.SetUvPositions(uvPos2, uvPos3, uvPos4);
+			triangle_desc.SetScreenPositions(screenPos2, screenPos3, screenPos4);
+			renderer.DrawTriangle(triangle_desc);
+
+
+			/*----------------------------------------
+			 *   조작중인 객체라면, 테두리를 그린다...
+			 ********/
+			if (tr_idx==i) {
+				renderer.DrawLine(Color::Green, screenPos1, screenPos2);
+				renderer.DrawLine(Color::Green, screenPos1, screenPos3);
+				renderer.DrawLine(Color::Green, screenPos2, screenPos4);
+				renderer.DrawLine(Color::Green, screenPos2, screenPos4);
+			}
+
+
+			/*---------------------------------------
+			 *   해당 객체에 대한 디버그 출력...
+			 *******/
+			debugTxt += (const std::wstring&)w$(
+				L"transform[", i, L"].parent: ", (cur.GetParent() == nullptr ? -1 : (cur.GetParent() - &tr_list[0])),
+				L"\nlocal_position", cur.GetLocalPosition(), L"\nlocal_scale: ", cur.GetLocalScale(), L"\nlocal_rotation: ", cur.GetLocalRotation(), L"\n\n\n"
+			);
+		}
+
+
+
+
+		/****************************************************
+		 *  디버그 출력...
+		 *******/
+		renderer.DrawTextField(debugTxt, Vector2Int(0, 100));
 	}
 };
 

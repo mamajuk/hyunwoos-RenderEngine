@@ -156,6 +156,7 @@ public:
 	///////									 Fields..								///////
 	//=====================================================================================
 private:
+	Vector2  m_mouse_screenPos;
 	KeyState m_keyStates[255] = { 0, };
 
 
@@ -165,14 +166,25 @@ private:
 	////////								Public methods..						/////////
 	//======================================================================================
 public:
+
+	/*******************************************
+	 *
+	 ******/
 	bool IsInProgress(KeyCode keyCode)         const;
 	bool WasPressedThisFrame(KeyCode keyCode)  const;
 	bool WasReleasedThisFrame(KeyCode keyCode) const;
 
 	float GetAxis(KeyCode minusKey, KeyCode plusKey) const;
 
-
 	KeyState& GetKeyState(KeyCode keyCode) {
 		return m_keyStates[(int)keyCode];
+	}
+
+	Vector2 GetMouseScreenPosition() const {
+		return m_mouse_screenPos;
+	}
+
+	void SetMouseScreenPosition(Vector2 newPosition) {
+		m_mouse_screenPos = newPosition;
 	}
 };

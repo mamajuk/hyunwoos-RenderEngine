@@ -1,8 +1,10 @@
 #pragma once
 #include <string>
 #include <vector>
+#include <fstream>
 #include "../MathModule/Vector.h"
 #include "../RenderModule/RenderResources.h"
+#include "../RenderModule/Mesh.h"
 #include "PngImporter.h"
 
 namespace hyunwoo {
@@ -77,16 +79,16 @@ public:
 	/**********************************************
 	 *   머터리얼 플래그를 나타내는 열거형입니다...
 	 ******/
-	enum class MaterialFlag
+	struct MaterialFlags
 	{
-		No_Cull        = 1,
-		Ground_Shadow  = 2,
-		Draw_Shadow    = 4,
-		Receive_Shadow = 8,
-		Has_Edge	   = 16,
-		Vertex_Colour  = 32,
-		Point_Drawing  = 64,
-		Line_Drawing   = 128
+		uint8_t No_Cull		   : 1 = 0;
+		uint8_t Ground_Shadow  : 1 = 0;
+		uint8_t Draw_Shadow    : 1 = 0;
+		uint8_t Receive_Shadow : 1 = 0;
+		uint8_t Has_Edge	   : 1 = 0;
+		uint8_t Vertex_Colour  : 1 = 0;
+		uint8_t Point_Drawing  : 1 = 0;
+		uint8_t Line_Drawing   : 1 = 0;
 	};
 
 
@@ -112,9 +114,52 @@ public:
 	};
 
 
-	/*******************************************
+	/**************************************************
+	 *  본이 가지고 있는 정보를 나타내는 플래그들을 
+	 *  나타내는 열거형입니다...
+	 *******/
+	struct BoneFlags
+	{
+		uint16_t Indexed_tail_position  : 1 = 0;
+		uint16_t Rotatable			    : 1 = 0;
+		uint16_t Translatable		    : 1 = 0;
+		uint16_t Is_visible			    : 1 = 0;
+		uint16_t Enabled			    : 1 = 0;
+		uint16_t IK					    : 1 = 0;
+		uint16_t EmptyFlag1			    : 1 = 0;
+		uint16_t EmptyFlag2			    : 1 = 0;
+		uint16_t Inherit_rotation	    : 1 = 0;
+		uint16_t Inherit_translation    : 1 = 0;
+		uint16_t Fixed_axis			    : 1 = 0;
+		uint16_t Local_coordinate	    : 1 = 0;
+		uint16_t Physics_after_deform   : 1 = 0;
+		uint16_t External_parent_deform : 1 = 0;
+	};
+
+
+	/*********************************************
+	 *   IK 연결 정보를 나타내는 구조체입니다...
+	 *******/
+	struct IKAngleLimit
+	{
+		Vector3 Limit_Min;
+		Vector3 Limit_Max;
+	};
+
+	struct IKLink
+	{
+		int32_t		 Bone_idx;
+		bool		 Has_limits;
+		IKAngleLimit AngleLimit;
+	};
+
+
+
+	/**********************************************
 	 *  Pmx 파일 헤더의 글로벌값들의 목록이 정의된
-	 *  구조체입니다...
+	 *  구조체입니다. 각 글로벌값들은 특정 데이터를
+	 *  불러오는데 필요한 데이터 타입의 크기를 
+	 *  나타냅니다..
 	 *******/
 	struct Globals
 	{
@@ -163,8 +208,8 @@ public:
 
 
 	/*************************************
-	 *   Pmx 파일로부터 얻어올 데이터들을
-	 *   서술하는 구조체입니다...
+	 *   Pmx 파일로부터 얻어올 데이터를
+	 *   담을 곳을 서술하는 구조체입니다...
 	 ********/
 	struct StorageDescription
 	{
@@ -175,6 +220,8 @@ public:
 
 
 
+
+
 	//=============================================================================================
 	/////////////////					   Public methods..						  /////////////////
 	//=============================================================================================
@@ -182,6 +229,52 @@ public:
 	static ImportResult Import(const StorageDescription& loadDesc, const wchar_t* path);
 
 
+
+
+
+	//=================================================================================================
+	/////////////////					   Private methods..						  /////////////////
+	//=================================================================================================
+private:
+	/*****************************
+	 *   유틸리티 메소드...
+	 *****/
+	static void    ReadText(std::ifstream& in, const Header& header, std::wstring* out_u16_text = nullptr);
+	static int32_t ReadByDefaultIndexType(std::ifstream& in, const DefaultIndexType defaultIdxType);
+
+
+	/********************************
+	 *   버텍스 데이터 관련 메소드....
+  	 *****/
+	static void Import_StoreVertexData(std::ifstream& in, const Header& header, const StorageDescription& storageDesc);
+	static void Import_IgnoreVertexData(std::ifstream& in, const Header& header);
+
+
+	/*********************************
+	 *  인덱스 데이터 관련 메소드...
+	 *******/
+	static void Import_StoreTriangleData(std::ifstream& in, const Header& header, const StorageDescription& storageDesc);
+	static void Import_IgnoreTriangleData(std::ifstream& in, const Header& header);
+
+
+	/********************************
+	 *  텍스쳐 데이터 관련 메소드...
+	 *******/
+	static void Import_StoreTextureData(std::ifstream& in, const Header& header, const wchar_t* path, ImportResult& outRet, const StorageDescription& storageDesc);
+	static void Import_IgnoreTextureData(std::ifstream& in, const Header& header);
+
+
+	/*******************************
+	 *  머터리얼 데이터 관련 메소드...
+	 *******/
+	static void Import_StoreMaterialData(std::ifstream& in, const Header& header, ImportResult& outRet, const StorageDescription& storageDesc);
+	static void Import_IgnoreMaterialData(std::ifstream& in, const Header& header);
+
+
+	/*******************************
+	 *  본 데이터 관련 메소드...
+	 *******/
+	static void Import_StoreBoneData(std::ifstream& in, const Header& header, const StorageDescription& storageDesc);
 };
 
 

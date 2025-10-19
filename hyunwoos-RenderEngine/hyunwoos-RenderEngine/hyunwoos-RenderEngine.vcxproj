@@ -141,6 +141,7 @@
     <ClCompile Include="MathModule\Matrix.cpp" />
     <ClCompile Include="MathModule\Quaternion.cpp" />
     <ClCompile Include="MathModule\Vector.cpp" />
+    <ClCompile Include="RenderModule\Mesh.cpp" />
     <ClCompile Include="RenderModule\Renderer.cpp" />
     <ClCompile Include="RenderModule\RenderResources.cpp" />
     <ClCompile Include="Source.cpp" />
@@ -162,6 +163,7 @@
     <ClInclude Include="MathModule\Quaternion.h" />
     <ClInclude Include="MathModule\Vector.h" />
     <ClInclude Include="GeometryModule\Geometry.h" />
+    <ClInclude Include="RenderModule\Mesh.h" />
     <ClInclude Include="RenderModule\Renderer.h" />
     <ClInclude Include="RenderModule\RenderResources.h" />
     <ClInclude Include="UtilityModule\BitStream.h" />

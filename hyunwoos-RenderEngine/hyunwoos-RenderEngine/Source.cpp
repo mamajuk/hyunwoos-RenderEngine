@@ -12,6 +12,7 @@
 #include "GeometryModule/Geometry.h"
 #include "EngineModule/Transform.h"
 #include "EngineModule/UniqueableObject.h"
+#include "RenderModule/Mesh.h"
 using namespace hyunwoo;
 using KeyCode = hyunwoo::InputManager::KeyCode;
 
@@ -99,6 +100,7 @@ protected:
 			m_useBoundingSphere = !m_useBoundingSphere;
 		}
 
+		//Example14_TestTransform(m_textures, deltaTime);
 		Example9_DrawSubMeshs(m_mesh, m_textures, 100.f, 1.f, 200.f, deltaTime);
 		Example1_ShowInfo(deltaTime);
 	}
@@ -626,38 +628,82 @@ private:
 		const float         rotSpeedSec	  = (rotSpeed * speedScale * deltaTime);
 		const float         scaleSpeedSec = (scaleSpeed * speedScale * deltaTime);
 
-		static Vector3 worldPos = Vector3(0.f, 0.f, 20.f);
-		static Vector3 size     = (Vector3::One);
-		static Vector3 euler    = Vector3::Zero;
+		static Transform mesh_tr;
+		static int32_t   selected_boneIdx  = -1;
+
+		static std::vector<Matrix4x4> skinning_mats;
+		static std::vector<Vector4>   blending_vertices;
+		static std::vector<Transform> bone_trs;
 
 
 		/************************************************************
-		 *   사각형의 회전과 이동, 크기를 조작한다...
+		 *   본 트랜스폼을 갱신한다....
 		 ********/
-		worldPos += Vector3(
-			input.GetAxis(KeyCode::Left, KeyCode::Right) * moveSpeedSec,
-			input.GetAxis(KeyCode::Down, KeyCode::Up) * moveSpeedSec,
-			input.GetAxis(KeyCode::NUMPAD_2, KeyCode::NUMPAD_8) * moveSpeedSec
-		);
+		if (skinning_mats.size() != mesh.Bones.size()) 
+		{
+			const std::vector<Bone>& bone_list = mesh.Bones;
 
-		size += Vector3(
-			input.GetAxis(KeyCode::J, KeyCode::L) * scaleSpeedSec,
-			input.GetAxis(KeyCode::K, KeyCode::I) * scaleSpeedSec,
-			input.GetAxis(KeyCode::U, KeyCode::O) * scaleSpeedSec
-		);
+			skinning_mats.resize(bone_list.size());
+			bone_trs.resize(bone_list.size());
+			blending_vertices.resize(mesh.Vertices.size());
 
-		euler += Vector3(
-			input.GetAxis(KeyCode::S, KeyCode::W) * rotSpeedSec,
+			//본들의 월드를 초기화한다...
+			for (uint32_t i = 0; i < bone_trs.size(); i++) {
+				bone_trs[i].SetLocalPositionAndScaleAndRotation(
+					bone_list[i].BindingPose.Position,
+					bone_list[i].BindingPose.Scale,
+					bone_list[i].BindingPose.Rotation
+				);
+			}
+
+			//본의 계층구조를 구축한다....
+			for (uint32_t i = 0; i < bone_trs.size(); i++) {
+				
+				//부모가 존재하는 경우에만...
+				if (bone_list[i].Parent_BoneIdx>=0) {
+					bone_trs[i].SetParent(&bone_trs[bone_list[i].Parent_BoneIdx]);
+				}
+			}
+
+			mesh_tr.SetWorldPosition(Vector3(0.f, 0.f, 50.f));
+			mesh_tr.SetWorldScale(Vector3::One * 1.f);
+		}
+
+
+		/************************************************************
+		 *   조작할 트랜스폼의 회전과 이동, 크기를 조작한다...
+		 ********/
+		Transform& control_tr = (selected_boneIdx>=0? bone_trs[selected_boneIdx]:mesh_tr);
+
+		control_tr.SetWorldPosition(control_tr.GetWorldPosition() +
+			Vector3(
+				input.GetAxis(KeyCode::Left, KeyCode::Right) * moveSpeedSec,
+				input.GetAxis(KeyCode::Down, KeyCode::Up) * moveSpeedSec,
+				input.GetAxis(KeyCode::NUMPAD_2, KeyCode::NUMPAD_8) * moveSpeedSec
+		));
+
+		control_tr.SetWorldScale( control_tr.GetWorldScale() +
+			Vector3(
+				input.GetAxis(KeyCode::J, KeyCode::L) * scaleSpeedSec,
+				input.GetAxis(KeyCode::K, KeyCode::I) * scaleSpeedSec,
+				input.GetAxis(KeyCode::U, KeyCode::O) * scaleSpeedSec
+		));
+
+		const Quaternion eular = Quaternion::Euler(
 			input.GetAxis(KeyCode::A, KeyCode::D) * rotSpeedSec,
+			input.GetAxis(KeyCode::S, KeyCode::W) * rotSpeedSec,
 			input.GetAxis(KeyCode::Q, KeyCode::E) * rotSpeedSec
 		);
 
-		const Quaternion quat = Quaternion::Euler(euler.y, euler.x, euler.z);
+		control_tr.SetWorldRotation(eular * control_tr.GetWorldRotation());
 
+		if (input.WasPressedThisFrame(KeyCode::Right_Mouse) || input.WasPressedThisFrame(KeyCode::Shift)) {
+			selected_boneIdx = -1;
+		}
 
 
 		/***********************************************************
-		 *    사각형의 회전과 위치를 구성하는 행렬을 만든다....
+		 *    메시의 회전과 위치를 구성하는 행렬을 만든다....
 		 ********/
 		const float fov = 100.f;
 		const float n   = 5.f;
@@ -667,21 +713,7 @@ private:
 		const float a   = renderer.GetAspectRatio();
 		const float d   = 1.f / Math::Tan(fov * Math::Angle2Rad * .5f);
 
-		const Matrix4x4 T = Matrix4x4(
-			Vector4::BasisX,
-			Vector4::BasisY,
-			Vector4::BasisZ,
-			Vector4(worldPos, 1.f)
-		);
-
-		const Matrix4x4 R = quat.GetRotateMatrix();
-
-		const Matrix4x4 S = Matrix4x4(
-			(Vector4::BasisX * size.x),
-			(Vector4::BasisY * size.y), 
-			(Vector4::BasisZ * size.z),
-			Vector4::BasisW
-		);
+		const Matrix4x4 TRS = mesh_tr.GetTRS();
 
 		const Matrix4x4 P = Matrix4x4(
 			Vector4(d,   0.f,   0.f, 0.f),
@@ -690,7 +722,7 @@ private:
 			Vector4(0.f, 0.f,   l,   0.f)
 		);
 
-		const Matrix4x4 finalMat = (P * T * R * S);
+		const Matrix4x4 finalMat = (P * TRS);
 
 
 		/********************************************************************
@@ -715,7 +747,8 @@ private:
 			L"\nradius: ", mesh.BoundSphere.Radius,
 			L"\n\nBoundingBox",
 			L"\nMin: ", mesh.BoundBox.Min,
-			L"\nMax: ", mesh.BoundBox.Max),
+			L"\nMax: ", mesh.BoundBox.Max,
+			L"\nTRS: \n", TRS),
 			Vector2Int(0, 100)
 		);
 
@@ -730,61 +763,162 @@ private:
 		 *  메시의 바운딩 스피어를 랜더링한다....
 		 *-----*/
 		Renderer::ClipTriangleList    clip_triangle_list;
-		Renderer::TriangleDescription bounds_triangle_desc;
-		bounds_triangle_desc.FillUpColor = Color::Red;
+		//Renderer::TriangleDescription bounds_triangle_desc;
+		//bounds_triangle_desc.FillUpColor = Color::Red;
 
-		const Mesh& drawBoundMesh = (m_useBoundingSphere? m_mesh_boundingSphere:m_mesh_boundingBox);
-		for (uint32_t i = 0; i < drawBoundMesh.Triangles.size(); i++) {
-			const IndexedTriangle& triangle = drawBoundMesh.Triangles[i];
-			const Vertex&   vertex1  = drawBoundMesh.Vertices[triangle.Indices[0]];
-			const Vertex&   vertex2  = drawBoundMesh.Vertices[triangle.Indices[1]];
-			const Vertex&   vertex3  = drawBoundMesh.Vertices[triangle.Indices[2]];
+		//const Mesh& drawBoundMesh = (m_useBoundingSphere? m_mesh_boundingSphere:m_mesh_boundingBox);
+		//for (uint32_t i = 0; i < drawBoundMesh.Triangles.size(); i++) {
+		//	const IndexedTriangle& triangle = drawBoundMesh.Triangles[i];
+		//	const Vertex&   vertex1  = drawBoundMesh.Vertices[triangle.Indices[0]];
+		//	const Vertex&   vertex2  = drawBoundMesh.Vertices[triangle.Indices[1]];
+		//	const Vertex&   vertex3  = drawBoundMesh.Vertices[triangle.Indices[2]];
 
-			const Vector4 clipPos1 = (finalMat * Vector4(vertex1.ObjPos, 1.f));
-			const Vector4 clipPos2 = (finalMat * Vector4(vertex2.ObjPos, 1.f));
-			const Vector4 clipPos3 = (finalMat * Vector4(vertex3.ObjPos, 1.f));
+		//	const Vector4 clipPos1 = (finalMat * Vector4(vertex1.ObjPos, 1.f));
+		//	const Vector4 clipPos2 = (finalMat * Vector4(vertex2.ObjPos, 1.f));
+		//	const Vector4 clipPos3 = (finalMat * Vector4(vertex3.ObjPos, 1.f));
 
-			const Vector2 screenPos1 = renderer.NDCToScreen(renderer.ClipToNDC(clipPos1));
-			const Vector2 screenPos2 = renderer.NDCToScreen(renderer.ClipToNDC(clipPos2));
-			const Vector2 screenPos3 = renderer.NDCToScreen(renderer.ClipToNDC(clipPos3));
+		//	const Vector2 screenPos1 = renderer.NDCToScreen(renderer.ClipToNDC(clipPos1));
+		//	const Vector2 screenPos2 = renderer.NDCToScreen(renderer.ClipToNDC(clipPos2));
+		//	const Vector2 screenPos3 = renderer.NDCToScreen(renderer.ClipToNDC(clipPos3));
 
-			clip_triangle_list.triangleCount = 1;
-			clip_triangle_list.Triangles[0]  = Renderer::ClipTriangle(
-				Renderer::ClipVertex(clipPos1, vertex1.UvPos),
-				Renderer::ClipVertex(clipPos2, vertex2.UvPos),
-				Renderer::ClipVertex(clipPos3, vertex3.UvPos)
-			);
+		//	clip_triangle_list.triangleCount = 1;
+		//	clip_triangle_list.Triangles[0]  = Renderer::ClipTriangle(
+		//		Renderer::ClipVertex(clipPos1, vertex1.UvPos),
+		//		Renderer::ClipVertex(clipPos2, vertex2.UvPos),
+		//		Renderer::ClipVertex(clipPos3, vertex3.UvPos)
+		//	);
 
-			//+Z, -Z 평면에 대한 클립핑을 적용한다...
-			renderer.ClippingTriangle(clip_triangle_list, renderer.ClippingTest_Far, renderer.SolveT_Far);
-			renderer.ClippingTriangle(clip_triangle_list, renderer.ClippingTest_Near, renderer.SolveT_Near);
+		//	//+Z, -Z 평면에 대한 클립핑을 적용한다...
+		//	renderer.ClippingTriangle(clip_triangle_list, renderer.ClippingTest_Far, renderer.SolveT_Far);
+		//	renderer.ClippingTriangle(clip_triangle_list, renderer.ClippingTest_Near, renderer.SolveT_Near);
 
-			//+X, -X 평면에 대한 클립핑을 적용한다...
-			renderer.ClippingTriangle(clip_triangle_list, renderer.ClippingTest_Right, renderer.SolveT_Right);
-			renderer.ClippingTriangle(clip_triangle_list, renderer.ClippingTest_Left, renderer.SolveT_Left);
+		//	//+X, -X 평면에 대한 클립핑을 적용한다...
+		//	renderer.ClippingTriangle(clip_triangle_list, renderer.ClippingTest_Right, renderer.SolveT_Right);
+		//	renderer.ClippingTriangle(clip_triangle_list, renderer.ClippingTest_Left, renderer.SolveT_Left);
 
-			//+Y, -Y 평면에 대한 클립핑을 적용한다...
-			renderer.ClippingTriangle(clip_triangle_list, renderer.ClippingTest_Up, renderer.SolveT_Up);
-			renderer.ClippingTriangle(clip_triangle_list, renderer.ClippingTest_Down, renderer.SolveT_Down);
+		//	//+Y, -Y 평면에 대한 클립핑을 적용한다...
+		//	renderer.ClippingTriangle(clip_triangle_list, renderer.ClippingTest_Up, renderer.SolveT_Up);
+		//	renderer.ClippingTriangle(clip_triangle_list, renderer.ClippingTest_Down, renderer.SolveT_Down);
 
-			for (uint32_t i = 0; i < clip_triangle_list.triangleCount; i++) {
-				const Renderer::ClipTriangle& clip_triangle = clip_triangle_list.Triangles[i];
+		//	for (uint32_t i = 0; i < clip_triangle_list.triangleCount; i++) {
+		//		const Renderer::ClipTriangle& clip_triangle = clip_triangle_list.Triangles[i];
 
-				bounds_triangle_desc.SetScreenPositions(
-					renderer.NDCToScreen(renderer.ClipToNDC(clip_triangle.Vertices[0].ClipPos)),
-					renderer.NDCToScreen(renderer.ClipToNDC(clip_triangle.Vertices[1].ClipPos)),
-					renderer.NDCToScreen(renderer.ClipToNDC(clip_triangle.Vertices[2].ClipPos))
-				);
+		//		bounds_triangle_desc.SetScreenPositions(
+		//			renderer.NDCToScreen(renderer.ClipToNDC(clip_triangle.Vertices[0].ClipPos)),
+		//			renderer.NDCToScreen(renderer.ClipToNDC(clip_triangle.Vertices[1].ClipPos)),
+		//			renderer.NDCToScreen(renderer.ClipToNDC(clip_triangle.Vertices[2].ClipPos))
+		//		);
 
-				bounds_triangle_desc.SetDepths(
-					clip_triangle.Vertices[0].ClipPos.w, 
-					clip_triangle.Vertices[1].ClipPos.w, 
-					clip_triangle.Vertices[2].ClipPos.w
-				);
+		//		bounds_triangle_desc.SetDepths(
+		//			clip_triangle.Vertices[0].ClipPos.w, 
+		//			clip_triangle.Vertices[1].ClipPos.w, 
+		//			clip_triangle.Vertices[2].ClipPos.w
+		//		);
 
-				renderer.DrawTriangle(bounds_triangle_desc);
+		//		renderer.DrawTriangle(bounds_triangle_desc);
+		//	}
+		//}
+
+
+
+		/*************************************************************
+		 *   본 계층구조들을 선으로 그어서 표시한다....
+		 ********/
+		const float wHalf = 5.f;
+		const float hHalf = 5.f;
+
+		const Vector3 p1 = Vector3(-wHalf, -hHalf, 0.f);
+		const Vector3 p2 = Vector3(wHalf, -hHalf, 0.f);
+		const Vector3 p3 = Vector3(-wHalf, hHalf, 0.f);
+		const Vector3 p4 = Vector3(wHalf, hHalf, 0.f);
+
+		Renderer::TriangleDescription bone_triangle_desc;
+		bone_triangle_desc.FillUpColor = Color::Black;
+
+		for (uint32_t boneIdx = 0; boneIdx < mesh.Bones.size(); boneIdx++) {
+
+			const Bone& bone = mesh.Bones[boneIdx];
+
+			//부모 본이 존재할 경우에만 그린다...
+			if (bone.Parent_BoneIdx >= 0) {
+				const Bone& parent_bone = mesh.Bones[bone.Parent_BoneIdx];
+
+				const Vector3& bone_pos   = bone_trs[boneIdx].GetWorldPosition();
+				const Vector3& parent_pos = bone_trs[bone.Parent_BoneIdx].GetWorldPosition();
+
+				Vector2 bone_ScreenPos   = renderer.NDCToScreen(renderer.ClipToNDC(finalMat * Vector4(bone_pos, 1.f)));
+				Vector2 parent_ScreenPos = renderer.NDCToScreen(renderer.ClipToNDC(finalMat * Vector4(parent_pos, 1.f)));
+
+				Vector2 bone2parent       = (bone_ScreenPos - parent_ScreenPos);
+				Vector2 bone2parent_Dir   = bone2parent.GetNormalized();
+				Vector2 bone2parent_right = Vector2(-bone2parent_Dir.y, bone2parent_Dir.x);
+
+				Vector2 arrow1_pos = parent_ScreenPos + (bone2parent_right * 10.f);
+				Vector2 arrow2_pos = parent_ScreenPos - (bone2parent_right * 10.f);
+
+				Vector2 sp1 = (bone_ScreenPos + p1);
+				Vector2 sp2 = (bone_ScreenPos + p2);
+				Vector2 sp3 = (bone_ScreenPos + p3);
+				Vector2 sp4 = (bone_ScreenPos + p4);
+
+				if (input.WasPressedThisFrame(KeyCode::Left_Mouse)) {
+					
+					//해당 본의 버튼을 클릭했는가?
+					Vector2 mpos = input.GetMouseScreenPosition();
+
+					bool checkUp   = (mpos.x > sp1.x && mpos.x < sp2.x) && (mpos.y > sp1.y && mpos.y > sp2.y);
+					bool checkDown = (mpos.x > sp3.x && mpos.x < sp4.x) && (mpos.y < sp3.y && mpos.y < sp4.y);
+
+					if (checkUp && checkDown) 
+					{
+						selected_boneIdx = boneIdx;
+					}
+				}
+
+				renderer.DrawLine(Color::Red, bone_ScreenPos, parent_ScreenPos);
+				renderer.DrawLine(Color::Red, bone_ScreenPos, arrow1_pos);
+				renderer.DrawLine(Color::Red, bone_ScreenPos, arrow2_pos);
+				renderer.DrawLine(Color::Red, parent_ScreenPos, arrow1_pos);
+				renderer.DrawLine(Color::Red, parent_ScreenPos, arrow2_pos);
+
+				Color rectColor = (selected_boneIdx==boneIdx? Color::Green:Color::Blue);
+				renderer.DrawLine(rectColor, sp1, sp2);
+				renderer.DrawLine(rectColor, sp1, sp3);
+				renderer.DrawLine(rectColor, sp2, sp4);
+				renderer.DrawLine(rectColor, sp3, sp4);
 			}
 		}
+
+
+
+		/***************************************************************
+		 *   스키닝 행렬을 계산하고, 캐싱한다...
+		 ********/
+		for (uint32_t i = 0; i < bone_trs.size(); i++) {
+			const Bone& bone    = mesh.Bones[i];
+			Transform&  bone_tr = bone_trs[i];
+
+			skinning_mats[i] = (bone_tr.GetTRS() * bone.BindingPose.GetTRS_Inverse());
+		}
+
+
+
+		/****************************************************************
+		 *   모든 버텍스마다 적절한 블랜딩 행렬을 구축해 곱해준다....
+		 *********/
+		for (uint32_t i = 0; i < mesh.Vertices.size(); i++) {
+			const Vertex&						vertex = mesh.Vertices[i];
+			const Vertex::SkinDeformDescriptor& desc   = vertex.SkinDeformDesc;
+
+			Vector4& blending_vertex = blending_vertices[i];
+			blending_vertex = Vector4::Zero;
+
+			for (uint32_t j = 0; j < desc.Weight_Count; j++) {
+				const SkinDeformWeight& weight = mesh.DeformWeights[desc.Weight_StartIdx + j];
+				blending_vertex += (skinning_mats[weight.BoneTransformIdx] * Vector4(vertex.ObjPos, 1.f)) * weight.Weight;
+			}
+		}
+
 
 
 		/**************************************************************
@@ -803,8 +937,8 @@ private:
 			}
 
 			
-			const Mesh::SubMesh& subMesh  = mesh.SubMeshs[subMeshIdx];
-			const uint32_t		 goal_idx = (triangleIdx + subMesh.Triangle_Count);
+			const SubMesh& subMesh  = mesh.SubMeshs[subMeshIdx];
+			const uint32_t goal_idx = (triangleIdx + subMesh.Triangle_Count);
 
 			while(triangleIdx < goal_idx){
 
@@ -814,13 +948,13 @@ private:
 				const Vertex& vertex2 = mesh.Vertices[triangle.Indices[1]];
 				const Vertex& vertex3 = mesh.Vertices[triangle.Indices[2]];
 
-				const Vector4 objPos1 = Vector4(vertex1.ObjPos, 1.f);
-				const Vector4 objPos2 = Vector4(vertex2.ObjPos, 1.f);
-				const Vector4 objPos3 = Vector4(vertex3.ObjPos, 1.f);
+				const Vector4& blending_ObjPos1 = blending_vertices[triangle.Indices[0]];
+				const Vector4& blending_ObjPos2 = blending_vertices[triangle.Indices[1]];
+				const Vector4& blending_ObjPos3 = blending_vertices[triangle.Indices[2]];
 
-				const Vector4 clipPos1 = (finalMat * objPos1);
-				const Vector4 clipPos2 = (finalMat * objPos2);
-				const Vector4 clipPos3 = (finalMat * objPos3);
+				const Vector4 clipPos1 = (finalMat * blending_ObjPos1);
+				const Vector4 clipPos2 = (finalMat * blending_ObjPos2);
+				const Vector4 clipPos3 = (finalMat * blending_ObjPos3);
 
 				const Vector3 ndcPos1 = renderer.ClipToNDC(clipPos1);
 				const Vector3 ndcPos2 = renderer.ClipToNDC(clipPos2);
@@ -876,23 +1010,37 @@ private:
 					const Renderer::ClipVertex& vertex2 = triangle.Vertices[1];
 					const Renderer::ClipVertex& vertex3 = triangle.Vertices[2];
 
-					triangle_desc.ScreenPositions[0] = renderer.NDCToScreen(renderer.ClipToNDC(vertex1.ClipPos));
-					triangle_desc.ScreenPositions[1] = renderer.NDCToScreen(renderer.ClipToNDC(vertex2.ClipPos));
-					triangle_desc.ScreenPositions[2] = renderer.NDCToScreen(renderer.ClipToNDC(vertex3.ClipPos));
+					triangle_desc.SetScreenPositions(
+						renderer.NDCToScreen(renderer.ClipToNDC(vertex1.ClipPos)),
+						renderer.NDCToScreen(renderer.ClipToNDC(vertex2.ClipPos)),
+						renderer.NDCToScreen(renderer.ClipToNDC(vertex3.ClipPos))
+					);
 
-					triangle_desc.Uvs[0] = vertex1.UvPos;
-					triangle_desc.Uvs[1] = vertex2.UvPos;
-					triangle_desc.Uvs[2] = vertex3.UvPos;
+					triangle_desc.SetUvPositions(
+						vertex1.UvPos, vertex2.UvPos, vertex3.UvPos
+					);
 
-					triangle_desc.Depths[0] = vertex1.ClipPos.w;
-					triangle_desc.Depths[1] = vertex2.ClipPos.w;
-					triangle_desc.Depths[2] = vertex3.ClipPos.w;
+					triangle_desc.SetDepths(
+						vertex1.ClipPos.w, vertex2.ClipPos.w, vertex3.ClipPos.w
+					);
 
 					renderer.DrawTriangle(triangle_desc);
 				}
 
 			}
 		}
+
+
+		/***********************************************************
+		 *   디버그 출력...
+		 *******/
+		renderer.SetPixel(Color::Purple, input.GetMouseScreenPosition());
+		renderer.DrawTextField(w$(
+			L"selected boneIdx: (", selected_boneIdx, L"/ ", mesh.Bones.size(), L")"
+			L"\nchildCount: ", control_tr.GetChildCount(),
+			L"\n\nmousePos: ", input.GetMouseScreenPosition()),
+			Vector2Int(0, 500)
+		);
 	}
 	void Example10_PlaneTest2D(float moveSpeed, float rotSpeed, float deltaTime)
 	{
@@ -1573,7 +1721,7 @@ private:
 		Renderer&			renderer	 = GetRenderer();
 		const InputManager& input		 = GetInputManager();
 		const float         slowScale	 = (input.IsInProgress(KeyCode::Space) ? .2f : 1.f);
-		const float			moveSpeedSec = (deltaTime * 100.f * slowScale);
+		const float			moveSpeedSec = (deltaTime * 200.f * slowScale);
 		const float			rotSpeedSec  = (deltaTime * 100.f * slowScale);
 
 
@@ -1583,8 +1731,23 @@ private:
 		 *********/
 		static std::vector<Transform> tr_list;
 
-		if (tr_list.size()==0) {
+		if (tr_list.size()==0) 
+		{
 			tr_list.resize(6);
+
+			PngImporter::ImportResult pngRet = PngImporter::Imports(m_textures, {
+					L"Resources/zero.png",
+					L"Resources/one.png",
+					L"Resources/two.png",
+					L"Resources/three.png",
+					L"Resources/four.png",
+					L"Resources/five.png",
+					L"Resources/six.png"
+				});
+
+			if (pngRet.Success == false) {
+				throw "png import failed!!!";
+			}
 			
 			Transform& tr_0 = tr_list[0];
 			tr_0.SetLocalPositionAndScaleAndRotation(
@@ -1602,28 +1765,28 @@ private:
 
 			Transform& tr_2 = tr_list[2];
 			tr_2.SetLocalPositionAndScaleAndRotation(
-				Vector3(0.f, 100.f, 0.f),
+				Vector3(30.f, 100.f, 0.f),
 				Vector3::One * 100.f,
 				Quaternion::Identity
 			);
 
 			Transform& tr_3 = tr_list[3];
 			tr_3.SetLocalPositionAndScaleAndRotation(
-				Vector3(0.f, 60.f, 0.f),
+				Vector3(100.f, 60.f, 0.f),
 				Vector3::One * 100.f,
 				Quaternion::Identity
 			);
 
 			Transform& tr_4 = tr_list[4];
 			tr_4.SetLocalPositionAndScaleAndRotation(
-				Vector3(0.f, 40.f, 0.f),
+				Vector3(200.f, 40.f, 0.f),
 				Vector3::One * 100.f,
 				Quaternion::Identity
 			);
 
 			Transform& tr_5 = tr_list[5];
 			tr_5.SetLocalPositionAndScaleAndRotation(
-				Vector3(0.f, 200.f, 0.f),
+				Vector3(300.f, 200.f, 0.f),
 				Vector3::One * 100.f,
 				Quaternion::Identity
 			);
@@ -1637,8 +1800,8 @@ private:
 		 *********/
 		static uint32_t tr_idx = 0;
 
-		for (uint32_t i = 0; i < tr_list.size(); i++) {
-
+		for (uint32_t i = 0; i < tr_list.size(); i++) 
+		{
 			//현재 조작중인 대상이 부모를 제거한다...
 			if (input.WasPressedThisFrame(KeyCode::X)) {
 				tr_list[tr_idx].SetParent(nullptr);
@@ -1684,18 +1847,13 @@ private:
 
 		static std::wstring debugTxt;
 		debugTxt.clear();
-		debugTxt += (const std::wstring&)w$(L"selected idx: ", tr_idx, L"\n(add parent mode: z~ / remove parent: x)\n\n");
+		debugTxt += (const std::wstring&)w$(L"selected idx: ", tr_idx, L"\n(add parent mode: z~ / remove parent: x)\n-----------------------------------------------\n\n");
 		
 		Renderer::TriangleDescription triangle_desc;
 		for (uint32_t i = 0; i < tr_list.size(); i++) 
 		{
 			Transform& cur = tr_list[i];
-
-			Matrix4x4 TRS = cur.GetTRS();
-			Vector4   objPos1 = Vector4(-wHalf, hHalf, 0.f, 1.f);
-			Vector4   objPos2 = Vector4(wHalf, hHalf, 0.f, 1.f);
-			Vector4   objPos3 = Vector4(-wHalf, -hHalf, 0.f, 1.f);
-			Vector4   objPos4 = Vector4(wHalf, -hHalf, 0.f, 1.f);
+			Matrix4x4  TRS = cur.GetTRS();
 
 			Vector2 screenPos1 = renderer.WorldToScreen(TRS * objPos1);
 			Vector2 screenPos2 = renderer.WorldToScreen(TRS * objPos2);
@@ -1738,7 +1896,7 @@ private:
 			 *******/
 			debugTxt += (const std::wstring&)w$(
 				L"transform[", i, L"].parent: ", (cur.GetParent() == nullptr ? -1 : (cur.GetParent() - &tr_list[0])),
-				L"\nlocal_position", cur.GetLocalPosition(), L"\nlocal_scale: ", cur.GetLocalScale(), L"\nlocal_rotation: ", cur.GetLocalRotation(), L"\n\n\n"
+				L"\nlocal_position", cur.GetLocalPosition(), L"\nlocal_scale: ", cur.GetLocalScale(), L"\nlocal_rotation: ", cur.GetLocalRotation(), L"\n-----------------------------------------------\n\n"
 			);
 		}
 

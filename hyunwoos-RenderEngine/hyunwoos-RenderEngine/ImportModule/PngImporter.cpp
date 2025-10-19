@@ -502,6 +502,7 @@ hyunwoo::PngImporter::ImportResult hyunwoo::PngImporter::Import(Texture2D& outTe
 	}
 
 	outRet.Success = true;
+	outRet.ImportCount++;
 	return outRet;
 }
 
@@ -529,11 +530,15 @@ hyunwoo::PngImporter::ImportResult hyunwoo::PngImporter::Imports(std::vector<Tex
 	uint32_t tex_idx = 0;
 	for (const auto path : paths)
 	{
-		if ((outRet = Import(outTextures[tex_idx++], path)).Success == false) {
+		uint32_t prev_importCount = outRet.ImportCount;
+
+		outRet = Import(outTextures[tex_idx++], path);
+		outRet.ImportCount += prev_importCount;
+
+		if (outRet.Success == false) {
 			return outRet;
 		}
 	}
-
 	return outRet;
 }
 

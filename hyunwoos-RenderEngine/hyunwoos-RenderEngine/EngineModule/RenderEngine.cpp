@@ -1,8 +1,9 @@
 #include "RenderEngine.h"
+#include <windowsx.h>
 using KeyCode  = hyunwoo::InputManager::KeyCode;
 using KeyState = hyunwoo::InputManager::KeyState;
 
-/*================================================================================================================
+/*================================================================================================================================================
  *   정적 필드의 초기화를 진행한다....
  *========*/
 hyunwoo::RenderEngine* hyunwoo::RenderEngine::m_runningEnginePtr = nullptr;
@@ -15,7 +16,7 @@ hyunwoo::RenderEngine* hyunwoo::RenderEngine::m_runningEnginePtr = nullptr;
 
 
 
-/*=============================================================================================================
+/*==================================================================================================================================================
  *   엔진을 초기화하고, 프로그램을 진행하는 블록 함수입니다...
  *========*/
 hyunwoo::RenderEngine::EndReason hyunwoo::RenderEngine::Run(const std::wstring& appName, HINSTANCE hInstance, LPWSTR commandLine, int bShowCmd)
@@ -25,9 +26,9 @@ hyunwoo::RenderEngine::EndReason hyunwoo::RenderEngine::Run(const std::wstring& 
 	EndReason endReason = { 0, }; //해당 함수가 왜 종료되었는지에 대한 이유를 담는 구조체입니다...
 
 
-	/****************************************
-	 *   이미 엔진이 실행중인가? 맞다면 
-	     종료 이유를 갱신하고 함수를 종료한다...
+	/*******************************************************
+	 *   이미 엔진이 실행중인가? 맞다면 종료 이유를 갱신하고 
+	 *   함수를 종료한다...
 	 ******/
 	if (m_runningEnginePtr!=nullptr) {
 		endReason.EngineIsAlreadyRun = true;
@@ -35,10 +36,9 @@ hyunwoo::RenderEngine::EndReason hyunwoo::RenderEngine::Run(const std::wstring& 
 	}
 
 
-	/*****************************************
-	 *   동일한 창 프로시저에서 생성되는 
-	     윈도우 창들의 공통 속성들을 나타내는
-		 WNDCLASS 구조체를 작성한다....
+	/*********************************************************
+	 *   동일한 창 프로시저에서 생성되는 윈도우 창들의 공통 속성들을 
+	 *   나타내는 WNDCLASS 구조체를 작성한다....
 	 *********/
 	wc.lpfnWndProc   = WndProc;
 	wc.lpszClassName = appName.c_str();
@@ -50,7 +50,7 @@ hyunwoo::RenderEngine::EndReason hyunwoo::RenderEngine::Run(const std::wstring& 
 	wc.hIcon		 = LoadIcon(NULL, IDI_APPLICATION);
 
 	
-	/******************************************************
+	/***********************************************************
 	 *    작성한 WNDCLASS를 운영체제에 등록하는게 실패했는가? 
 	 *    맞다면 이유를 갱신하고 함수를 종료한다..   
 	 *********/
@@ -79,7 +79,7 @@ hyunwoo::RenderEngine::EndReason hyunwoo::RenderEngine::Run(const std::wstring& 
 
 
 
-	/********************************************************
+	/*****************************************************************
 	 *   랜더러를 초기화한다....
 	 ********/
 	GetClientRect(m_mainHwnd, &rect);
@@ -91,7 +91,7 @@ hyunwoo::RenderEngine::EndReason hyunwoo::RenderEngine::Run(const std::wstring& 
 
 
 
-	/*********************************************************
+	/******************************************************************
 	 *   초기화가 완료된 RenderEngine 객체의 포인터를 갱신하고,
 	 *   윈도우 창을 화면에 표시한다....
 	 *******/
@@ -103,7 +103,7 @@ hyunwoo::RenderEngine::EndReason hyunwoo::RenderEngine::Run(const std::wstring& 
 
 
 
-	/*******************************************************
+	/******************************************************************
 	 *    초기화가 완료도었다면, 메인 루프를 진행한다...
 	 ********/
 	MSG       msg         = { 0, };
@@ -174,37 +174,48 @@ hyunwoo::RenderEngine::EndReason hyunwoo::RenderEngine::Run(const std::wstring& 
 
 
 
-/*===============================================================================
+/*===================================================================================================================================================
  *   윈도우로부터 전달받은 메세지를 처리하는 메소드입니다...
  *========*/
 LRESULT hyunwoo::RenderEngine::WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
 {
-	//실행중인 엔진의 참조가 없다면 함수를 종료한다...
+	/********************************************************************
+	 *   실행중인 엔진의 참조가 없다면, 함수를 종료한다....
+	 ******/
 	if (m_runningEnginePtr == nullptr) {
 		return DefWindowProcW(hWnd, msg, wParam, lParam);
 	}
 
 
-	/****************************************
+	/*****************************************************************
 	 *   메세지 종류에 따라 적절하게 처리한다...
 	 *********/
 	RenderEngine& engine = *m_runningEnginePtr;
 
 	switch (msg) 
 	{
-		//윈도우가 생성되었을 경우...
+		/*------------------------------------
+		 *  윈도우가 생성되었을 경우....
+		 *****/
 		case(WM_CREATE): {
 			break;
 		}
 
-		//화면을 갱신해야하는 경우...
+
+		/*------------------------------------
+		 *  화면을 갱신해야하는 경우...
+		 *****/
 		case(WM_PAINT): {
 			engine.m_renderer.Present();
 			break;
 		}
 
-		//키누름 이벤트...
-		case(WM_KEYDOWN): {
+
+		/*------------------------------------
+		 *  키보드의 버튼이 눌렸을 경우....
+		 *****/
+		case(WM_KEYDOWN): 
+		{
 			KeyState& state  = engine.m_inputManager.GetKeyState(KeyCode(wParam));
 
 			if (state.IsInProgress == false) {
@@ -215,16 +226,111 @@ LRESULT hyunwoo::RenderEngine::WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARA
 			break;
 		}
 
-		//키뗌 이벤트...
-		case(WM_KEYUP): {
+
+		/*------------------------------------
+		 *  키보드의 버튼이 떼어졌을 경우...
+		 *****/
+		case(WM_KEYUP): 
+		{
 			KeyState& state            = engine.m_inputManager.GetKeyState(KeyCode(wParam));
 			state.IsInProgress         = false;
 			state.WasReleasedThisFrame = true;
 			break;
 		}
 
-		//윈도우가 파괴되었을 경우...
-		case(WM_DESTROY): {
+
+		/*------------------------------------
+		 *  마우스의 왼쪽 버튼이 눌렸을 경우...
+		 *****/
+		case(WM_LBUTTONDOWN): 
+		{
+			KeyState& state = engine.m_inputManager.GetKeyState(KeyCode::Left_Mouse);
+
+			engine.m_inputManager.SetMouseScreenPosition(Vector2(
+				GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam))
+			);
+
+			if (state.IsInProgress == false) {
+				state.WasPressedThisFrame = true;
+			}
+
+			state.IsInProgress = true;
+			break;
+		}
+
+
+		/*------------------------------------
+		 *  마우스의 왼쪽 버튼이 떼어졌을 경우..
+		 *****/
+		case(WM_LBUTTONUP): 
+		{
+			KeyState& state = engine.m_inputManager.GetKeyState(KeyCode::Left_Mouse);
+
+			engine.m_inputManager.SetMouseScreenPosition(Vector2(
+				GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam))
+			);
+
+			state.IsInProgress		   = false;
+			state.WasReleasedThisFrame = true;
+			break;
+		}
+
+
+		/*------------------------------------
+		 *  마우스의 오른쪽 버튼이 눌렸을 경우...
+		 *****/
+		case(WM_RBUTTONDOWN): 
+		{
+			KeyState& state = engine.m_inputManager.GetKeyState(KeyCode::Right_Mouse);
+
+			engine.m_inputManager.SetMouseScreenPosition(Vector2(
+				GET_X_LPARAM(lParam), GET_X_LPARAM(lParam))
+			);
+
+			if (state.IsInProgress == false) {
+				state.WasPressedThisFrame = true;
+			}
+
+			state.IsInProgress = true;
+			break;
+		}
+
+
+		/*------------------------------------
+		 *  마우스의 오른쪽 버튼이 떼어졌을 경우..
+		 *****/
+		case(WM_RBUTTONUP): 
+		{
+			KeyState& state = engine.m_inputManager.GetKeyState(KeyCode::Right_Mouse);
+
+			engine.m_inputManager.SetMouseScreenPosition(Vector2(
+				GET_X_LPARAM(lParam), GET_X_LPARAM(lParam))
+			);
+
+			state.IsInProgress = false;
+			state.WasReleasedThisFrame = true;
+			break;
+		}
+
+
+		/*------------------------------------
+		 *  마우스를 움직였을 경우...
+		 *****/
+		case(WM_MOUSEMOVE): 
+		{
+			engine.m_inputManager.SetMouseScreenPosition(Vector2(
+				GET_X_LPARAM(lParam), GET_X_LPARAM(lParam))
+			);
+
+			break;
+		}
+
+
+		/*------------------------------------
+		 *  윈도우 창이 파괴되었을 경우....
+		 *****/
+		case(WM_DESTROY): 
+		{
 			PostQuitMessage(0);
 			return 0;
 		}

@@ -13,12 +13,33 @@ namespace hyunwoo {
  *************/
 class hyunwoo::Transform
 {
+	//=====================================================================================================
+	////////////////							 Define...								  /////////////////
+	//=====================================================================================================
 private:
+	/*********************************************
+	 *  자식들의 포인터를 담는 로컬 버퍼의 크기를
+	 *  나타내는 상수입니다....
+	 *****/
+	constexpr static inline uint32_t m_localBuf_count = 1;
+
+
+	/*****************************************
+	 *   메모리를 압축하기 위한 구조체입니다...
+	 ******/
+	struct CompactPackage
+	{
+		uint16_t ChildCount : 15 = 0;
+		uint16_t IsDirty    : 1  = false;
+	};
+
+
+
+
 	//=====================================================================================================
 	////////////////							 Fields...								  /////////////////
 	//=====================================================================================================
-	bool m_isDirty = false;
-
+private:
 	Vector3 m_local_position = Vector3::Zero;
 	Vector3	m_world_position = Vector3::Zero;
 
@@ -29,12 +50,12 @@ private:
 	Quaternion m_world_rotation  = Quaternion::Identity;
 
 
-	Transform*  m_parent     = nullptr;
-	Transform** m_child_list = m_localBuf;
-	uint32_t	m_childCount = 0;
+	Transform*     m_parent     = nullptr;
+	Transform**    m_child_list = m_localBuf;
+	CompactPackage m_package;
 
 	union {
-		Transform* m_localBuf[1];
+		Transform* m_localBuf[m_localBuf_count];
 		uint32_t   m_capacity = 0;
 	};
 

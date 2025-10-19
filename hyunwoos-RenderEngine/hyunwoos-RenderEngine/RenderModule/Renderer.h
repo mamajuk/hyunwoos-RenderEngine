@@ -124,8 +124,12 @@ public:
 	/*************************************
 	 *    비트맵 크기 관련 프로퍼티....
 	 ******/
-	UINT  GetWidth()	   const;
-	UINT  GetHeight()	   const;
+	UINT  GetWidth() const;
+	UINT  GetHeight() const;
+
+	float GetWidthf() const;
+	float GetHeightf() const;
+
 	float GetAspectRatio() const;
 
 

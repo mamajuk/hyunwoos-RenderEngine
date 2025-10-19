@@ -30,6 +30,10 @@ hyunwoo::Renderer::~Renderer()
  *============*/
 hyunwoo::Vector2 hyunwoo::Renderer::NDCToScreen(const Vector4& ndcPos)
 {
+    /*****************************************************************
+     *   모든 좌표가 -1 ~ 1 사이인 NDC 좌표에, 스크린의 절반 크기를 곱해
+     *   스크린 좌표로 변환시킨다....
+     ******/
     return WorldToScreen(Vector2(
         (ndcPos.x * m_widthf_half), 
         (ndcPos.y * m_heightf_half)
@@ -85,7 +89,7 @@ hyunwoo::Vector2 hyunwoo::Renderer::ScreenToWorld(const hyunwoo::Vector2& screen
 
 
 /*=====================================================================================================================
- *   주어진 클립 삼각형들을, 
+ *   주어진 삼각형들의 클립핑 결과를 clipTriangleList에 담습니다....
  *****************/
 void hyunwoo::Renderer::ClippingTriangle(ClipTriangleList& clipTriangleList, ClippingTestFunc* clippingTestFunc, SolveTFunc* solveTFunc)
 {
@@ -93,6 +97,7 @@ void hyunwoo::Renderer::ClippingTriangle(ClipTriangleList& clipTriangleList, Cli
     {
         uint32_t from, to1, to2;
     };
+
 
     uint32_t		    clipping_desc_count = 0;
     const uint32_t      clipping_test_count = clipTriangleList.triangleCount;
@@ -911,15 +916,24 @@ void hyunwoo::Renderer::DrawTriangle(const TriangleDescription& triangleDesc)
 
 
 
-/*====================================================================
+/*=============================================================================
  *   랜더러가 생성한 비트맵의 크기를 반환합니다...
  *=============*/
-UINT hyunwoo::Renderer::GetWidth()  const {
+UINT hyunwoo::Renderer::GetWidth() const {
     return m_width;
 }
 
 UINT hyunwoo::Renderer::GetHeight() const {
     return m_height;
+}
+
+
+float hyunwoo::Renderer::GetWidthf() const {
+    return m_widthf;
+}
+
+float hyunwoo::Renderer::GetHeightf() const {
+    return m_heightf;
 }
 
 

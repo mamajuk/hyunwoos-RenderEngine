@@ -43,6 +43,7 @@ public:
 		bool Invalid_Interlace			   : 1;
 		bool Invalid_FilterType			   : 1;
 
+		uint32_t			ImportCount = 0;
 		Zlib::InflateResult ZlibInflateRet;
 	};
 

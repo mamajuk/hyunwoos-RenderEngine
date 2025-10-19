@@ -15,7 +15,7 @@ hyunwoo::Transform::~Transform()
         m_child_list = m_localBuf;
     }
 
-    m_childCount = 0;
+    m_package.ChildCount = 0;
 }
 
 
@@ -36,7 +36,7 @@ hyunwoo::Transform::~Transform()
  ***********/
 const hyunwoo::Vector3 hyunwoo::Transform::GetLocalPosition()
 {
-    if (m_isDirty) {
+    if (m_package.IsDirty) {
         UpdateDirtyParentWorldTransforms();
         UpdateWorldTransform();
     }
@@ -46,7 +46,7 @@ const hyunwoo::Vector3 hyunwoo::Transform::GetLocalPosition()
 
 void hyunwoo::Transform::SetLocalPosition(const Vector3& newPosition)
 {
-    if (m_isDirty) {
+    if (m_package.IsDirty) {
         UpdateDirtyParentWorldTransforms();
     }
 
@@ -73,7 +73,7 @@ void hyunwoo::Transform::SetLocalPosition(const Vector3& newPosition)
  ***********/
 const hyunwoo::Vector3 hyunwoo::Transform::GetWorldPosition()
 {
-    if (m_isDirty) {
+    if (m_package.IsDirty) {
         UpdateDirtyParentWorldTransforms();
         UpdateWorldTransform();
     }
@@ -83,7 +83,7 @@ const hyunwoo::Vector3 hyunwoo::Transform::GetWorldPosition()
 
 void hyunwoo::Transform::SetWorldPosition(const Vector3& newPosition)
 {
-    if (m_isDirty) {
+    if (m_package.IsDirty) {
         UpdateDirtyParentWorldTransforms();
     }
 
@@ -110,7 +110,7 @@ void hyunwoo::Transform::SetWorldPosition(const Vector3& newPosition)
  ***********/
 const hyunwoo::Vector3 hyunwoo::Transform::GetLocalScale()
 {
-    if (m_isDirty) {
+    if (m_package.IsDirty) {
         UpdateDirtyParentWorldTransforms();
         UpdateWorldTransform();
     }
@@ -120,7 +120,7 @@ const hyunwoo::Vector3 hyunwoo::Transform::GetLocalScale()
 
 void hyunwoo::Transform::SetLocalScale(const Vector3& newScale)
 {
-    if (m_isDirty) {
+    if (m_package.IsDirty) {
         UpdateDirtyParentWorldTransforms();
     }
 
@@ -143,7 +143,7 @@ void hyunwoo::Transform::SetLocalScale(const Vector3& newScale)
  ***********/
 const hyunwoo::Vector3 hyunwoo::Transform::GetWorldScale()
 {
-    if (m_isDirty) {
+    if (m_package.IsDirty) {
         UpdateDirtyParentWorldTransforms();
         UpdateWorldTransform();
     }
@@ -153,7 +153,7 @@ const hyunwoo::Vector3 hyunwoo::Transform::GetWorldScale()
 
 void hyunwoo::Transform::SetWorldScale(const Vector3& newScale)
 {
-    if (m_isDirty) {
+    if (m_package.IsDirty) {
         UpdateDirtyParentWorldTransforms();
     }
 
@@ -179,7 +179,7 @@ void hyunwoo::Transform::SetWorldScale(const Vector3& newScale)
  ***********/
 const hyunwoo::Quaternion hyunwoo::Transform::GetLocalRotation()
 {
-    if (m_isDirty) {
+    if (m_package.IsDirty) {
         UpdateDirtyParentWorldTransforms();
         UpdateWorldTransform();
     }
@@ -189,7 +189,7 @@ const hyunwoo::Quaternion hyunwoo::Transform::GetLocalRotation()
 
 void hyunwoo::Transform::SetLocalRotation(const Quaternion& newRotation)
 {
-    if (m_isDirty) {
+    if (m_package.IsDirty) {
         UpdateDirtyParentWorldTransforms();
     }
 
@@ -215,7 +215,7 @@ void hyunwoo::Transform::SetLocalRotation(const Quaternion& newRotation)
  ***********/
 const hyunwoo::Quaternion hyunwoo::Transform::GetWorldRotation()
 {
-    if (m_isDirty) {
+    if (m_package.IsDirty) {
         UpdateDirtyParentWorldTransforms();
         UpdateWorldTransform();
     }
@@ -225,7 +225,7 @@ const hyunwoo::Quaternion hyunwoo::Transform::GetWorldRotation()
 
 void hyunwoo::Transform::SetWorldRotation(const Quaternion& newRotation)
 {
-    if (m_isDirty) {
+    if (m_package.IsDirty) {
         UpdateDirtyParentWorldTransforms();
     }
 
@@ -251,7 +251,7 @@ void hyunwoo::Transform::SetWorldRotation(const Quaternion& newRotation)
  ***********/
 void hyunwoo::Transform::SetLocalPositionAndRotation(const Vector3& newPosition, const Quaternion& newRotation)
 {
-    if (m_isDirty) {
+    if (m_package.IsDirty) {
         UpdateDirtyParentWorldTransforms();
     }
 
@@ -263,7 +263,7 @@ void hyunwoo::Transform::SetLocalPositionAndRotation(const Vector3& newPosition,
 
 void hyunwoo::Transform::SetWorldPositionAndRotation(const Vector3& newPosition, const Quaternion& newRotation)
 {
-    if (m_isDirty) {
+    if (m_package.IsDirty) {
         UpdateDirtyParentWorldTransforms();
     }
 
@@ -277,7 +277,7 @@ void hyunwoo::Transform::SetWorldPositionAndRotation(const Vector3& newPosition,
 
 void hyunwoo::Transform::SetLocalPositionAndScaleAndRotation(const Vector3& newPosition, const Vector3& newScale, const Quaternion& newRotation)
 {
-    if (m_isDirty) {
+    if (m_package.IsDirty) {
         UpdateDirtyParentWorldTransforms();
     }
 
@@ -290,7 +290,7 @@ void hyunwoo::Transform::SetLocalPositionAndScaleAndRotation(const Vector3& newP
 
 void hyunwoo::Transform::SetWorldPositionAndScaleAndRotation(const Vector3& newPosition, const Vector3& newScale, const Quaternion& newRotation)
 {
-    if (m_isDirty) {
+    if (m_package.IsDirty) {
         UpdateDirtyParentWorldTransforms();
     }
 
@@ -360,13 +360,13 @@ void hyunwoo::Transform::SetParent(Transform* newParent)
  ***********/
 uint32_t hyunwoo::Transform::GetChildCount() const
 {
-    return m_childCount;
+    return m_package.ChildCount;
 }
 
 hyunwoo::Transform* hyunwoo::Transform::GetChildAt(uint32_t index) const
 {
     //유효한 인덱스 범위를 벗어났다면, nullptr을 반환한다...
-    if (index < 0 || index >= m_childCount) {
+    if (index < 0 || index >= m_package.ChildCount) {
         return nullptr;
     }
 
@@ -410,7 +410,7 @@ void hyunwoo::Transform::AddChild(Transform& newChild)
          *  자식개수가 로컬 버퍼를 초과한 경우,
          *  동적할당된 버퍼로 교체한다...
          *****/
-        if ((m_childCount+1) > 1) {
+        if ((m_package.ChildCount+1) > m_localBuf_count) {
             m_child_list    = new Transform*[3]();
             m_child_list[0] = m_localBuf[0];
             m_capacity      = 3;
@@ -423,12 +423,12 @@ void hyunwoo::Transform::AddChild(Transform& newChild)
      *  동적 버퍼의 공간이 부족하면, 기존 크기의 배인 버퍼를 새로 
      *  할당하고, 기존 리소스를 옮긴다....
      *******/
-    else if (m_capacity < (m_childCount + 1))
+    else if (m_capacity == m_package.ChildCount)
     {
         Transform** prev_list = m_child_list;
 
         m_child_list = new Transform*[(m_capacity *= 2)]();
-        memcpy((void*)m_child_list, (void*)prev_list, (sizeof(Transform*) * m_childCount));
+        memcpy(m_child_list, prev_list, (sizeof(Transform*) * m_package.ChildCount));
         
         delete[] prev_list;
     }
@@ -437,7 +437,7 @@ void hyunwoo::Transform::AddChild(Transform& newChild)
     /*************************************************
      *  해당 객체를 자식으로 추가한다....
      *******/
-    m_child_list[m_childCount++] = &newChild;
+    m_child_list[m_package.ChildCount++] = &newChild;
     newChild.m_parent            = this;
     newChild.UpdateLocalTransform();
 }
@@ -461,13 +461,13 @@ void hyunwoo::Transform::RemoveChild(Transform& removeChild)
     /*************************************************
      *  자식 목록을 순회해서, 자식 객체라면 제거한다...
      ******/
-    for (uint32_t i = 0; i < m_childCount; i++)
+    for (uint32_t i = 0; i < m_package.ChildCount; i++)
     {
         //제거할 대상과 동일한 객체를 제거한다...
         if (m_child_list[i]==&removeChild) {
             removeChild.m_parent = nullptr;
             removeChild.UpdateLocalTransform();
-            m_child_list[i] = m_child_list[--m_childCount];
+            m_child_list[i] = m_child_list[--m_package.ChildCount];
             return;
         }
     }
@@ -478,14 +478,14 @@ void hyunwoo::Transform::RemoveChildAt(uint32_t index)
     /**********************************************
      *  유효하지 않은 인덱스라면, 함수를 종료한다...
      *****/
-    if (index < 0 || index >= m_childCount) {
+    if (index < 0 || index >= m_package.ChildCount) {
         return;
     }
 
     m_child_list[index]->m_parent = nullptr;
     m_child_list[index]->UpdateLocalTransform();
-    m_child_list[index] = m_child_list[m_childCount - 1];
-    m_childCount--;
+    m_child_list[index] = m_child_list[m_package.ChildCount - 1];
+    m_package.ChildCount--;
 }
 
 
@@ -508,7 +508,7 @@ void hyunwoo::Transform::RemoveChildAt(uint32_t index)
  ***********/
 const hyunwoo::Matrix4x4 hyunwoo::Transform::GetTRS()
 {
-    if (m_isDirty) {
+    if (m_package.IsDirty) {
         UpdateDirtyParentWorldTransforms();
         UpdateWorldTransform();
     }
@@ -552,18 +552,18 @@ void hyunwoo::Transform::UpdateWorldTransform()
      *  부모가 없다면, 로컬과 똑같은 값을 가진다...
      *****/
     if (m_parent==nullptr) {
-        m_world_position = m_local_position;
-        m_world_rotation = m_local_rotation;
-        m_world_scale    = m_local_scale;
-        m_isDirty        = false;
+        m_world_position  = m_local_position;
+        m_world_rotation  = m_local_rotation;
+        m_world_scale     = m_local_scale;
+        m_package.IsDirty = false;
         return;
     }
 
 
-    m_world_position = ((m_parent->m_world_rotation * m_local_position) * m_parent->m_world_scale) + m_parent->m_world_position;
-    m_world_rotation = (m_parent->m_world_rotation * m_local_rotation);
-    m_world_scale    = (m_parent->m_world_scale * m_local_scale);
-    m_isDirty        = false;
+    m_world_position  = ((m_parent->m_world_rotation * m_local_position) * m_parent->m_world_scale) + m_parent->m_world_position;
+    m_world_rotation  = (m_parent->m_world_rotation * m_local_rotation);
+    m_world_scale     = (m_parent->m_world_scale * m_local_scale);
+    m_package.IsDirty = false;
 }
 
 
@@ -591,10 +591,10 @@ void hyunwoo::Transform::UpdateLocalTransform()
      *  부모가 없다면, 월드와 똑같은 값을 가진다...
      *****/
     if (m_parent==nullptr) {
-        m_local_position = m_world_position;
-        m_local_rotation = m_world_rotation;
-        m_local_scale    = m_world_scale;
-        m_isDirty        = false;
+        m_local_position  = m_world_position;
+        m_local_rotation  = m_world_rotation;
+        m_local_scale     = m_world_scale;
+        m_package.IsDirty = false;
         return;
     }
 
@@ -602,10 +602,10 @@ void hyunwoo::Transform::UpdateLocalTransform()
     const float parentScaleDiv  = (1.f / m_parent->m_world_scale.x);
     Quaternion  parentConjugate = m_parent->m_world_rotation.GetConjugate();
 
-    m_local_position = parentConjugate * ((m_world_position - m_parent->m_world_position) * parentScaleDiv);
-    m_local_rotation = (parentConjugate * m_world_rotation);
-    m_local_scale    = (m_world_scale * parentScaleDiv);
-    m_isDirty        = false;
+    m_local_position  = parentConjugate * ((m_world_position - m_parent->m_world_position) * parentScaleDiv);
+    m_local_rotation  = (parentConjugate * m_world_rotation);
+    m_local_scale     = (m_world_scale * parentScaleDiv);
+    m_package.IsDirty = false;
 }
 
 
@@ -623,19 +623,21 @@ void hyunwoo::Transform::UpdateLocalTransform()
 
 
 /*=============================================================================================================================================
- *   해당 Transform의 자식들의 Transform들이 재계산할 필요가있다고 체크한다....
+ *   해당 Transform의 모든 하위 Transform들이 재계산할 필요가있음을 나타내는 isDirty 플래그를 설정합니다....
  ***********/
 void hyunwoo::Transform::UpdateChildDirties()
 {
-    for (uint32_t i = 0; i < m_childCount; i++) {
+    for (uint32_t i = 0; i < m_package.ChildCount; i++) {
         Transform* childTr = m_child_list[i];
 
-        //이전에 isDirty상태가 되었다면, 무시한다...
-        if (childTr->m_isDirty == false) {
-            childTr->m_isDirty = true;
+        /*****************************************************
+         *   이미 Dirty상태라면, 그 자식객체들도 모두 dirty
+         *   상태일 것이기 때문에, 무시한다...
+         *****/
+        if (childTr->m_package.IsDirty == false) {
+            childTr->m_package.IsDirty = true;
             childTr->UpdateChildDirties();
         }
-        else uint8_t a = 0;
     }
 }
 
@@ -663,10 +665,10 @@ void hyunwoo::Transform::UpdateDirtyParentWorldTransforms()
     /**************************************************************
      *   해당 Transform의 부모가 재계산이 필요한가?
      ********/
-    if (m_parent!=nullptr && m_parent->m_isDirty) 
+    if (m_parent!=nullptr && m_parent->m_package.IsDirty)
     {
         m_parent->UpdateDirtyParentWorldTransforms();
         m_parent->UpdateWorldTransform();
-        m_parent->m_isDirty = false;
+        m_parent->m_package.IsDirty = false;
     }
 }

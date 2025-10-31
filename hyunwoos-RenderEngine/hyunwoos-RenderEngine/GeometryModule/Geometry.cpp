@@ -20,7 +20,7 @@ void hyunwoo::Plane::Normalized()
 /*===================================================================================================================
  *   아핀 공간의 점/바운딩 박스/바운딩 스피어가 평면과 어떤 관계가 있는지 검사합니다...
  ********/
-const hyunwoo::Plane::TestResult hyunwoo::Plane::Test(const Vector4& affinePoint)
+const hyunwoo::Plane::TestResult hyunwoo::Plane::Test(const Vector4& affinePoint) const
 {
 	Plane::TestResult ret = { 0, };
 	const float		  dot = Vector4::Dot(PlaneEquation, affinePoint);
@@ -50,7 +50,7 @@ const hyunwoo::Plane::TestResult hyunwoo::Plane::Test(const Vector4& affinePoint
 }
 
 
-const hyunwoo::Plane::TestResult hyunwoo::Plane::Test(const BoundingBox& boundingBox)
+const hyunwoo::Plane::TestResult hyunwoo::Plane::Test(const BoundingBox& boundingBox) const
 {
 	Plane::TestResult ret = { 0, };
 
@@ -75,6 +75,14 @@ const hyunwoo::Plane::TestResult hyunwoo::Plane::Test(const BoundingBox& boundin
 	 *   평면과 교차하는지를 판별한다...
 	 *-----*/
 	ret.Inside = true;
+
+	const Vector4 testDir2 = Vector4(
+		(Dir.x > 0.f ? boundingBox.Max.x : boundingBox.Min.x),
+		(Dir.y > 0.f ? boundingBox.Max.y : boundingBox.Min.y),
+		(Dir.z > 0.f ? boundingBox.Max.z : boundingBox.Min.z),
+		1.f
+	);
+
 	if (Vector4::Dot(-testDir, PlaneEquation) < 0.f) {
 		ret.Overlapped = true;
 	}
@@ -83,7 +91,7 @@ const hyunwoo::Plane::TestResult hyunwoo::Plane::Test(const BoundingBox& boundin
 }
 
 
-const hyunwoo::Plane::TestResult hyunwoo::Plane::Test(const BoundingSphere& boundingSphere)
+const hyunwoo::Plane::TestResult hyunwoo::Plane::Test(const BoundingSphere& boundingSphere) const
 {
 	Plane::TestResult ret = { 0, };
 	const float		  dot    = Vector4::Dot(PlaneEquation, Vector4(boundingSphere.Center, 1.f));

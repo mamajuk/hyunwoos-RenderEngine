@@ -69,7 +69,7 @@ public:
 		
 		struct {
 			Vector3 Dir;
-			float   MinDistance;
+			float   MinDistOrigin;
 		};
 	};
 
@@ -81,14 +81,15 @@ public:
 	//===================================================================================================
 public:
 	Plane() = default;
+	Plane(const Vector3& dir, float minDistance):Dir(dir), MinDistOrigin(minDistance) {}
 	Plane(const Vector4& planeEquation) : PlaneEquation(planeEquation) { Normalized(); }
 	
 
 	void Normalized();
 
-	const TestResult Test(const Vector4& affinePoint);
-	const TestResult Test(const BoundingBox& boundingBox );
-	const TestResult Test(const BoundingSphere& boundingSphere);
+	const TestResult Test(const Vector4& affinePoint) const;
+	const TestResult Test(const BoundingBox& boundingBox ) const;
+	const TestResult Test(const BoundingSphere& boundingSphere) const;
 };
 
 

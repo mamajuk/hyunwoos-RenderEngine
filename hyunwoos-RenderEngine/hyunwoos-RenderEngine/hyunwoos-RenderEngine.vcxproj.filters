@@ -51,7 +51,7 @@
     <ClCompile Include="ImportModule\PngImporter.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="RenderModule\RenderResources.cpp">
+    <ClCompile Include="RenderModule\Material.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="MathModule\Quaternion.cpp">
@@ -107,7 +107,7 @@
     <ClInclude Include="UtilityModule\Zlib.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="RenderModule\RenderResources.h">
+    <ClInclude Include="RenderModule\Material.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="MathModule\Quaternion.h">
@@ -122,13 +122,13 @@
     <ClInclude Include="EngineModule\Transform.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="EngineModule\SmartPointer.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="EngineModule\UniqueableObject.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="RenderModule\Mesh.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="RenderModule\DisplayObject.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
@@ -214,6 +214,42 @@
     <Image Include="Resources\three.png">
       <Filter>Resource Files</Filter>
     </Image>
+    <Image Include="Resources\lisha\Texture\mc3.png">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="Resources\lisha\Texture\toon.png">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="Resources\lisha\Texture\脸.png">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="Resources\lisha\Texture\头发.png">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="Resources\lisha\Texture\衣服.png">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="Resources\lisha\Texture\表情.png">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="Resources\anbo\Texture\mc3.png">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="Resources\anbo\Texture\toon.png">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="Resources\anbo\Texture\脸.png">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="Resources\anbo\Texture\头发.png">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="Resources\anbo\Texture\衣服.png">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="Resources\anbo\Texture\表情.png">
+      <Filter>Resource Files</Filter>
+    </Image>
   </ItemGroup>
   <ItemGroup>
     <None Include="Resources\Paymon\paymon.pmx" />
@@ -222,6 +258,8 @@
     <None Include="Resources\Minecraft\Steve_1.8.pmx" />
     <None Include="Resources\Minecraft\Steve_old.pmx" />
     <None Include="Resources\steve\steve.pmx" />
+    <None Include="Resources\lisha\lisha.pmx" />
+    <None Include="Resources\anbo\anbo.pmx" />
   </ItemGroup>
   <ItemGroup>
     <Text Include="Resources\feixieer\readme【一定要看】.txt" />

@@ -143,7 +143,7 @@
     <ClCompile Include="MathModule\Vector.cpp" />
     <ClCompile Include="RenderModule\Mesh.cpp" />
     <ClCompile Include="RenderModule\Renderer.cpp" />
-    <ClCompile Include="RenderModule\RenderResources.cpp" />
+    <ClCompile Include="RenderModule\Material.cpp" />
     <ClCompile Include="Source.cpp" />
     <ClCompile Include="UtilityModule\BitStream.cpp" />
     <ClCompile Include="UtilityModule\StringLamda.cpp" />
@@ -153,7 +153,6 @@
     <ClInclude Include="EngineModule\UniqueableObject.h" />
     <ClInclude Include="EngineModule\InputManager.h" />
     <ClInclude Include="EngineModule\RenderEngine.h" />
-    <ClInclude Include="EngineModule\SmartPointer.h" />
     <ClInclude Include="EngineModule\Transform.h" />
     <ClInclude Include="ImportModule\PmxImporter.h" />
     <ClInclude Include="ImportModule\PngImporter.h" />
@@ -163,14 +162,21 @@
     <ClInclude Include="MathModule\Quaternion.h" />
     <ClInclude Include="MathModule\Vector.h" />
     <ClInclude Include="GeometryModule\Geometry.h" />
+    <ClInclude Include="RenderModule\DisplayObject.h" />
     <ClInclude Include="RenderModule\Mesh.h" />
     <ClInclude Include="RenderModule\Renderer.h" />
-    <ClInclude Include="RenderModule\RenderResources.h" />
+    <ClInclude Include="RenderModule\Material.h" />
     <ClInclude Include="UtilityModule\BitStream.h" />
     <ClInclude Include="UtilityModule\StringLamda.h" />
     <ClInclude Include="UtilityModule\Zlib.h" />
   </ItemGroup>
   <ItemGroup>
+    <Image Include="Resources\anbo\Texture\mc3.png" />
+    <Image Include="Resources\anbo\Texture\toon.png" />
+    <Image Include="Resources\anbo\Texture\头发.png" />
+    <Image Include="Resources\anbo\Texture\脸.png" />
+    <Image Include="Resources\anbo\Texture\衣服.png" />
+    <Image Include="Resources\anbo\Texture\表情.png" />
     <Image Include="Resources\feixieer\hair.png" />
     <Image Include="Resources\feixieer\skin.png" />
     <Image Include="Resources\feixieer\tex\发.png" />
@@ -181,6 +187,12 @@
     <Image Include="Resources\feixieer\toon_defo.png" />
     <Image Include="Resources\five.png" />
     <Image Include="Resources\four.png" />
+    <Image Include="Resources\lisha\Texture\mc3.png" />
+    <Image Include="Resources\lisha\Texture\toon.png" />
+    <Image Include="Resources\lisha\Texture\头发.png" />
+    <Image Include="Resources\lisha\Texture\脸.png" />
+    <Image Include="Resources\lisha\Texture\衣服.png" />
+    <Image Include="Resources\lisha\Texture\表情.png" />
     <Image Include="Resources\one.png" />
     <Image Include="Resources\Paymon\Texture\mc3.png" />
     <Image Include="Resources\Paymon\Texture\toon.png" />
@@ -200,7 +212,9 @@
     <Image Include="Resources\zero.png" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="Resources\anbo\anbo.pmx" />
     <None Include="Resources\feixieer\feixieer.pmx" />
+    <None Include="Resources\lisha\lisha.pmx" />
     <None Include="Resources\Minecraft\Alex_1.8.pmx" />
     <None Include="Resources\Minecraft\Steve_1.8.pmx" />
     <None Include="Resources\Minecraft\Steve_old.pmx" />

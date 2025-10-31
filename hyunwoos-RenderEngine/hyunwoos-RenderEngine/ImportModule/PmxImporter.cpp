@@ -184,7 +184,7 @@ hyunwoo::PmxImporter::ImportResult hyunwoo::PmxImporter::Import(const StorageDes
 
 
 
-int32_t hyunwoo::PmxImporter::ReadByDefaultIndexType(std::ifstream& in, const DefaultIndexType defaultIdxType)
+int32_t hyunwoo::PmxImporter::ReadDefaultIndexType(std::ifstream& in, const DefaultIndexType defaultIdxType)
 {
     if (defaultIdxType == DefaultIndexType::Type1_byte) {
         int8_t value;
@@ -349,7 +349,7 @@ void hyunwoo::PmxImporter::Import_StoreVertexData(std::ifstream& in, const Heade
 
                 SkinDeformWeight new_weight;
                 new_weight.Weight           = 1.f;
-                new_weight.BoneTransformIdx = ReadByDefaultIndexType(in, header.Globals.Bone_Index_Size);
+                new_weight.BoneTransformIdx = ReadDefaultIndexType(in, header.Globals.Bone_Index_Size);
                 mesh.DeformWeights.push_back(new_weight);
                 break;
             }
@@ -364,8 +364,8 @@ void hyunwoo::PmxImporter::Import_StoreVertexData(std::ifstream& in, const Heade
                 SkinDeformWeight new_weight1;
                 SkinDeformWeight new_weight2;
 
-                new_weight1.BoneTransformIdx = ReadByDefaultIndexType(in, header.Globals.Bone_Index_Size);
-                new_weight2.BoneTransformIdx = ReadByDefaultIndexType(in, header.Globals.Bone_Index_Size);
+                new_weight1.BoneTransformIdx = ReadDefaultIndexType(in, header.Globals.Bone_Index_Size);
+                new_weight2.BoneTransformIdx = ReadDefaultIndexType(in, header.Globals.Bone_Index_Size);
 
                 in.read((char*)&new_weight1.Weight, 4);
                 new_weight2.Weight = (1.f - new_weight1.Weight);
@@ -386,10 +386,10 @@ void hyunwoo::PmxImporter::Import_StoreVertexData(std::ifstream& in, const Heade
                 SkinDeformWeight new_weight3;
                 SkinDeformWeight new_weight4;
 
-                new_weight1.BoneTransformIdx = ReadByDefaultIndexType(in, header.Globals.Bone_Index_Size);
-                new_weight2.BoneTransformIdx = ReadByDefaultIndexType(in, header.Globals.Bone_Index_Size);
-                new_weight3.BoneTransformIdx = ReadByDefaultIndexType(in, header.Globals.Bone_Index_Size);
-                new_weight4.BoneTransformIdx = ReadByDefaultIndexType(in, header.Globals.Bone_Index_Size);
+                new_weight1.BoneTransformIdx = ReadDefaultIndexType(in, header.Globals.Bone_Index_Size);
+                new_weight2.BoneTransformIdx = ReadDefaultIndexType(in, header.Globals.Bone_Index_Size);
+                new_weight3.BoneTransformIdx = ReadDefaultIndexType(in, header.Globals.Bone_Index_Size);
+                new_weight4.BoneTransformIdx = ReadDefaultIndexType(in, header.Globals.Bone_Index_Size);
 
                 in.read((char*)&new_weight1.Weight, 4);
                 in.read((char*)&new_weight2.Weight, 4);
@@ -413,8 +413,8 @@ void hyunwoo::PmxImporter::Import_StoreVertexData(std::ifstream& in, const Heade
                 SkinDeformWeight new_weight1;
                 SkinDeformWeight new_weight2;
 
-                new_weight1.BoneTransformIdx = ReadByDefaultIndexType(in, header.Globals.Bone_Index_Size);
-                new_weight2.BoneTransformIdx = ReadByDefaultIndexType(in, header.Globals.Bone_Index_Size);
+                new_weight1.BoneTransformIdx = ReadDefaultIndexType(in, header.Globals.Bone_Index_Size);
+                new_weight2.BoneTransformIdx = ReadDefaultIndexType(in, header.Globals.Bone_Index_Size);
 
                 in.read((char*)&new_weight1.Weight, 4);
                 in.seekg(sizeof(Vector3) * 3, std::ios::cur);
@@ -437,10 +437,10 @@ void hyunwoo::PmxImporter::Import_StoreVertexData(std::ifstream& in, const Heade
                 SkinDeformWeight new_weight3;
                 SkinDeformWeight new_weight4;
 
-                new_weight1.BoneTransformIdx = ReadByDefaultIndexType(in, header.Globals.Bone_Index_Size);
-                new_weight2.BoneTransformIdx = ReadByDefaultIndexType(in, header.Globals.Bone_Index_Size);
-                new_weight3.BoneTransformIdx = ReadByDefaultIndexType(in, header.Globals.Bone_Index_Size);
-                new_weight4.BoneTransformIdx = ReadByDefaultIndexType(in, header.Globals.Bone_Index_Size);
+                new_weight1.BoneTransformIdx = ReadDefaultIndexType(in, header.Globals.Bone_Index_Size);
+                new_weight2.BoneTransformIdx = ReadDefaultIndexType(in, header.Globals.Bone_Index_Size);
+                new_weight3.BoneTransformIdx = ReadDefaultIndexType(in, header.Globals.Bone_Index_Size);
+                new_weight4.BoneTransformIdx = ReadDefaultIndexType(in, header.Globals.Bone_Index_Size);
 
                 in.read((char*)&new_weight1.Weight, 4);
                 in.read((char*)&new_weight2.Weight, 4);
@@ -1085,7 +1085,7 @@ void hyunwoo::PmxImporter::Import_StoreBoneData(std::ifstream& in, const Header&
         /*----------------------------------------------
          *   부모 본의 인덱스를 읽어들인다...
          ********/
-        new_bone.Parent_BoneIdx = ReadByDefaultIndexType(in, header.Globals.Bone_Index_Size);
+        new_bone.Parent_BoneIdx = ReadDefaultIndexType(in, header.Globals.Bone_Index_Size);
 
 
 
@@ -1120,7 +1120,7 @@ void hyunwoo::PmxImporter::Import_StoreBoneData(std::ifstream& in, const Header&
         float   parent_influence   = 0.f;
 
         if (flags.Inherit_rotation || flags.Inherit_translation) {
-            inherit_parent_idx = ReadByDefaultIndexType(in, header.Globals.Bone_Index_Size);
+            inherit_parent_idx = ReadDefaultIndexType(in, header.Globals.Bone_Index_Size);
             in.read((char*)&parent_influence, 4);
         }
 
@@ -1155,7 +1155,7 @@ void hyunwoo::PmxImporter::Import_StoreBoneData(std::ifstream& in, const Header&
         int32_t external_parent_idx = -1;
 
         if (flags.External_parent_deform) {
-            external_parent_idx = ReadByDefaultIndexType(in, header.Globals.Bone_Index_Size);
+            external_parent_idx = ReadDefaultIndexType(in, header.Globals.Bone_Index_Size);
         }
 
 
@@ -1169,7 +1169,7 @@ void hyunwoo::PmxImporter::Import_StoreBoneData(std::ifstream& in, const Header&
 
         if (flags.IK) 
         {
-            ik_bone_idx = ReadByDefaultIndexType(in, header.Globals.Bone_Index_Size);
+            ik_bone_idx = ReadDefaultIndexType(in, header.Globals.Bone_Index_Size);
             in.read((char*)&loop_count, 4);
             in.read((char*)&limit_radian, 4);
             in.read((char*)&link_count, 4);
@@ -1179,7 +1179,7 @@ void hyunwoo::PmxImporter::Import_StoreBoneData(std::ifstream& in, const Header&
             for (uint32_t i = 0; i < link_count; i++) {
                 IKLink new_link;
 
-                new_link.Bone_idx = ReadByDefaultIndexType(in, header.Globals.Bone_Index_Size);
+                new_link.Bone_idx = ReadDefaultIndexType(in, header.Globals.Bone_Index_Size);
                 in.read((char*)&new_link.Has_limits, 1);
 
                 if (new_link.Has_limits) {

@@ -1,4 +1,5 @@
 #pragma once
+#include <climits>
 #include "../MathModule/Math.h"
 #include "../MathModule/Quaternion.h"
 #include "../MathModule/Matrix.h"
@@ -9,7 +10,7 @@ namespace hyunwoo {
 
 
 /*=====================================================================================================================================================
- *    이동/크기/회전에 대한 변환을 기록하는 구조체입니다...
+ *    이동/크기/회전에 대한 변환을 기록하는 구조체입니다. 자식을 가진 부모 Transform이 비균등할 경우, 자식 Transform이 비정상적으로 작동할 수 있습니다.
  *************/
 class hyunwoo::Transform
 {
@@ -19,9 +20,9 @@ class hyunwoo::Transform
 private:
 	/*********************************************
 	 *  자식들의 포인터를 담는 로컬 버퍼의 크기를
-	 *  나타내는 상수입니다....
+	 *  나타내는 상수...
 	 *****/
-	constexpr static inline uint32_t m_localBuf_count = 1;
+	constexpr static inline uint32_t m_localBuf_count = 2; 
 
 
 	/*****************************************
@@ -29,8 +30,8 @@ private:
 	 ******/
 	struct CompactPackage
 	{
-		uint16_t ChildCount : 15 = 0;
-		uint16_t IsDirty    : 1  = false;
+		uint16_t ChildCount    : 15 = 0;
+		uint16_t IsDirty       : 1  = false;
 	};
 
 
@@ -130,9 +131,17 @@ public:
 	////////////////						 Private methods..						    /////////////////
 	//===================================================================================================
 private:
+	/*******************************************
+	 *   월드/로컬 트랜스폼을 재계산하는 메소드들..
+	 ******/
 	void UpdateWorldTransform();
 	void UpdateLocalTransform();
 
+
+	/*******************************************
+	 *   재계산이 필요하다는 isDirty플래그를
+	 *   체크하거나, 처리하는 메소드들...
+	 ******/
 	void UpdateChildDirties();
 	void UpdateDirtyParentWorldTransforms();
 };

@@ -166,9 +166,16 @@ private:
 	////////								Public methods..						/////////
 	//======================================================================================
 public:
+	/*******************************************
+	 *  특정 키의 상태를 갱신하기 위한 메소드...
+	 ******/
+	KeyState& GetKeyState(KeyCode keyCode) {
+		return m_keyStates[(int)keyCode];
+	}
+
 
 	/*******************************************
-	 *
+	 *   특정 키의 상태를 확인하는 메소드...
 	 ******/
 	bool IsInProgress(KeyCode keyCode)         const;
 	bool WasPressedThisFrame(KeyCode keyCode)  const;
@@ -176,10 +183,10 @@ public:
 
 	float GetAxis(KeyCode minusKey, KeyCode plusKey) const;
 
-	KeyState& GetKeyState(KeyCode keyCode) {
-		return m_keyStates[(int)keyCode];
-	}
 
+	/********************************************
+	 *   마우스 좌표 관련 메소드....
+	 ******/
 	Vector2 GetMouseScreenPosition() const {
 		return m_mouse_screenPos;
 	}

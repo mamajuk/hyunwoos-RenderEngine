@@ -3,7 +3,7 @@
 #include <string>
 #include<type_traits>
 #include "../UtilityModule/Zlib.h"
-#include "../RenderModule/RenderResources.h"
+#include "../RenderModule/Material.h"
 
 namespace hyunwoo {
 	class PngImporter;

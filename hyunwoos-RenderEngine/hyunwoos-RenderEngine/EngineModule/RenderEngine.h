@@ -68,8 +68,8 @@ public:
 	/*************************************
 	 *   참조를 얻는 프로퍼티...
 	 *****/
-	const InputManager& GetInputManager() const;
 	Renderer&			GetRenderer();
+	const InputManager& GetInputManager() const;
 
 
 

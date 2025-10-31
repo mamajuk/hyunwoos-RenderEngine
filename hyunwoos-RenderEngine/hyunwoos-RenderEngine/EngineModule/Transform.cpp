@@ -411,9 +411,10 @@ void hyunwoo::Transform::AddChild(Transform& newChild)
          *  동적할당된 버퍼로 교체한다...
          *****/
         if ((m_package.ChildCount+1) > m_localBuf_count) {
-            m_child_list    = new Transform*[3]();
-            m_child_list[0] = m_localBuf[0];
-            m_capacity      = 3;
+            Transform** new_list = new Transform*[3]();
+            memcpy(new_list, m_localBuf, sizeof(Transform*) * m_localBuf_count);
+            m_child_list = new_list;
+            m_capacity   = 3;
         }
     }
 
@@ -438,7 +439,7 @@ void hyunwoo::Transform::AddChild(Transform& newChild)
      *  해당 객체를 자식으로 추가한다....
      *******/
     m_child_list[m_package.ChildCount++] = &newChild;
-    newChild.m_parent            = this;
+    newChild.m_parent                    = this;
     newChild.UpdateLocalTransform();
 }
 

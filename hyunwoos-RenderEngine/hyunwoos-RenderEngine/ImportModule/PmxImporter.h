@@ -3,7 +3,7 @@
 #include <vector>
 #include <fstream>
 #include "../MathModule/Vector.h"
-#include "../RenderModule/RenderResources.h"
+#include "../RenderModule/Material.h"
 #include "../RenderModule/Mesh.h"
 #include "PngImporter.h"
 
@@ -240,7 +240,7 @@ private:
 	 *   유틸리티 메소드...
 	 *****/
 	static void    ReadText(std::ifstream& in, const Header& header, std::wstring* out_u16_text = nullptr);
-	static int32_t ReadByDefaultIndexType(std::ifstream& in, const DefaultIndexType defaultIdxType);
+	static int32_t ReadDefaultIndexType(std::ifstream& in, const DefaultIndexType defaultIdxType);
 
 
 	/********************************

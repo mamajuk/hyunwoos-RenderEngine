@@ -187,6 +187,7 @@ LRESULT hyunwoo::RenderEngine::WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARA
 	}
 
 
+
 	/*****************************************************************
 	 *   메세지 종류에 따라 적절하게 처리한다...
 	 *********/
@@ -394,7 +395,7 @@ void hyunwoo::RenderEngine::SetTargetFrameRate(int newTargetFrameRate)
 
 
 /*=============================================================================
- *    랜더 엔진이 관리하고 있는 Renderer과 InputManager의 참조를 가져옵니다..
+ *    참조를 얻어오는 메소드들입니다....
  *=============*/
 const hyunwoo::InputManager& hyunwoo::RenderEngine::GetInputManager() const {
 	return m_inputManager;

@@ -724,18 +724,18 @@ void hyunwoo::Renderer::SetPixel_internal(const Color& color, const uint32_t ind
      *    뒤쪽에 그려져야하는 경우...
      *********/
     if (m_depthBufferPtr[index] < depth) {
-        if (UseAlphaBlending == false) return;
+        //if (UseAlphaBlending == false) return;
 
-        //배경색과의 알파블랜딩을 진행한다....
-        LinearColor frontColor = color;
-        LinearColor backColor  = ClearColor;
-        
-        //직전의 결과 색상과 앞쪽 색상과의 알파블랜딩을 진행한다...
-        LinearColor frontColor2 = m_backBufferBitmapPtr[index];
-        LinearColor backColor2  = (backColor + (frontColor - backColor) * frontColor.A);
-        LinearColor finalColor = (backColor2 + (frontColor2 - backColor2) * frontColor2.A);
+        ////배경색과의 알파블랜딩을 진행한다....
+        //LinearColor frontColor = color;
+        //LinearColor backColor  = ClearColor;
+        //
+        ////직전의 결과 색상과 앞쪽 색상과의 알파블랜딩을 진행한다...
+        //LinearColor frontColor2 = m_backBufferBitmapPtr[index];
+        //LinearColor backColor2  = (backColor + (frontColor - backColor) * frontColor.A);
+        //LinearColor finalColor = (backColor2 + (frontColor2 - backColor2) * frontColor2.A);
 
-        m_backBufferBitmapPtr[index] = Color(finalColor).ARGB;
+        //m_backBufferBitmapPtr[index] = Color(finalColor).ARGB;
         return;
     }
 
@@ -753,14 +753,14 @@ void hyunwoo::Renderer::SetPixel_internal(const Color& color, const uint32_t ind
      *  알파 블랜드를 사용할 경우, 알파값에 따라서
      *  뒤쪽이 비치도록 한다....
      *-----*/
-    if (UseAlphaBlending && color.A < 255) {
+    //if (UseAlphaBlending && color.A < 255) {
 
-        LinearColor goalColor = LinearColor(color);
-        LinearColor prevColor = LinearColor(m_backBufferBitmapPtr[index]);
-        m_backBufferBitmapPtr[index] = Color(prevColor + (goalColor - prevColor) * goalColor.A).ARGB;
-    }
+    //    LinearColor goalColor = LinearColor(color);
+    //    LinearColor prevColor = LinearColor(m_backBufferBitmapPtr[index]);
+    //    m_backBufferBitmapPtr[index] = Color(prevColor + (goalColor - prevColor) * goalColor.A).ARGB;
+    //}
 
-    else m_backBufferBitmapPtr[index] = color.ARGB;
+    m_backBufferBitmapPtr[index] = color.ARGB;
 }
 
 

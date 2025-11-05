@@ -51,7 +51,6 @@ protected:
 		SetTargetFrameRate(60);
 
 
-
 		/********************************************************
 		 *   메시를 불러온다...
 		 *****/
@@ -656,12 +655,12 @@ private:
 		const float         rotSpeedSec	  = (200.f * speedScale * deltaTime);
 		const float         scaleSpeedSec = (1.f * speedScale * deltaTime);
 
-		static Transform mesh_tr;
-		static int32_t   selected_boneIdx  = -1;
+		static WeakPtr<Transform> mesh_tr;
+		static int32_t			  selected_boneIdx  = -1;
 
-		static std::vector<Matrix4x4> skinning_mats;
-		static std::vector<Vector4>   blending_vertices;
-		static std::vector<Transform> bone_trs;
+		static std::vector<Matrix4x4>		   skinning_mats;
+		static std::vector<Vector4>			   blending_vertices;
+		static std::vector<WeakPtr<Transform>> bone_trs;
 
 
 		/************************************************************
@@ -675,40 +674,47 @@ private:
 			bone_trs.resize(bone_list.size());
 			blending_vertices.resize(mesh.Vertices.size());
 
+			mesh_tr = Transform::CreateTransform();
+
+			for (uint32_t i = 0; i < bone_trs.size(); i++) {
+				bone_trs[i] = Transform::CreateTransform();
+			}
+
+			Transform* mesh_tr_rawPtr = mesh_tr.Get();
+
 			//본들의 월드를 초기화한다...
 			for (uint32_t i = 0; i < bone_trs.size(); i++) {
-				bone_trs[i].SetLocalPositionAndScaleAndRotation(
+				Transform& bone_tr = *bone_trs[i].Get();
+
+				bone_tr.SetLocalPositionAndScaleAndRotation(
 					bone_list[i].BindingPose.Position,
 					bone_list[i].BindingPose.Scale,
 					bone_list[i].BindingPose.Rotation
 				);
-			}
 
-			//본의 계층구조를 구축한다....
-			for (uint32_t i = 0; i < bone_trs.size(); i++) {
-				
 				//부모가 존재하는 경우에만...
-				if (bone_list[i].Parent_BoneIdx>=0) {
-					bone_trs[i].SetParent(&bone_trs[bone_list[i].Parent_BoneIdx]);
+				if (bone_list[i].Parent_BoneIdx >= 0) {
+					bone_tr.SetParent(bone_trs[bone_list[i].Parent_BoneIdx].Get());
 				}
 
 				//부모가 없는 루트 트랜스폼인가?
 				else {
-					mesh_tr.AddChild(bone_trs[i]);
+					mesh_tr_rawPtr->AddChild(&bone_tr);
 				}
 			}
 
-			mesh_tr.SetWorldPosition(Vector3(0.f, 0.f, 50.f));
-			mesh_tr.SetWorldScale(Vector3::One * 1.f);
+			mesh_tr_rawPtr->SetWorldPosition(Vector3(0.f, 0.f, 50.f));
+			mesh_tr_rawPtr->SetWorldScale(Vector3::One * 1.f);
 		}
 
 
 		/************************************************************
 		 *   조작할 트랜스폼의 회전과 이동, 크기를 조작한다...
 		 ********/
-		Transform& control_tr = (selected_boneIdx>=0? bone_trs[selected_boneIdx]:mesh_tr);
+		Transform& mesh_tr_ref = *mesh_tr.Get();
+		Transform& control_tr  = *(selected_boneIdx>=0? bone_trs[selected_boneIdx]:mesh_tr).Get();
 
-		control_tr.SetWorldPosition(control_tr.GetWorldPosition() +
+		control_tr.SetLocalPosition(control_tr.GetLocalPosition() +
 			Vector3(
 				input.GetAxis(KeyCode::Left, KeyCode::Right) * moveSpeedSec,
 				input.GetAxis(KeyCode::Down, KeyCode::Up) * moveSpeedSec,
@@ -721,9 +727,9 @@ private:
 			input.GetAxis(KeyCode::Q, KeyCode::E) * rotSpeedSec
 		);
 
-		control_tr.SetWorldRotation(eular * control_tr.GetWorldRotation());
+		control_tr.SetLocalRotation(eular * control_tr.GetLocalRotation());
 
-		control_tr.SetWorldScale(control_tr.GetWorldScale() +
+		control_tr.SetLocalScale(control_tr.GetLocalScale() +
 			Vector3(
 				input.GetAxis(KeyCode::J, KeyCode::L) * scaleSpeedSec,
 				input.GetAxis(KeyCode::K, KeyCode::I) * scaleSpeedSec,
@@ -731,6 +737,11 @@ private:
 			));
 
 		if (input.WasPressedThisFrame(KeyCode::Right_Mouse) || input.WasPressedThisFrame(KeyCode::Shift)) {
+			selected_boneIdx = -1;
+		}
+
+		if (input.WasPressedThisFrame(KeyCode::P)) {
+			//Transform::DestroyTransform()
 			selected_boneIdx = -1;
 		}
 
@@ -746,7 +757,7 @@ private:
 		const float a   = renderer.GetAspectRatio();
 		const float d   = 1.f / Math::Tan(fov * Math::Angle2Rad * .5f);
 
-		const Matrix4x4 TRS = mesh_tr.GetTRS();
+		const Matrix4x4 TRS = mesh_tr_ref.GetTRS();
 
 		const Matrix4x4 P = Matrix4x4(
 			Vector4(d,   0.f,   0.f, 0.f),
@@ -875,7 +886,7 @@ private:
 
 			const Bone& bone = mesh.Bones[boneIdx];
 
-			const Vector3& bone_pos       = bone_trs[boneIdx].GetWorldPosition();
+			const Vector3& bone_pos       = bone_trs[boneIdx]->GetWorldPosition();
 			const Vector2  bone_ScreenPos = renderer.NDCToScreen(renderer.ClipToNDC(P * Vector4(bone_pos, 1.f)));
 
 			const Vector2 sp1 = (bone_ScreenPos + p1);
@@ -889,15 +900,15 @@ private:
 			if (bone.Parent_BoneIdx >= 0) {
 				const Bone& parent_bone = mesh.Bones[bone.Parent_BoneIdx];
 
-				const Vector3& parent_pos	    = bone_trs[bone.Parent_BoneIdx].GetWorldPosition();
+				const Vector3& parent_pos	    = bone_trs[bone.Parent_BoneIdx]->GetWorldPosition();
 				const Vector2  parent_ScreenPos = renderer.NDCToScreen(renderer.ClipToNDC(P * Vector4(parent_pos, 1.f)));
 
 				const Vector2 bone2parent       = (bone_ScreenPos - parent_ScreenPos);
 				const Vector2 bone2parent_Dir   = bone2parent.GetNormalized();
 				const Vector2 bone2parent_right = Vector2(-bone2parent_Dir.y, bone2parent_Dir.x);
 
-				const Vector2 arrow1_pos = parent_ScreenPos + (bone2parent_right * 10.f);
-				const Vector2 arrow2_pos = parent_ScreenPos - (bone2parent_right * 10.f);
+				const Vector2 arrow1_pos = parent_ScreenPos + (bone2parent_right * 5.f);
+				const Vector2 arrow2_pos = parent_ScreenPos - (bone2parent_right * 5.f);
 
 				Color boneColor = Color::Red;
 				renderer.DrawLine(boneColor, bone_ScreenPos, parent_ScreenPos);
@@ -939,7 +950,7 @@ private:
 		 ********/
 		for (uint32_t i = 0; i < bone_trs.size(); i++) {
 			const Bone& bone    = mesh.Bones[i];
-			Transform&  bone_tr = bone_trs[i];
+			Transform&  bone_tr = *bone_trs[i].Get();
 
 			skinning_mats[i] = (bone_tr.GetTRS() * bone.BindingPose.GetTRS_Inverse());
 		}
@@ -1787,7 +1798,7 @@ private:
 		/*********************************************************
 		 *   객체들을 초기화한다....
 		 *********/
-		static std::vector<Transform> tr_list;
+		static std::vector<WeakPtr<Transform>> tr_list;
 
 		if (tr_list.size()==0) 
 		{
@@ -1806,43 +1817,47 @@ private:
 			if (pngRet.Success == false) {
 				throw "png import failed!!!";
 			}
+
+			for (uint32_t i = 0; i < tr_list.size(); i++) {
+				tr_list[i] = Transform::CreateTransform();
+			}
 			
-			Transform& tr_0 = tr_list[0];
+			Transform& tr_0 = *tr_list[0].Get();
 			tr_0.SetLocalPositionAndScaleAndRotation(
 				Vector3(0.f, 0.f, 0.f),
 				Vector3::One * 100.f,
 				Quaternion::Identity
 			);
 
-			Transform& tr_1 = tr_list[1];
+			Transform& tr_1 = *tr_list[1].Get();
 			tr_1.SetLocalPositionAndScaleAndRotation(
 				Vector3(100.f, 0.f, 0.f),
 				Vector3::One * 100.f,
 				Quaternion::Identity
 			);
 
-			Transform& tr_2 = tr_list[2];
+			Transform& tr_2 = *tr_list[2].Get();
 			tr_2.SetLocalPositionAndScaleAndRotation(
 				Vector3(30.f, 100.f, 0.f),
 				Vector3::One * 100.f,
 				Quaternion::Identity
 			);
 
-			Transform& tr_3 = tr_list[3];
+			Transform& tr_3 = *tr_list[3].Get();
 			tr_3.SetLocalPositionAndScaleAndRotation(
 				Vector3(100.f, 60.f, 0.f),
 				Vector3::One * 100.f,
 				Quaternion::Identity
 			);
 
-			Transform& tr_4 = tr_list[4];
+			Transform& tr_4 = *tr_list[4].Get();
 			tr_4.SetLocalPositionAndScaleAndRotation(
 				Vector3(200.f, 40.f, 0.f),
 				Vector3::One * 100.f,
 				Quaternion::Identity
 			);
 
-			Transform& tr_5 = tr_list[5];
+			Transform& tr_5 = *tr_list[5].Get();
 			tr_5.SetLocalPositionAndScaleAndRotation(
 				Vector3(300.f, 200.f, 0.f),
 				Vector3::One * 100.f,
@@ -1862,14 +1877,14 @@ private:
 		{
 			//현재 조작중인 대상이 부모를 제거한다...
 			if (input.WasPressedThisFrame(KeyCode::X)) {
-				tr_list[tr_idx].SetParent(nullptr);
+				tr_list[tr_idx]->SetParent(Transform::GetRoot());
 			}
 
 			if (input.WasPressedThisFrame(KeyCode(uint32_t(KeyCode::NUMPAD_0) + i)))
 			{
 				//현재 조작중인 대상을, 선택한 대상의 자식으로 넣는다....
 				if (input.IsInProgress(KeyCode::Z)) {
-					tr_list[tr_idx].SetParent(&tr_list[i]);
+					tr_list[tr_idx]->SetParent(tr_list[i].Get());
 				}
 
 				//조작 대상을, 선택한 대상으로 변경한다....
@@ -1877,7 +1892,7 @@ private:
 			}
 		}
 
-		Transform& tr = tr_list[tr_idx];
+		Transform& tr = *tr_list[tr_idx].Get();
 
 		tr.SetWorldPositionAndScaleAndRotation(
 			tr.GetWorldPosition() + Vector3(input.GetAxis(KeyCode::Left, KeyCode::Right), input.GetAxis(KeyCode::Down, KeyCode::Up), 0.f) * moveSpeedSec,
@@ -1911,7 +1926,7 @@ private:
 		Renderer::TriangleDescription triangle_desc;
 		for (uint32_t i = 0; i < tr_list.size(); i++) 
 		{
-			Transform& cur = tr_list[i];
+			Transform& cur = *tr_list[i].Get();
 			Matrix4x4  TRS = cur.GetTRS();
 
 			Vector2 screenPos1 = renderer.WorldToScreen(TRS * objPos1);
@@ -1954,7 +1969,7 @@ private:
 			 *   해당 객체에 대한 디버그 출력...
 			 *******/
 			debugTxt += (const std::wstring&)w$(
-				L"transform[", i, L"].parent: ", (cur.GetParent() == nullptr ? -1 : (cur.GetParent() - &tr_list[0])),
+				L"transform[", i, L"].parent: ", (cur.GetParent() - Transform::GetRoot()),
 				L"\nlocal_position", cur.GetLocalPosition(), L"\nlocal_scale: ", cur.GetLocalScale(), L"\nlocal_rotation: ", cur.GetLocalRotation(), L"\n-----------------------------------------------\n\n"
 			);
 		}

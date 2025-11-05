@@ -95,6 +95,12 @@ public:
 		return floorf(rhs);
 	}
 
+	static const float Clamp(const int Symbol, const int min, const int max) {
+		if (Symbol < min) return min;
+		if (Symbol > max) return max;
+		return Symbol;
+	}
+
 	static const float Clamp(const float Symbol, const float min, const float max) {
 		if (Symbol < min) return min;
 		if (Symbol > max) return max;

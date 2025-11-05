@@ -110,15 +110,15 @@ public:
 	/****************************************
 	 *   화면 클리어 관련 프로퍼티....
 	 ******/
-	bool        UseAutoClear       : 1 = true;
-	bool		UseWireFrameMode   : 1 = false;
-	bool		UseBackfaceCulling : 1 = true;
-	bool		UseAlphaBlending   : 1 = true;
-	bool		DrawTriangleNormal : 1 = false;
+	bool UseAutoClear       : 1 = true;
+	bool UseWireFrameMode   : 1 = false;
+	bool UseBackfaceCulling : 1 = true;
+	bool UseAlphaBlending   : 1 = true;
+	bool DrawTriangleNormal : 1 = false;
 
-	Color		WireFrameColor         = Color::Black;
-	Color		ClearColor             = Color::White;
-	Color	    InvalidTriangleColor   = Color::Pink;
+	Color WireFrameColor       = Color::Black;
+	Color ClearColor           = Color::White;
+	Color InvalidTriangleColor = Color::Pink;
 
 
 	/*************************************

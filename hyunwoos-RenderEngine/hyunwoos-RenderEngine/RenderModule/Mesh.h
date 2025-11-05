@@ -2,6 +2,7 @@
 #include <vector>
 #include "../MathModule/Quaternion.h"
 #include "../GeometryModule/Geometry.h"
+#include "../EngineModule/UniqueableObject.h"
 
 namespace hyunwoo {
 	struct Vertex;
@@ -173,7 +174,7 @@ struct hyunwoo::Bone
  /*================================================================================================================================
   *   모델링 데이터를 담을 수 있는 구조체입니다...
   *=========*/
-struct hyunwoo::Mesh final
+struct hyunwoo::Mesh final : public hyunwoo::UniqueableObject
 {
 	//=========================================================================================
 	///////////							  Properties...							///////////////

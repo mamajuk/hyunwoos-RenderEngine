@@ -16,9 +16,37 @@ namespace hyunwoo {
 /*=====================================================================================================================================================
  *    Transform에게 부착될 수 있는 클래스들의 기반 클래스입니다...
  *************/
-class hyunwoo::TransformComponent : public UniqueableObject
+class hyunwoo::TransformComponent : public hyunwoo::UniqueableObject
 {
+	friend class Transform;
 
+	//========================================================================================
+	/////////////						   Fields...							//////////////
+	//========================================================================================
+private:
+	WeakPtr<Transform> m_attached_to;
+
+
+
+
+	//================================================================================================
+	/////////////						   Protected methods...							//////////////
+	//================================================================================================
+protected:
+	virtual void OnAttachment() {}
+	virtual void OnDetachment() {}
+
+
+
+
+	//================================================================================================
+	/////////////						  Public methods....							//////////////
+	//================================================================================================
+public:
+	TransformComponent() {}
+	virtual ~TransformComponent() override;
+
+	WeakPtr<Transform> GetAttachedTransform() const;
 };
 
 
@@ -47,24 +75,25 @@ private:
 	/*********************************************
 	 *  각종 상수들의 정의입니다...
 	 *****/
-	constexpr static inline uint32_t m_localBuf_count  = 6; 
-	constexpr static inline uint16_t m_root_idx        = 0;
-	constexpr static inline uint16_t m_max_tr_count    = UINT16_MAX;
-	constexpr static inline uint16_t m_max_child_count = 32767;
+	constexpr static inline uint32_t m_localBuf_count  = 6;			    //로컬 버퍼의 개수입니다...
+	constexpr static inline uint16_t m_root_idx        = 0;			    //루트 Transform의 인덱스 값입니다...
+	constexpr static inline uint16_t m_max_tr_count    = UINT16_MAX;    //최대 Transform 개수입니다...
+	constexpr static inline uint16_t m_max_child_count = ((1<<14) - 1);	//최대 자식 Transform의 개수입니다...
 
 
 	/*****************************************
 	 *   메모리를 압축하기 위한 구조체입니다...
 	 ******/
-	struct CompactPackage
+	struct CompactPackage final
 	{
-		uint16_t ChildCount   : 15 = 0;
-		uint16_t IsDirty      : 1  = false;
+		uint16_t ChildCount  : 14 = 0;
+		uint16_t IsDirty     : 1  = false;
+		uint16_t FixedParent : 1  = false;
 	};
 
 
-	/************************************************
-	 *   Transform을 담는 freeList방식 컨테이너입니다..
+	/*************************************
+	 *   Transform을 담는 컨테이너입니다..
 	 ******/
 	struct TransformArray final
 	{
@@ -114,10 +143,11 @@ private:
 	Transform() = default;
 	Transform(const Transform& prev)	 { operator=(prev); }
 	Transform(Transform&& prev) noexcept { operator=(std::move(prev)); }
-	virtual ~Transform();
+	virtual ~Transform() override;
 
 	void operator=(const Transform& prev);
 	void operator=(Transform&& prev) noexcept;
+
 
 
 
@@ -126,13 +156,14 @@ private:
 	//===================================================================================================
 public:
 	const Matrix4x4 GetTRS();
+	const Matrix4x4 GetTRS_Inverse();
 
 
 	/*****************************************
 	 *   정적 메소드...
 	 ******/
 	static Transform* GetRoot();
-	static Transform* CreateTransform();
+	static Transform* CreateTransform(Transform* parent = nullptr, bool fixedParent = false);
 	static void		  DestroyTransform(Transform* target);
 
 
@@ -180,14 +211,25 @@ public:
 	 *   계층구조 관련 메소드....
 	 ******/
 	Transform* GetParent() const;
-	void	   SetParent(Transform* newParent);
+	void	   SetParent(Transform* newParent, bool fixedParent = false);
 
 	uint32_t   GetChildCount() const;
 	Transform* GetChildAt(uint32_t index) const;
 
-	void AddChild(Transform* newChild);
+	void AddChild(Transform* newChild, bool fixedParent = false);
 	void RemoveChild(Transform* removeChild);
 	void RemoveChildAt(uint32_t index);
+
+	bool UsesFixedParent() const;
+
+
+	/*****************************************
+	 *   TransformComponent 관련 메소드...
+	 ******/
+	void AttachTransformComponent(TransformComponent* new_comp);
+	void DetachTransformComponent();
+
+	WeakPtr<TransformComponent> GetTransformComponent() const;
 
 
 

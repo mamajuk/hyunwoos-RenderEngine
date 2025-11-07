@@ -129,7 +129,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="EngineModule\DisplayObject.cpp" />
+    <ClCompile Include="EngineModule\RenderMesh.cpp" />
     <ClCompile Include="EngineModule\InputManager.cpp" />
     <ClCompile Include="EngineModule\RenderEngine.cpp" />
     <ClCompile Include="EngineModule\Transform.cpp" />
@@ -142,6 +142,7 @@
     <ClCompile Include="MathModule\Matrix.cpp" />
     <ClCompile Include="MathModule\Quaternion.cpp" />
     <ClCompile Include="MathModule\Vector.cpp" />
+    <ClCompile Include="RenderModule\Camera.cpp" />
     <ClCompile Include="RenderModule\Mesh.cpp" />
     <ClCompile Include="RenderModule\Renderer.cpp" />
     <ClCompile Include="RenderModule\Material.cpp" />
@@ -163,7 +164,8 @@
     <ClInclude Include="MathModule\Quaternion.h" />
     <ClInclude Include="MathModule\Vector.h" />
     <ClInclude Include="GeometryModule\Geometry.h" />
-    <ClInclude Include="EngineModule\DisplayObject.h" />
+    <ClInclude Include="EngineModule\RenderMesh.h" />
+    <ClInclude Include="RenderModule\Camera.h" />
     <ClInclude Include="RenderModule\Mesh.h" />
     <ClInclude Include="RenderModule\Renderer.h" />
     <ClInclude Include="RenderModule\Material.h" />

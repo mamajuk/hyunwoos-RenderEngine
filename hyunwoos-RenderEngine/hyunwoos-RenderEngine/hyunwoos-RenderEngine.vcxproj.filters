@@ -72,7 +72,10 @@
     <ClCompile Include="RenderModule\Mesh.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="EngineModule\DisplayObject.cpp">
+    <ClCompile Include="EngineModule\RenderMesh.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="RenderModule\Camera.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
@@ -131,7 +134,10 @@
     <ClInclude Include="RenderModule\Mesh.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="EngineModule\DisplayObject.h">
+    <ClInclude Include="EngineModule\RenderMesh.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="RenderModule\Camera.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

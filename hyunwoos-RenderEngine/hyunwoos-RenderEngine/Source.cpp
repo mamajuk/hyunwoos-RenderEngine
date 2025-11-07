@@ -50,7 +50,6 @@ protected:
 		renderer.ClearColor       = Color::White;
 		SetTargetFrameRate(60);
 
-
 		/********************************************************
 		 *   메시를 불러온다...
 		 *****/
@@ -60,7 +59,7 @@ protected:
 		pmx_storage_desc.OutMaterials = &m_materials;
 
 		PmxImporter::ImportResult pmxRet;
-		if ((pmxRet=PmxImporter::Import(pmx_storage_desc, L"Resources/Paymon/paymon.pmx")).Success==false) {
+		if ((pmxRet=PmxImporter::Import(pmx_storage_desc, L"Resources/steve/steve.pmx")).Success==false) {
 			throw "Pmx import failed!!";
 		}
 
@@ -680,6 +679,7 @@ private:
 				bone_trs[i] = Transform::CreateTransform();
 			}
 
+			uint64_t update_id = UniqueableObject::GetDirtyUpdateID();
 			Transform* mesh_tr_rawPtr = mesh_tr.Get();
 
 			//본들의 월드를 초기화한다...
@@ -741,8 +741,12 @@ private:
 		}
 
 		if (input.WasPressedThisFrame(KeyCode::P)) {
-			//Transform::DestroyTransform()
+			Transform::DestroyTransform(&control_tr);
 			selected_boneIdx = -1;
+		}
+
+		if (input.WasPressedThisFrame(KeyCode::M)) {
+			control_tr.SetParent(Transform::GetRoot());
 		}
 
 
@@ -884,9 +888,14 @@ private:
 
 		for (uint32_t boneIdx = 0; boneIdx < mesh.Bones.size(); boneIdx++) {
 
-			const Bone& bone = mesh.Bones[boneIdx];
+			const Bone&	bone	= mesh.Bones[boneIdx];
+			Transform*  bone_tr = bone_trs[boneIdx].Get();
 
-			const Vector3& bone_pos       = bone_trs[boneIdx]->GetWorldPosition();
+			if (bone_tr==nullptr) {
+				continue;
+			}
+
+			const Vector3& bone_pos       = bone_tr->GetWorldPosition();
 			const Vector2  bone_ScreenPos = renderer.NDCToScreen(renderer.ClipToNDC(P * Vector4(bone_pos, 1.f)));
 
 			const Vector2 sp1 = (bone_ScreenPos + p1);
@@ -897,27 +906,31 @@ private:
 			Color rectColor = Color::Yellow;
 
 			//부모 본이 존재할 경우에만 그린다...
-			if (bone.Parent_BoneIdx >= 0) {
-				const Bone& parent_bone = mesh.Bones[bone.Parent_BoneIdx];
+			if (bone.Parent_BoneIdx >= 0 && bone_tr->GetParent()!=Transform::GetRoot())
+			{
+				const Bone& parent_bone    =  mesh.Bones[bone.Parent_BoneIdx];
+				Transform*  parent_bone_tr = bone_trs[bone.Parent_BoneIdx].Get();
 
-				const Vector3& parent_pos	    = bone_trs[bone.Parent_BoneIdx]->GetWorldPosition();
-				const Vector2  parent_ScreenPos = renderer.NDCToScreen(renderer.ClipToNDC(P * Vector4(parent_pos, 1.f)));
+				if (parent_bone_tr!=nullptr) {
+					const Vector3& parent_pos = parent_bone_tr->GetWorldPosition();
+					const Vector2  parent_ScreenPos = renderer.NDCToScreen(renderer.ClipToNDC(P * Vector4(parent_pos, 1.f)));
 
-				const Vector2 bone2parent       = (bone_ScreenPos - parent_ScreenPos);
-				const Vector2 bone2parent_Dir   = bone2parent.GetNormalized();
-				const Vector2 bone2parent_right = Vector2(-bone2parent_Dir.y, bone2parent_Dir.x);
+					const Vector2 bone2parent       = (bone_ScreenPos - parent_ScreenPos);
+					const Vector2 bone2parent_Dir   = bone2parent.GetNormalized();
+					const Vector2 bone2parent_right = Vector2(-bone2parent_Dir.y, bone2parent_Dir.x);
 
-				const Vector2 arrow1_pos = parent_ScreenPos + (bone2parent_right * 5.f);
-				const Vector2 arrow2_pos = parent_ScreenPos - (bone2parent_right * 5.f);
+					const Vector2 arrow1_pos = parent_ScreenPos + (bone2parent_right * 5.f);
+					const Vector2 arrow2_pos = parent_ScreenPos - (bone2parent_right * 5.f);
 
-				Color boneColor = Color::Red;
-				renderer.DrawLine(boneColor, bone_ScreenPos, parent_ScreenPos);
-				renderer.DrawLine(boneColor, bone_ScreenPos, arrow1_pos);
-				renderer.DrawLine(boneColor, bone_ScreenPos, arrow2_pos);
-				renderer.DrawLine(boneColor, parent_ScreenPos, arrow1_pos);
-				renderer.DrawLine(boneColor, parent_ScreenPos, arrow2_pos);
+					Color boneColor = Color::Red;
+					renderer.DrawLine(boneColor, bone_ScreenPos, parent_ScreenPos);
+					renderer.DrawLine(boneColor, bone_ScreenPos, arrow1_pos);
+					renderer.DrawLine(boneColor, bone_ScreenPos, arrow2_pos);
+					renderer.DrawLine(boneColor, parent_ScreenPos, arrow1_pos);
+					renderer.DrawLine(boneColor, parent_ScreenPos, arrow2_pos);
 
-				rectColor = Color::Blue;
+					rectColor = Color::Blue;
+				}
 			}
 
 
@@ -950,9 +963,13 @@ private:
 		 ********/
 		for (uint32_t i = 0; i < bone_trs.size(); i++) {
 			const Bone& bone    = mesh.Bones[i];
-			Transform&  bone_tr = *bone_trs[i].Get();
+			Transform*  bone_tr = bone_trs[i].Get();
 
-			skinning_mats[i] = (bone_tr.GetTRS() * bone.BindingPose.GetTRS_Inverse());
+			if (bone_tr==nullptr) {
+				continue;
+			}
+
+			skinning_mats[i] = (bone_tr->GetTRS() * bone.BindingPose.GetTRS_Inverse());
 		}
 
 
@@ -1878,6 +1895,11 @@ private:
 			//현재 조작중인 대상이 부모를 제거한다...
 			if (input.WasPressedThisFrame(KeyCode::X)) {
 				tr_list[tr_idx]->SetParent(Transform::GetRoot());
+			}
+
+			//현재 조작중인 대상을 삭제한다...
+			if (input.WasPressedThisFrame(KeyCode::P)) {
+				Transform::DestroyTransform(tr_list[tr_idx].Get());
 			}
 
 			if (input.WasPressedThisFrame(KeyCode(uint32_t(KeyCode::NUMPAD_0) + i)))

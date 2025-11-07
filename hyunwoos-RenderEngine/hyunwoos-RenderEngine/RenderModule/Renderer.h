@@ -3,6 +3,7 @@
 #include "../MathModule/Color.h"
 #include "../MathModule/Vector.h"
 #include "Material.h"
+#include "../EngineModule/RenderMesh.h"
 
 namespace hyunwoo {
 	class Renderer;
@@ -222,6 +223,7 @@ public:
 	void SetPixel(const Color& color, const Vector2Int& screenPos);
 	void DrawLine(const Color& color, const Vector2& startScreenPos, const Vector2& endScreenPos, bool useClipping = true);
 	void DrawTriangle(const TriangleDescription& triangleDesc);
+	void DrawRenderMesh(const RenderMesh& renderMesh);
 
 
 

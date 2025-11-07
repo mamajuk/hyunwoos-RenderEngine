@@ -859,8 +859,7 @@ void hyunwoo::PmxImporter::Import_StoreMaterialData(std::ifstream& in, const Hea
                 return;
             }
 
-            Material newMaterial = { 0, };
-            newMaterial.TwoSide = false;
+            Material newMaterial;
             newMaterial.MappedTexture = &(*storageDesc.OutTextures)[prev_tex_size + tex_idx];
             storageDesc.OutMaterials->push_back(newMaterial);
         }

@@ -10,6 +10,7 @@ namespace hyunwoo {
 	class UniqueableObject;
 
 	template<typename T> struct WeakPtr;
+	template<typename T> struct CachedWeakPtr;
 }
 
 
@@ -63,6 +64,7 @@ public:
 class hyunwoo::UniqueableObject
 {
 	template<typename T> friend struct WeakPtr;
+	template<typename T> friend struct CachedWeakPtr;
 
 	//===================================================================================================
 	////////////////						     Defines...						     ////////////////////
@@ -77,6 +79,7 @@ public:
 	{
 		friend class UniqueableObject;
 		template<typename T> friend struct WeakPtr;
+		template<typename T> friend struct CachedWeakPtr;
 
 	private:
 		union 
@@ -105,11 +108,12 @@ public:
 
 
 private:
+
 	/**********************************************
 	 *   외부에서 포인터 유효성 검사하는데 필요한
 	 *   메타 데이터용 구조체입니다...
 	 *******/
-	struct MemoryUsageDescriptor
+	struct MemoryUsageDescriptor final
 	{
 		UniqueableObject* Raw_ptr	 = nullptr;
 		uint32_t		  Generation = 0;
@@ -117,12 +121,14 @@ private:
 
 	
 
+
 	//===================================================================================================
 	////////////////						     Fields...						     ////////////////////
 	//===================================================================================================
 private:
 	static std::vector<MemoryUsageDescriptor> m_descs;
 	static std::vector<uint32_t>			  m_free_list;
+	static uint64_t							  m_dirtyUpdateID;
 
 	UUID m_uuid;
 
@@ -153,6 +159,10 @@ protected:
 	////////////////						   Public methods..							////////////////////
 	//======================================================================================================
 public:
+	static uint64_t GetDirtyUpdateID() {
+		return m_dirtyUpdateID;
+	}
+
 	bool IsUniqued()
 	{
 		return (m_uuid.Value != 0);
@@ -220,13 +230,14 @@ private:
 			 *******/
 			MemoryUsageDescriptor& my_desc = m_descs[m_uuid.Table_idx];
 
-			if (my_desc.Generation!=m_uuid.Generation) {
+			if (my_desc.Generation==m_uuid.Generation) {
 				my_desc.Raw_ptr = nullptr;
 				my_desc.Generation++;
 				m_free_list.push_back(m_uuid.Table_idx);
+				m_dirtyUpdateID++;
 			}
 
-			m_uuid.Value    = 0;
+			m_uuid.Value = 0;
 		}
 	}
 
@@ -276,6 +287,8 @@ public:
 				desc.Raw_ptr = this;
 			}
 		}
+
+		m_dirtyUpdateID++;
 	}
 
 };
@@ -299,9 +312,6 @@ public:
 template<typename T>
 class hyunwoo::WeakPtr final
 {
-	friend class UniqueableObject;
-
-
 	//===================================================================================================
 	////////////////						     Fields...						     ////////////////////
 	//===================================================================================================
@@ -388,6 +398,139 @@ public:
 		UniqueableObject::UUID& uuid  = raw_ptr->m_uuid;
 		raw_ptr->Make_Unique();
 		m_uuid.Value = uuid.Value;
+	}
+
+	T* operator*() const
+	{
+		return Get();
+	}
+
+	T* operator->() const
+	{
+		return Get();
+	}
+};
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+/*=======================================================================================================================================================================
+ *   마지막으로 접근한 주소값을 내부적으로 캐싱하는, 포인터 유효성 검증용 스마트 포인터입니다. 템플릿 타입 T는 반드시 UniqueableObject를 상속한 타입이여야 합니다. 
+ *   nullptr이 아닌 raw_ptr로 스마트 포인터에 대입 연산자를 시도할 경우, Undefine Behavior입니다....
+ **********/
+template<typename T>
+class hyunwoo::CachedWeakPtr final
+{
+	//===================================================================================================
+	////////////////						     Fields...						     ////////////////////
+	//===================================================================================================
+private:
+	T*					   m_cached_raw_ptr;
+	UniqueableObject::UUID m_uuid;
+
+
+
+	//=======================================================================================================
+	////////////////						   Public methods..						     ////////////////////
+	//=======================================================================================================
+public:
+	CachedWeakPtr() :m_uuid(), m_cached_raw_ptr(nullptr)
+	{
+		static_assert(std::is_convertible_v<T*, UniqueableObject*>, "CachedWeakPtr<T>'s T is not base of UniqueableObject!!");
+	}
+
+	CachedWeakPtr(T* const raw_ptr)
+	:m_uuid(), m_cached_raw_ptr(nullptr)
+	{
+		static_assert(std::is_convertible_v<T*, UniqueableObject*>, "CachedWeakPtr<T>'s T is not base of UniqueableObject!!");
+		operator=(raw_ptr);
+	}
+
+	CachedWeakPtr(const CachedWeakPtr<T>& prev)		{ operator=(prev); }
+	CachedWeakPtr(CachedWeakPtr<T>&& prev) noexcept { operator=(std::move(prev)); }
+
+
+	void Reset()
+	{
+		m_uuid.Value = 0;
+	}
+
+	UniqueableObject::UUID GetUUID()
+	{
+		return m_uuid;
+	}
+
+	T* Get()
+	{
+		/****************************************************************
+		 *   해당 객체가 유효하면 raw_ptr을, 아니라면 nullptr을 반환한다...
+		 ******/
+		UniqueableObject::MemoryUsageDescriptor& desc = UniqueableObject::m_descs[m_uuid.Table_idx];
+
+		if (desc.Generation == m_uuid.Generation) {
+			return (m_cached_raw_ptr = static_cast<T*>(desc.Raw_ptr));
+		}
+
+		return (m_cached_raw_ptr = nullptr);
+	}
+
+	T* GetCache() const {
+		return m_cached_raw_ptr;
+	}
+
+
+
+	//===========================================================================================================
+	////////////////						   Operator methods..						     ////////////////////
+	//===========================================================================================================
+	void operator=(const CachedWeakPtr<T>& prev)
+	{
+		m_uuid			 = prev.m_uuid;
+		m_cached_raw_ptr = prev.m_cached_raw_ptr;
+	}
+
+	void operator=(CachedWeakPtr<T>&& prev) noexcept
+	{
+		m_uuid = prev.m_uuid;
+	}
+
+	void operator=(T* const raw_ptr)
+	{
+		/**************************************************************
+		 *   nullptr이 대입되었을 경우, 유효하지 않은 UUID값으로 갱신한다..
+		 *******/
+		if (raw_ptr == nullptr) {
+			m_uuid.Value = 0;
+			return;
+		}
+
+
+		/**************************************************************
+		 *   해당 객체가 고유하지 않으면, 고유한 객체로 만들고 고유해진
+		 *   객체의 UUID를 복사한다...
+		 ******/
+		UniqueableObject::UUID& uuid = raw_ptr->m_uuid;
+		raw_ptr->Make_Unique();
+		m_cached_raw_ptr = raw_ptr;
+		m_uuid.Value     = uuid.Value;
 	}
 
 	T* operator*() const

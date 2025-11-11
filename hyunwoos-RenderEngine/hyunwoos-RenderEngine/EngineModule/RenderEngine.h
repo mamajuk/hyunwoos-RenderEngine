@@ -3,6 +3,7 @@
 #include <string>
 #include <chrono>
 #include "InputManager.h"
+#include "../MathModule/Vector.h"
 #include "../RenderModule/Renderer.h"
 
 namespace hyunwoo{
@@ -32,7 +33,7 @@ public:
 		bool GetWindowHandleIsFail  : 1;
 		bool QuitMessage			: 1;
 
-		Renderer::InitResult RendererInitResult;
+		RenderTarget::InitResult RenderTargetInitRet;
 	};
 	
 
@@ -55,7 +56,8 @@ public:
 	/***********************************
 	 *   엔진 상태 관련 프로퍼티....
 	 *******/
-	bool EngineIsRunning() const;
+	bool	   EngineIsRunning() const;
+	Vector2Int GetClientSize() const;
 
 
 	/*************************************
@@ -68,6 +70,8 @@ public:
 	/*************************************
 	 *   참조를 얻는 프로퍼티...
 	 *****/
+	Renderer::ViewPort& GetViewPort() { return m_viewPort; }
+	HWND				GetClientHwnd() const;
 	Renderer&			GetRenderer();
 	const InputManager& GetInputManager() const;
 
@@ -80,6 +84,8 @@ public:
 	//========================================================================================
 private:
 	static RenderEngine* m_runningEnginePtr;
+
+	Renderer::ViewPort m_viewPort;
 
 	/**********************************
 	 *   WIN32 API 관련 필드...

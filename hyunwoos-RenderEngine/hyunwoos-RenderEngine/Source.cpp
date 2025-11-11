@@ -50,6 +50,9 @@ protected:
 		renderer.ClearColor       = Color::White;
 		SetTargetFrameRate(60);
 
+		//GetViewPort().RenderTarget.Init(GetClientHwnd(), Vector2Int(800, 720));
+
+		return;
 		/********************************************************
 		 *   메시를 불러온다...
 		 *****/
@@ -100,8 +103,12 @@ protected:
 			m_useBoundingSphere = !m_useBoundingSphere;
 		}
 
-		//Example14_TestTransform(m_textures, deltaTime);
-		Example9_DrawSubMeshs(m_mesh, m_textures, deltaTime);
+		//삼각형들의 노멀을 표시하는가?
+		if (input.WasPressedThisFrame(KeyCode::Num_5)) {
+			renderer.DrawTriangleNormal = !renderer.DrawTriangleNormal;
+		}
+
+		Example15_DrawRenderMesh(deltaTime);
 		Example1_ShowInfo(deltaTime);
 	}
 
@@ -138,7 +145,8 @@ private:
 			L"\nUseAlphaBlending(2): ", (int)renderer.UseAlphaBlending,
 			L"\nUseBackfaceCulling(3): ", (int)renderer.UseBackfaceCulling,
 			L"\nSwitchBoundsType(4): ", (m_useBoundingSphere? L"BoundingSphere":L"BoundingBox")),
-			Vector2Int::Zero
+			Vector2Int::Zero,
+			GetViewPort()
 		);
 		#pragma endregion
 	}
@@ -180,14 +188,14 @@ private:
 			 *******/
 			Renderer::TriangleDescription triangle_desc;
 			triangle_desc.FillUpColor		 = Color::Red;
-			triangle_desc.ScreenPositions[0] = renderer.WorldToScreen(pos);
-			triangle_desc.ScreenPositions[1] = renderer.WorldToScreen(pos);
-			triangle_desc.ScreenPositions[2] = renderer.WorldToScreen(pos);
+			triangle_desc.ScreenPositions[0] = renderer.WorldToScreen(pos, GetViewPort());
+			triangle_desc.ScreenPositions[1] = renderer.WorldToScreen(pos, GetViewPort());
+			triangle_desc.ScreenPositions[2] = renderer.WorldToScreen(pos, GetViewPort());
 
-			renderer.DrawTriangle(triangle_desc);
-			renderer.DrawTextField(w$(L"p1: ", triangle_desc.ScreenPositions[0]), triangle_desc.ScreenPositions[0]);
-			renderer.DrawTextField(w$(L"p2: ", triangle_desc.ScreenPositions[1]), triangle_desc.ScreenPositions[1]);
-			renderer.DrawTextField(w$(L"p3: ", triangle_desc.ScreenPositions[2]), triangle_desc.ScreenPositions[2]);
+			renderer.DrawTriangle(triangle_desc, GetViewPort());
+			renderer.DrawTextField(w$(L"p1: ", triangle_desc.ScreenPositions[0]), triangle_desc.ScreenPositions[0], GetViewPort());
+			renderer.DrawTextField(w$(L"p2: ", triangle_desc.ScreenPositions[1]), triangle_desc.ScreenPositions[1], GetViewPort());
+			renderer.DrawTextField(w$(L"p3: ", triangle_desc.ScreenPositions[2]), triangle_desc.ScreenPositions[2], GetViewPort());
 		#pragma endregion
 	}
 
@@ -279,7 +287,8 @@ private:
 			{
 				renderer.SetPixel(
 					texture.GetPixel(Vector2Int(x+widthHalf,y+heightHalf)),
-					renderer.WorldToScreen(TRS * Vector3(x,y,1.f))
+					renderer.WorldToScreen(TRS * Vector3(x,y,1.f), GetViewPort()),
+					GetViewPort()
 				);
 			}
 		}
@@ -344,10 +353,10 @@ private:
 		const float wHalf = 50.f;
 		const float hHalf = 50.f;
 
-		const Vector2 p1 = renderer.WorldToScreen((finalMat * Vector3(-wHalf, hHalf, 1.f)));
-		const Vector2 p2 = renderer.WorldToScreen((finalMat * Vector3(wHalf, hHalf, 1.f)));
-		const Vector3 p3 = renderer.WorldToScreen((finalMat * Vector3(-wHalf, -hHalf, 1.f)));
-		const Vector3 p4 = renderer.WorldToScreen((finalMat * Vector3(wHalf, -hHalf, 1.f)));
+		const Vector2 p1 = renderer.WorldToScreen((finalMat * Vector3(-wHalf, hHalf, 1.f)), GetViewPort());
+		const Vector2 p2 = renderer.WorldToScreen((finalMat * Vector3(wHalf, hHalf, 1.f)), GetViewPort());
+		const Vector3 p3 = renderer.WorldToScreen((finalMat * Vector3(-wHalf, -hHalf, 1.f)), GetViewPort());
+		const Vector3 p4 = renderer.WorldToScreen((finalMat * Vector3(wHalf, -hHalf, 1.f)), GetViewPort());
 
 		const Vector2 uv1 = Vector2(0.f, 0.f);
 		const Vector2 uv2 = Vector2(1.f, 0.f);
@@ -363,7 +372,7 @@ private:
 		triangle_desc.Uvs[1]			 = uv2;
 		triangle_desc.Uvs[2]			 = uv3;
 
-		renderer.DrawTriangle(triangle_desc);
+		renderer.DrawTriangle(triangle_desc, GetViewPort());
 
 		triangle_desc.ScreenPositions[0] = p2;
 		triangle_desc.ScreenPositions[1] = p3;
@@ -371,13 +380,13 @@ private:
 		triangle_desc.Uvs[0]		     = uv2;
 		triangle_desc.Uvs[1]			 = uv3;
 		triangle_desc.Uvs[2]			 = uv4;
-		renderer.DrawTriangle(triangle_desc);
+		renderer.DrawTriangle(triangle_desc, GetViewPort());
 
-		renderer.DrawTextField(w$(L"p1: ", p1, L"\nuv: ", uv1), p1 + Vector2::Left * 200.f);
-		renderer.DrawTextField(w$(L"p2: ", p2, L"\nuv: ", uv2), p2);
-		renderer.DrawTextField(w$(L"p3: ", p3, L"\nuv: ", uv3), p3 + Vector2::Left * 200.f);
-		renderer.DrawTextField(w$(L"p4: ", p4, L"\nuv: ", uv4), p4);
-		renderer.DrawTextField(w$(L"rotMat\n", finalMat), Vector2Int(0, 500));
+		renderer.DrawTextField(w$(L"p1: ", p1, L"\nuv: ", uv1), p1 + Vector2::Left * 200.f, GetViewPort());
+		renderer.DrawTextField(w$(L"p2: ", p2, L"\nuv: ", uv2), p2, GetViewPort());
+		renderer.DrawTextField(w$(L"p3: ", p3, L"\nuv: ", uv3), p3 + Vector2::Left * 200.f, GetViewPort());
+		renderer.DrawTextField(w$(L"p4: ", p4, L"\nuv: ", uv4), p4, GetViewPort());
+		renderer.DrawTextField(w$(L"rotMat\n", finalMat), Vector2Int(0, 500), GetViewPort());
 		#pragma endregion
 	}
 
@@ -410,10 +419,10 @@ private:
 		Vector3 zBasis = Vector3::Cross(xBasis, axis).GetNormalized();
 		Vector3 final  = Vector3::Rodrigues(angle, axis, rotVec);
 
-		renderer.DrawLine(Color::White, renderer.WorldToScreen(Vector2::Zero), renderer.WorldToScreen(rotVec * 100.f));
-		renderer.DrawLine(Color::Red, renderer.WorldToScreen(Vector2::Zero), renderer.WorldToScreen(axis * 100.f));
-		renderer.DrawLine(Color::Pink, renderer.WorldToScreen(Vector2::Zero), renderer.WorldToScreen(final * 100.f));
-		renderer.DrawTextField(w$(L"<-, ->: angle - ~ + \nangle: ", angle, L"\nrotVec: ", rotVec, L"\nrotAxis: ", rotAxis), renderer.WorldToScreen(Vector2::Down * 50.f));
+		renderer.DrawLine(Color::White, renderer.WorldToScreen(Vector2::Zero, GetViewPort()), renderer.WorldToScreen(rotVec * 100.f, GetViewPort()), GetViewPort());
+		renderer.DrawLine(Color::Red, renderer.WorldToScreen(Vector2::Zero, GetViewPort()), renderer.WorldToScreen(axis * 100.f, GetViewPort()), GetViewPort());
+		renderer.DrawLine(Color::Pink, renderer.WorldToScreen(Vector2::Zero, GetViewPort()), renderer.WorldToScreen(final * 100.f, GetViewPort()), GetViewPort());
+		renderer.DrawTextField(w$(L"<-, ->: angle - ~ + \nangle: ", angle, L"\nrotVec: ", rotVec, L"\nrotAxis: ", rotAxis), renderer.WorldToScreen(Vector2::Down * 50.f, GetViewPort()), GetViewPort());
 		#pragma endregion
 	}
 
@@ -490,10 +499,10 @@ private:
 		const Vector4 objPos_LeftBottom   = Vector4(-wHalf, -hHalf, 0.f, 1.f);
 		const Vector4 objPos_RightBottom  = Vector4(wHalf, -hHalf, 0.f, 1.f);
 
-		const Vector3 screenPos_LeftTop     = renderer.WorldToScreen(finalMat * objPos_LeftTop);
-		const Vector3 screenPos_RightTop    = renderer.WorldToScreen(finalMat * objPos_RightTop);
-		const Vector3 screenPos_LeftBottom  = renderer.WorldToScreen(finalMat * objPos_LeftBottom);
-		const Vector3 screenPos_RightBottom = renderer.WorldToScreen(finalMat * objPos_RightBottom);
+		const Vector3 screenPos_LeftTop     = renderer.WorldToScreen(finalMat * objPos_LeftTop, GetViewPort());
+		const Vector3 screenPos_RightTop    = renderer.WorldToScreen(finalMat * objPos_RightTop, GetViewPort());
+		const Vector3 screenPos_LeftBottom  = renderer.WorldToScreen(finalMat * objPos_LeftBottom, GetViewPort());
+		const Vector3 screenPos_RightBottom = renderer.WorldToScreen(finalMat * objPos_RightBottom, GetViewPort());
 
 		const Vector2 uvPos_LeftTop     = Vector2(0.f, 0.f);
 		const Vector2 uvPos_RightTop    = Vector2(1.f, 0.f);
@@ -516,7 +525,7 @@ private:
 		triangle_desc.ScreenPositions[2] = screenPos_LeftBottom;
 		triangle_desc.Uvs[2]			 = uvPos_LeftBottom;
 
-		renderer.DrawTriangle(triangle_desc);
+		renderer.DrawTriangle(triangle_desc, GetViewPort());
 
 
 
@@ -532,21 +541,21 @@ private:
 		triangle_desc.ScreenPositions[2] = screenPos_RightBottom;
 		triangle_desc.Uvs[2]			 = uvPos_RightBottom;
 
-		renderer.DrawTriangle(triangle_desc);
+		renderer.DrawTriangle(triangle_desc, GetViewPort());
 
 
 		/*--------------------------------------------
 		 *   디버그 출력...
 		 *-----*/
-		renderer.DrawLine(LinearColor::Red,   renderer.WorldToScreen(objPos_Center), renderer.WorldToScreen(objPos_Center + R.BasisX * 50.f));
-		renderer.DrawLine(LinearColor::Green, renderer.WorldToScreen(objPos_Center), renderer.WorldToScreen(objPos_Center + R.BasisY * 50.f));
-		renderer.DrawLine(LinearColor::Blue,  renderer.WorldToScreen(objPos_Center), renderer.WorldToScreen(objPos_Center + R.BasisZ * 50.f));
+		renderer.DrawLine(LinearColor::Red,   renderer.WorldToScreen(objPos_Center, GetViewPort()), renderer.WorldToScreen(objPos_Center + R.BasisX * 50.f, GetViewPort()), GetViewPort());
+		renderer.DrawLine(LinearColor::Green, renderer.WorldToScreen(objPos_Center, GetViewPort()), renderer.WorldToScreen(objPos_Center + R.BasisY * 50.f, GetViewPort()), GetViewPort());
+		renderer.DrawLine(LinearColor::Blue,  renderer.WorldToScreen(objPos_Center, GetViewPort()), renderer.WorldToScreen(objPos_Center + R.BasisZ * 50.f, GetViewPort()), GetViewPort());
 
-		renderer.DrawTextField(w$(L"p1: ", screenPos_LeftTop, L"\nuv: ", uvPos_LeftTop), screenPos_LeftTop + Vector2::Left * 200.f);
-		renderer.DrawTextField(w$(L"p2: ", screenPos_RightTop, L"\nuv: ", uvPos_RightTop), screenPos_RightTop);
-		renderer.DrawTextField(w$(L"p3: ", screenPos_LeftBottom, L"\nuv: ", uvPos_LeftBottom), screenPos_LeftBottom + Vector2::Left * 200.f);
-		renderer.DrawTextField(w$(L"p4: ", screenPos_RightBottom, L"\nuv: ", uvPos_RightBottom), screenPos_RightBottom);
-		renderer.DrawTextField(w$(L"Euler: ", euler, L"\n\nT\n", T, L"\n\nR\n", R, L"\n\nS\n", S, L"\n\nfinalMat\n", finalMat), Vector2Int(0, 300));
+		renderer.DrawTextField(w$(L"p1: ", screenPos_LeftTop, L"\nuv: ", uvPos_LeftTop), screenPos_LeftTop + Vector2::Left * 200.f, GetViewPort());
+		renderer.DrawTextField(w$(L"p2: ", screenPos_RightTop, L"\nuv: ", uvPos_RightTop), screenPos_RightTop, GetViewPort());
+		renderer.DrawTextField(w$(L"p3: ", screenPos_LeftBottom, L"\nuv: ", uvPos_LeftBottom), screenPos_LeftBottom + Vector2::Left * 200.f, GetViewPort());
+		renderer.DrawTextField(w$(L"p4: ", screenPos_RightBottom, L"\nuv: ", uvPos_RightBottom), screenPos_RightBottom, GetViewPort());
+		renderer.DrawTextField(w$(L"Euler: ", euler, L"\n\nT\n", T, L"\n\nR\n", R, L"\n\nS\n", S, L"\n\nfinalMat\n", finalMat), Vector2Int(0, 300), GetViewPort());
 		#pragma endregion
 	}
 
@@ -632,17 +641,16 @@ private:
 			const Vector3 worldPos2 = (finalMat * objPos2);
 			const Vector3 worldPos3 = (finalMat * objPos3);
 
-			triangle_desc.ScreenPositions[0] = renderer.WorldToScreen(worldPos1);
-			triangle_desc.ScreenPositions[1] = renderer.WorldToScreen(worldPos2);
-			triangle_desc.ScreenPositions[2] = renderer.WorldToScreen(worldPos3);
+			triangle_desc.ScreenPositions[0] = renderer.WorldToScreen(worldPos1, GetViewPort());
+			triangle_desc.ScreenPositions[1] = renderer.WorldToScreen(worldPos2, GetViewPort());
+			triangle_desc.ScreenPositions[2] = renderer.WorldToScreen(worldPos3, GetViewPort());
 
-			renderer.DrawTriangle(triangle_desc);
+			renderer.DrawTriangle(triangle_desc, GetViewPort());
 		}
 
-		renderer.DrawTextField(w$(L"Euler: ", euler, L"\n\nT\n", T, L"\n\nR\n", R, L"\n\nS\n", S, L"\n\nfinalMat\n", finalMat), Vector2Int(0, 300));
+		renderer.DrawTextField(w$(L"Euler: ", euler, L"\n\nT\n", T, L"\n\nR\n", R, L"\n\nS\n", S, L"\n\nfinalMat\n", finalMat), Vector2Int(0, 300), GetViewPort());
 		#pragma endregion
 	}
-	#pragma endregion
 
 	void Example9_DrawSubMeshs(const Mesh& mesh, const std::vector<Texture2D>& texs, float deltaTime)
 	{
@@ -754,11 +762,11 @@ private:
 		 *    메시의 회전과 위치를 구성하는 행렬을 만든다....
 		 ********/
 		const float fov = 100.f;
-		const float n   = 5.f;
-		const float f   = 50.f;
+		const float n   = 10.f;
+		const float f   = 100.f;
 		const float k   = (-n-f) / (n-f);
 		const float l   = -n - (k*n);
-		const float a   = renderer.GetAspectRatio();
+		const float a   = GetViewPort().RenderTarget.GetAspectRatio();
 		const float d   = 1.f / Math::Tan(fov * Math::Angle2Rad * .5f);
 
 		const Matrix4x4 TRS = mesh_tr_ref.GetTRS();
@@ -793,7 +801,8 @@ private:
 			L"\nMin: ", mesh.BoundBox.Min,
 			L"\nMax: ", mesh.BoundBox.Max,
 			L"\nTRS: \n", TRS),
-			Vector2Int(0, 100)
+			Vector2Int(0, 100),
+			GetViewPort()
 		);
 
 
@@ -816,7 +825,7 @@ private:
 		static Vector3      last_pos;
 		static Vector3      plane_dir;
 
-		renderer.DrawLine(Color::Red,last_pos,last_pos + plane_dir * 50.f);
+		renderer.DrawLine(Color::Red,last_pos,last_pos + plane_dir * 50.f, GetViewPort());
 
 		for (uint32_t i = 0; i < drawBoundMesh.Triangles.size(); i++) {
 			const IndexedTriangle& triangle = drawBoundMesh.Triangles[i];
@@ -828,9 +837,9 @@ private:
 			const Vector4 clipPos2 = (PTRS * Vector4(vertex2.ObjPos, 1.f));
 			const Vector4 clipPos3 = (PTRS * Vector4(vertex3.ObjPos, 1.f));
 
-			const Vector2 screenPos1 = renderer.NDCToScreen(renderer.ClipToNDC(clipPos1));
-			const Vector2 screenPos2 = renderer.NDCToScreen(renderer.ClipToNDC(clipPos2));
-			const Vector2 screenPos3 = renderer.NDCToScreen(renderer.ClipToNDC(clipPos3));
+			const Vector2 screenPos1 = renderer.NDCToScreen(renderer.ClipToNDC(clipPos1), GetViewPort());
+			const Vector2 screenPos2 = renderer.NDCToScreen(renderer.ClipToNDC(clipPos2), GetViewPort());
+			const Vector2 screenPos3 = renderer.NDCToScreen(renderer.ClipToNDC(clipPos3), GetViewPort());
 
 			clip_triangle_list.triangleCount = 1;
 			clip_triangle_list.Triangles[0]  = Renderer::ClipTriangle(
@@ -855,9 +864,9 @@ private:
 				const Renderer::ClipTriangle& clip_triangle = clip_triangle_list.Triangles[i];
 
 				bounds_triangle_desc.SetScreenPositions(
-					renderer.NDCToScreen(renderer.ClipToNDC(clip_triangle.Vertices[0].ClipPos)),
-					renderer.NDCToScreen(renderer.ClipToNDC(clip_triangle.Vertices[1].ClipPos)),
-					renderer.NDCToScreen(renderer.ClipToNDC(clip_triangle.Vertices[2].ClipPos))
+					renderer.NDCToScreen(renderer.ClipToNDC(clip_triangle.Vertices[0].ClipPos), GetViewPort()),
+					renderer.NDCToScreen(renderer.ClipToNDC(clip_triangle.Vertices[1].ClipPos), GetViewPort()),
+					renderer.NDCToScreen(renderer.ClipToNDC(clip_triangle.Vertices[2].ClipPos), GetViewPort())
 				);
 
 				bounds_triangle_desc.SetDepths(
@@ -866,7 +875,7 @@ private:
 					clip_triangle.Vertices[2].ClipPos.w
 				);
 
-				renderer.DrawTriangle(bounds_triangle_desc);
+				renderer.DrawTriangle(bounds_triangle_desc, GetViewPort());
 			}
 		}
 
@@ -896,7 +905,7 @@ private:
 			}
 
 			const Vector3& bone_pos       = bone_tr->GetWorldPosition();
-			const Vector2  bone_ScreenPos = renderer.NDCToScreen(renderer.ClipToNDC(P * Vector4(bone_pos, 1.f)));
+			const Vector2  bone_ScreenPos = renderer.NDCToScreen(renderer.ClipToNDC(P * Vector4(bone_pos, 1.f)), GetViewPort());
 
 			const Vector2 sp1 = (bone_ScreenPos + p1);
 			const Vector2 sp2 = (bone_ScreenPos + p2);
@@ -913,7 +922,7 @@ private:
 
 				if (parent_bone_tr!=nullptr) {
 					const Vector3& parent_pos = parent_bone_tr->GetWorldPosition();
-					const Vector2  parent_ScreenPos = renderer.NDCToScreen(renderer.ClipToNDC(P * Vector4(parent_pos, 1.f)));
+					const Vector2  parent_ScreenPos = renderer.NDCToScreen(renderer.ClipToNDC(P * Vector4(parent_pos, 1.f)), GetViewPort());
 
 					const Vector2 bone2parent       = (bone_ScreenPos - parent_ScreenPos);
 					const Vector2 bone2parent_Dir   = bone2parent.GetNormalized();
@@ -923,11 +932,11 @@ private:
 					const Vector2 arrow2_pos = parent_ScreenPos - (bone2parent_right * 5.f);
 
 					Color boneColor = Color::Red;
-					renderer.DrawLine(boneColor, bone_ScreenPos, parent_ScreenPos);
-					renderer.DrawLine(boneColor, bone_ScreenPos, arrow1_pos);
-					renderer.DrawLine(boneColor, bone_ScreenPos, arrow2_pos);
-					renderer.DrawLine(boneColor, parent_ScreenPos, arrow1_pos);
-					renderer.DrawLine(boneColor, parent_ScreenPos, arrow2_pos);
+					renderer.DrawLine(boneColor, bone_ScreenPos, parent_ScreenPos, GetViewPort());
+					renderer.DrawLine(boneColor, bone_ScreenPos, arrow1_pos, GetViewPort());
+					renderer.DrawLine(boneColor, bone_ScreenPos, arrow2_pos, GetViewPort());
+					renderer.DrawLine(boneColor, parent_ScreenPos, arrow1_pos, GetViewPort());
+					renderer.DrawLine(boneColor, parent_ScreenPos, arrow2_pos, GetViewPort());
 
 					rectColor = Color::Blue;
 				}
@@ -950,10 +959,10 @@ private:
 				rectColor = Color::Green;
 			}
 
-			renderer.DrawLine(rectColor, sp1, sp2);
-			renderer.DrawLine(rectColor, sp1, sp3);
-			renderer.DrawLine(rectColor, sp2, sp4);
-			renderer.DrawLine(rectColor, sp3, sp4);
+			renderer.DrawLine(rectColor, sp1, sp2, GetViewPort());
+			renderer.DrawLine(rectColor, sp1, sp3, GetViewPort());
+			renderer.DrawLine(rectColor, sp2, sp4, GetViewPort());
+			renderer.DrawLine(rectColor, sp3, sp4, GetViewPort());
 		}
 
 
@@ -1003,8 +1012,7 @@ private:
 
 			if (subMeshIdx < m_materials.size()) {
 				Material& mat				= m_materials[subMeshIdx];
-				twoSide					    = mat.TwoSide;
-				triangle_desc.MappedTexture = mat.MappedTexture;
+				triangle_desc.MappedTexture = mat.MappedTexture.Get();
 			}
 
 			
@@ -1082,9 +1090,9 @@ private:
 					const Renderer::ClipVertex& vertex3 = triangle.Vertices[2];
 
 					triangle_desc.SetScreenPositions(
-						renderer.NDCToScreen(renderer.ClipToNDC(vertex1.ClipPos)),
-						renderer.NDCToScreen(renderer.ClipToNDC(vertex2.ClipPos)),
-						renderer.NDCToScreen(renderer.ClipToNDC(vertex3.ClipPos))
+						renderer.NDCToScreen(renderer.ClipToNDC(vertex1.ClipPos), GetViewPort()),
+						renderer.NDCToScreen(renderer.ClipToNDC(vertex2.ClipPos), GetViewPort()),
+						renderer.NDCToScreen(renderer.ClipToNDC(vertex3.ClipPos), GetViewPort())
 					);
 
 					triangle_desc.SetUvPositions(
@@ -1095,7 +1103,7 @@ private:
 						vertex1.ClipPos.w, vertex2.ClipPos.w, vertex3.ClipPos.w
 					);
 
-					renderer.DrawTriangle(triangle_desc);
+					renderer.DrawTriangle(triangle_desc, GetViewPort());
 				}
 
 			}
@@ -1105,18 +1113,18 @@ private:
 		/***********************************************************
 		 *   디버그 출력...
 		 *******/
-		renderer.SetPixel(Color::Purple, input.GetMouseScreenPosition());
+		renderer.SetPixel(Color::Purple, input.GetMouseScreenPosition(), GetViewPort());
 		renderer.DrawTextField(w$(
 			L"selected boneIdx: (", selected_boneIdx, L"/ ", mesh.Bones.size(), L")"
 			L"\nchildCount: ", control_tr.GetChildCount(),
 			L"\n\nmousePos: ", input.GetMouseScreenPosition(),
 			L"\ntest result: ", test_str.c_str()),
-			Vector2Int(0, 500)
+			Vector2Int(0, 500), 
+			GetViewPort()
 		);
 		#pragma endregion
 	}
 
-	#pragma region
 	void Example10_PlaneTest2D(float moveSpeed, float rotSpeed, float deltaTime)
 	{
 		#pragma region
@@ -1183,12 +1191,12 @@ private:
 		const Vector3 plane_worldPos2		= (TRS * plane_objPos2);
 		const Vector3 plane_normal_worldPos = (TRS * plane_normal_objPos);
 
-		const Vector2 plane_screenPos1		 = renderer.WorldToScreen(plane_worldPos1);
-		const Vector2 plane_screenPos2		 = renderer.WorldToScreen(plane_worldPos2);
-		const Vector2 plane_normal_screenPos = renderer.WorldToScreen(plane_normal_worldPos);
+		const Vector2 plane_screenPos1		 = renderer.WorldToScreen(plane_worldPos1, GetViewPort());
+		const Vector2 plane_screenPos2		 = renderer.WorldToScreen(plane_worldPos2, GetViewPort());
+		const Vector2 plane_normal_screenPos = renderer.WorldToScreen(plane_normal_worldPos, GetViewPort());
 		const Vector2 plane_center_screenPos = plane_screenPos1 + (plane_screenPos2 - plane_screenPos1) * .5f;
-		const Vector2 vector_screenPos		 = renderer.WorldToScreen(vector_worldPos);
-		const Vector2 origin_screenPos		 = renderer.WorldToScreen(Vector2::Zero);
+		const Vector2 vector_screenPos		 = renderer.WorldToScreen(vector_worldPos, GetViewPort());
+		const Vector2 origin_screenPos		 = renderer.WorldToScreen(Vector2::Zero, GetViewPort());
 
 
 
@@ -1213,16 +1221,16 @@ private:
 		/*---------------------------------------------------
 		 *   벡터와, 벡터가 평면의 방향간의 직교투영을 표시한다..
 		 *-----*/
-		renderer.DrawLine(Color::Black, origin_screenPos, vector_screenPos);
-		renderer.DrawLine(Color::Red, origin_screenPos, renderer.WorldToScreen(R.BasisY * 50.f));
-		renderer.DrawLine(Color::Green, origin_screenPos, renderer.WorldToScreen(R.BasisY* nDotvec));
+		renderer.DrawLine(Color::Black, origin_screenPos, vector_screenPos, GetViewPort());
+		renderer.DrawLine(Color::Red, origin_screenPos, renderer.WorldToScreen(R.BasisY * 50.f, GetViewPort()), GetViewPort());
+		renderer.DrawLine(Color::Green, origin_screenPos, renderer.WorldToScreen(R.BasisY* nDotvec, GetViewPort()), GetViewPort());
 
 
 		/*------------------------------------------------
 		 *   평면과 평면의 방향을 표시한다...
 		 *------*/
-		renderer.DrawLine(planeColor, plane_screenPos1, plane_screenPos2);
-		renderer.DrawLine(Color::Red, plane_center_screenPos, plane_normal_screenPos);
+		renderer.DrawLine(planeColor, plane_screenPos1, plane_screenPos2, GetViewPort());
+		renderer.DrawLine(Color::Red, plane_center_screenPos, plane_normal_screenPos, GetViewPort());
 
 
 		/******************************************************
@@ -1240,7 +1248,8 @@ private:
 			L"\n\n\nplane_objnPos1: ", plane_objPos1, L"\nplane_screenPos1: ", plane_screenPos1,
 			L"\n\nplane_objnPos2: ", plane_objPos2, L"\nplane_screenPos2: ", plane_screenPos2,
 			L"\n\nproj_size: ", proj_size, L"\nplane_dst: ", plane_dst),
-			Vector2Int(0, 100)
+			Vector2Int(0, 100),
+			GetViewPort()
 		);
 		#pragma endregion
 	}
@@ -1280,19 +1289,19 @@ private:
 		const float oneProjTwo = Vector2::Dot(v1_worldPos, v2_worldPos_normal);
 		const float c		   = Vector2::Dot(v2_worldPos_normal, v1_worldPos_normal);
 
-		const Vector2 origin_screenPos     = renderer.WorldToScreen(Vector2::Zero);
-		const Vector2 v1_screenPos		   = renderer.WorldToScreen(v1_worldPos);
-		const Vector2 v2_screenPos		   = renderer.WorldToScreen(v2_worldPos);
-		const Vector2 oneProjTwo_screenPos = renderer.WorldToScreen(v2_worldPos.GetNormalized() * oneProjTwo);
+		const Vector2 origin_screenPos     = renderer.WorldToScreen(Vector2::Zero, GetViewPort());
+		const Vector2 v1_screenPos		   = renderer.WorldToScreen(v1_worldPos, GetViewPort());
+		const Vector2 v2_screenPos		   = renderer.WorldToScreen(v2_worldPos, GetViewPort());
+		const Vector2 oneProjTwo_screenPos = renderer.WorldToScreen(v2_worldPos.GetNormalized() * oneProjTwo, GetViewPort());
 
 
 		/*-------------------------------------------------
 		 *   한 벡터의 크기가, 두 벡터 사이의 cos값에 의해서
 		 *   스케일링되면서 단위벡터 쪽의 그림자가 되는 것.
 		 *----*/
-		renderer.DrawLine(Color::Red, origin_screenPos, v1_screenPos);
-		renderer.DrawLine(Color::Blue, origin_screenPos, v2_screenPos);
-		renderer.DrawLine(Color::Green, origin_screenPos, oneProjTwo_screenPos);
+		renderer.DrawLine(Color::Red, origin_screenPos, v1_screenPos, GetViewPort());
+		renderer.DrawLine(Color::Blue, origin_screenPos, v2_screenPos, GetViewPort());
+		renderer.DrawLine(Color::Green, origin_screenPos, oneProjTwo_screenPos, GetViewPort());
 
 		
 
@@ -1304,7 +1313,8 @@ private:
 			L"\nvector2_screenPos: ", v2_screenPos,
 			L"\n\noneProjTwo: ", oneProjTwo,
 			L"\ncos: ", c),
-			Vector2Int(0, 200)
+			Vector2Int(0, 200), 
+			GetViewPort()
 		);
 		#pragma endregion
 	}
@@ -1354,7 +1364,7 @@ private:
 		 *******/
 		const float rad = (Math::Angle2Rad * fov * .5f);
 		const float d   = (1.f / Math::Tan(rad));
-		const float a   = renderer.GetAspectRatio();
+		const float a   = GetViewPort().RenderTarget.GetAspectRatio();
 		const float k   = (-n-f) / (n-f);
 		const float l   = -n-(k*n);
 
@@ -1373,9 +1383,9 @@ private:
 		const Vector3 ndc2 = renderer.ClipToNDC(clip2);
 		const Vector3 ndc3 = renderer.ClipToNDC(clip3);
 
-		const Vector2 screenPos1 = renderer.NDCToScreen(ndc1);
-		const Vector2 screenPos2 = renderer.NDCToScreen(ndc1);
-		const Vector2 screenPos3 = renderer.NDCToScreen(ndc1);
+		const Vector2 screenPos1 = renderer.NDCToScreen(ndc1, GetViewPort());
+		const Vector2 screenPos2 = renderer.NDCToScreen(ndc1, GetViewPort());
+		const Vector2 screenPos3 = renderer.NDCToScreen(ndc1, GetViewPort());
 
 
 
@@ -1588,12 +1598,12 @@ private:
 		/*********************************************************************************
 		 *  화면에 각 요소들을 출력한다....
 		 *******/
-		const Vector2 yOffset = (Vector2::Down * (float)renderer.GetHeight() * .4f);
+		const Vector2 yOffset = (Vector2::Down * GetViewPort().RenderTarget.GetBackBufferHeightf() * .4f);
 		const auto    DrawRect = [&](const Vector2& rectCenterScreenPos, const Color& color, const float size = 5.f)
 		{
 			for (float y = -size; y <= size; y += 1.f) {
 				for (float x = -size; x <= size; x += 1.f) {
-					renderer.SetPixel(color, (rectCenterScreenPos + Vector2(x, y)));
+					renderer.SetPixel(color, (rectCenterScreenPos + Vector2(x, y)), GetViewPort());
 				}
 			}
 		};
@@ -1603,22 +1613,22 @@ private:
 		/*-------------------------------
 		 *   near/far 영역을 표시한다....
 		 ******/
-		const Vector2 n_startScreenPos = renderer.WorldToScreen(Vector2(renderer.GetWidth() * -.5f, n) + yOffset);
-		const Vector2 n_endScreenPos   = renderer.WorldToScreen(Vector2(renderer.GetWidth() * .5f, n) + yOffset);
+		const Vector2 n_startScreenPos = renderer.WorldToScreen(Vector2(GetViewPort().RenderTarget.GetBackBufferWidthf() * -.5f, n) + yOffset, GetViewPort());
+		const Vector2 n_endScreenPos   = renderer.WorldToScreen(Vector2(GetViewPort().RenderTarget.GetBackBufferWidthf() * .5f, n) + yOffset, GetViewPort());
 
-		const Vector2 f_startScreenPos = renderer.WorldToScreen(Vector2(renderer.GetWidth() * -.5f, f) + yOffset);
-		const Vector2 f_endScreenPos   = renderer.WorldToScreen(Vector2(renderer.GetWidth() * .5f, f) + yOffset);
+		const Vector2 f_startScreenPos = renderer.WorldToScreen(Vector2(GetViewPort().RenderTarget.GetBackBufferWidthf() * -.5f, f) + yOffset, GetViewPort());
+		const Vector2 f_endScreenPos   = renderer.WorldToScreen(Vector2(GetViewPort().RenderTarget.GetBackBufferWidthf() * .5f, f) + yOffset, GetViewPort());
 
-		const Vector2 form_startScreenPos = renderer.WorldToScreen(Vector2(renderer.GetWidth() * -1.f, d) + yOffset);
-		const Vector2 form_endScreenPos   = renderer.WorldToScreen(Vector2(renderer.GetWidth() * 1.f, d) + yOffset);
+		const Vector2 form_startScreenPos = renderer.WorldToScreen(Vector2(GetViewPort().RenderTarget.GetBackBufferWidthf() * -1.f, d) + yOffset, GetViewPort());
+		const Vector2 form_endScreenPos   = renderer.WorldToScreen(Vector2(GetViewPort().RenderTarget.GetBackBufferWidthf() * 1.f, d) + yOffset, GetViewPort());
 
-		renderer.DrawLine(Color::Black, n_startScreenPos, n_endScreenPos);
-		renderer.DrawTextField(w$(L"near: ", n), n_endScreenPos+(Vector2::Left * 200.f));
+		renderer.DrawLine(Color::Black, n_startScreenPos, n_endScreenPos, GetViewPort());
+		renderer.DrawTextField(w$(L"near: ", n), n_endScreenPos+(Vector2::Left * 200.f), GetViewPort());
 
-		renderer.DrawLine(Color::Black, f_startScreenPos, f_endScreenPos);
-		renderer.DrawTextField(w$(L"far: ", f), f_endScreenPos+(Vector2::Left * 200.f));
+		renderer.DrawLine(Color::Black, f_startScreenPos, f_endScreenPos, GetViewPort());
+		renderer.DrawTextField(w$(L"far: ", f), f_endScreenPos+(Vector2::Left * 200.f), GetViewPort());
 
-		renderer.DrawLine(Color::Blue, form_startScreenPos, form_endScreenPos);
+		renderer.DrawLine(Color::Blue, form_startScreenPos, form_endScreenPos, GetViewPort());
 
 
 
@@ -1628,38 +1638,38 @@ private:
 		const float rad_left  = (Math::Angle2Rad * (90.f + fov * .5f));
 		const float rad_right = (Math::Angle2Rad * (90.f - fov * .5f));
 
-		const Vector2 originPos       = renderer.WorldToScreen(yOffset);
-		const Vector2 insight_left    = renderer.WorldToScreen(Vector2(Math::Cos(rad_left), Math::Sin(rad_left)) * 1000.f + yOffset);
-		const Vector2 insight_right   = renderer.WorldToScreen(Vector2(Math::Cos(rad_right), Math::Sin(rad_right)) * 1000.f + yOffset);
-		const Vector2 insight_forward = renderer.WorldToScreen(Vector2::Up * 1000.f);
+		const Vector2 originPos       = renderer.WorldToScreen(yOffset, GetViewPort());
+		const Vector2 insight_left    = renderer.WorldToScreen(Vector2(Math::Cos(rad_left), Math::Sin(rad_left)) * 1000.f + yOffset, GetViewPort());
+		const Vector2 insight_right   = renderer.WorldToScreen(Vector2(Math::Cos(rad_right), Math::Sin(rad_right)) * 1000.f + yOffset, GetViewPort());
+		const Vector2 insight_forward = renderer.WorldToScreen(Vector2::Up * 1000.f, GetViewPort());
 
-		renderer.DrawLine(Color::Black, originPos, insight_left);
-		renderer.DrawLine(Color::Black, originPos, insight_right);
-		renderer.DrawLine(Color::Green, originPos, insight_forward);
+		renderer.DrawLine(Color::Black, originPos, insight_left, GetViewPort());
+		renderer.DrawLine(Color::Black, originPos, insight_right, GetViewPort());
+		renderer.DrawLine(Color::Green, originPos, insight_forward, GetViewPort());
 
 
 
 		/*------------------------------
 		 *   클립핑 된 점들을 표시한다...
 		 ********/
-		const Vector2 p1_screenPos = renderer.WorldToScreen(p1 + yOffset);
-		const Vector2 p2_screenPos = renderer.WorldToScreen(p2 + yOffset);
-		const Vector2 p3_screenPos = renderer.WorldToScreen(p3 + yOffset);
+		const Vector2 p1_screenPos = renderer.WorldToScreen(p1 + yOffset, GetViewPort());
+		const Vector2 p2_screenPos = renderer.WorldToScreen(p2 + yOffset, GetViewPort());
+		const Vector2 p3_screenPos = renderer.WorldToScreen(p3 + yOffset, GetViewPort());
 
-		renderer.DrawLine(Color::Black, p1_screenPos, p2_screenPos);
-		renderer.DrawLine(Color::Black, p1_screenPos, p3_screenPos);
-		renderer.DrawLine(Color::Black, p2_screenPos, p3_screenPos);
+		renderer.DrawLine(Color::Black, p1_screenPos, p2_screenPos, GetViewPort());
+		renderer.DrawLine(Color::Black, p1_screenPos, p3_screenPos, GetViewPort());
+		renderer.DrawLine(Color::Black, p2_screenPos, p3_screenPos, GetViewPort());
 
 		for (uint32_t i = 0; i < triangle_list.triangleCount; i++) {
 			const ClipTriangle& triangle = triangle_list.Triangles[i];
 
-			const Vector2 screenPos1 = renderer.WorldToScreen(triangle.Vertices[0].WorldPos + yOffset);
-			const Vector2 screenPos2 = renderer.WorldToScreen(triangle.Vertices[1].WorldPos + yOffset);
-			const Vector2 screenPos3 = renderer.WorldToScreen(triangle.Vertices[2].WorldPos + yOffset);
+			const Vector2 screenPos1 = renderer.WorldToScreen(triangle.Vertices[0].WorldPos + yOffset, GetViewPort());
+			const Vector2 screenPos2 = renderer.WorldToScreen(triangle.Vertices[1].WorldPos + yOffset, GetViewPort());
+			const Vector2 screenPos3 = renderer.WorldToScreen(triangle.Vertices[2].WorldPos + yOffset, GetViewPort());
 
-			renderer.DrawLine(Color::Red, screenPos1, screenPos2);
-			renderer.DrawLine(Color::Red, screenPos1, screenPos3);
-			renderer.DrawLine(Color::Red, screenPos2, screenPos3);
+			renderer.DrawLine(Color::Red, screenPos1, screenPos2, GetViewPort());
+			renderer.DrawLine(Color::Red, screenPos1, screenPos3, GetViewPort());
+			renderer.DrawLine(Color::Red, screenPos2, screenPos3, GetViewPort());
 
 			DrawRect(screenPos1, Color::Blue);
 			DrawRect(screenPos2, Color::Blue);
@@ -1675,9 +1685,9 @@ private:
 		DrawRect(p2_screenPos, Color::Black);
 		DrawRect(p3_screenPos, Color::Black);
 
-		DrawRect(renderer.WorldToScreen(triangle_list.green_highlight_point + yOffset), Color::Green);
-		DrawRect(renderer.WorldToScreen(triangle_list.red_highlight_point2 + yOffset), Color::Red);
-		DrawRect(renderer.WorldToScreen(triangle_list.purple_highlight_point + yOffset), Color::Purple);
+		DrawRect(renderer.WorldToScreen(triangle_list.green_highlight_point + yOffset, GetViewPort()), Color::Green);
+		DrawRect(renderer.WorldToScreen(triangle_list.red_highlight_point2 + yOffset, GetViewPort()), Color::Red);
+		DrawRect(renderer.WorldToScreen(triangle_list.purple_highlight_point + yOffset, GetViewPort()), Color::Purple);
 
 
 
@@ -1700,7 +1710,8 @@ private:
 			L"\n\nclip3: ", clip3,
 			L"\nndc3: ", ndc3,
 			L"\n\ntriangle_count: (", triangle_list.triangleCount, L"/", sizeof(triangle_list.Triangles)/sizeof(ClipTriangle), L")"),
-			Vector2Int(0, 200)
+			Vector2Int(0, 200), 
+			GetViewPort()
 		);
 
 		#pragma endregion
@@ -1951,10 +1962,10 @@ private:
 			Transform& cur = *tr_list[i].Get();
 			Matrix4x4  TRS = cur.GetTRS();
 
-			Vector2 screenPos1 = renderer.WorldToScreen(TRS * objPos1);
-			Vector2 screenPos2 = renderer.WorldToScreen(TRS * objPos2);
-			Vector2 screenPos3 = renderer.WorldToScreen(TRS * objPos3);
-			Vector2 screenPos4 = renderer.WorldToScreen(TRS * objPos4);
+			Vector2 screenPos1 = renderer.WorldToScreen(TRS * objPos1, GetViewPort());
+			Vector2 screenPos2 = renderer.WorldToScreen(TRS * objPos2, GetViewPort());
+			Vector2 screenPos3 = renderer.WorldToScreen(TRS * objPos3, GetViewPort());
+			Vector2 screenPos4 = renderer.WorldToScreen(TRS * objPos4, GetViewPort());
 
 			triangle_desc.MappedTexture = &textures[i];
 			triangle_desc.SetDepths(i, i, i);
@@ -1965,7 +1976,7 @@ private:
 			 ********/
 			triangle_desc.SetUvPositions(uvPos1, uvPos2, uvPos3);
 			triangle_desc.SetScreenPositions(screenPos1, screenPos2, screenPos3);
-			renderer.DrawTriangle(triangle_desc);
+			renderer.DrawTriangle(triangle_desc, GetViewPort());
 
 
 			/*------------------------------------------
@@ -1973,17 +1984,17 @@ private:
 			 ********/
 			triangle_desc.SetUvPositions(uvPos2, uvPos3, uvPos4);
 			triangle_desc.SetScreenPositions(screenPos2, screenPos3, screenPos4);
-			renderer.DrawTriangle(triangle_desc);
+			renderer.DrawTriangle(triangle_desc, GetViewPort());
 
 
 			/*----------------------------------------
 			 *   조작중인 객체라면, 테두리를 그린다...
 			 ********/
 			if (tr_idx==i) {
-				renderer.DrawLine(Color::Green, screenPos1, screenPos2);
-				renderer.DrawLine(Color::Green, screenPos1, screenPos3);
-				renderer.DrawLine(Color::Green, screenPos2, screenPos4);
-				renderer.DrawLine(Color::Green, screenPos2, screenPos4);
+				renderer.DrawLine(Color::Green, screenPos1, screenPos2, GetViewPort());
+				renderer.DrawLine(Color::Green, screenPos1, screenPos3, GetViewPort());
+				renderer.DrawLine(Color::Green, screenPos2, screenPos4, GetViewPort());
+				renderer.DrawLine(Color::Green, screenPos2, screenPos4, GetViewPort());
 			}
 
 
@@ -2002,12 +2013,267 @@ private:
 		/****************************************************
 		 *  디버그 출력...
 		 *******/
-		renderer.DrawTextField(debugTxt, Vector2Int(0, 100));
+		renderer.DrawTextField(debugTxt, Vector2Int(0, 100), GetViewPort());
 
 		#pragma endregion
 	}
 
 	#pragma endregion
+
+	void Example15_DrawRenderMesh(float deltaTime)
+	{
+		#pragma region
+		const InputManager& input	 = GetInputManager();
+		Renderer&			renderer = GetRenderer();
+
+		const float speedScale    = (input.IsInProgress(KeyCode::Space) ? .2f : 1.f);
+		const float moveSpeedSec  = (100.f * speedScale * deltaTime);
+		const float rotSpeedSec   = (200.f * speedScale * deltaTime);
+		const float scaleSpeedSec = (1.f * speedScale * deltaTime);
+
+		static bool	isInit = false;
+
+		static Camera	  cam;
+		static RenderMesh renderMesh;
+
+		static const wchar_t*     control_name = L"none";
+		static WeakPtr<Transform> control_tr;
+
+		static WeakPtr<Transform> cam_tr;
+		static WeakPtr<Transform> mesh_tr;
+
+		static Mesh					  mesh;
+		static std::vector<Material>  mats;
+		static std::vector<Texture2D> texs;
+
+
+		/********************************************************************************
+		 *   초기화가 되지 않았다면, 초기화를 진행한다...
+		 *******/
+		if (isInit==false) 
+		{
+			isInit = true;
+
+			/*---------------------------------------------------------
+			 *   리소스를 로드한다....
+			 ********/
+			PmxImporter::StorageDescription storage_desc;
+			storage_desc.OutMesh      = &mesh;
+			storage_desc.OutMaterials = &mats;
+			storage_desc.OutTextures  = &texs;
+
+			PmxImporter::ImportResult pmx_ret;
+			if ((pmx_ret = PmxImporter::Import(storage_desc, L"Resources/steve/steve.pmx")).Success == false) {
+				throw "Pmx import failed!!";
+			}
+
+			mesh.RecalculateBoundingBox();
+			
+
+			/*-------------------------------------------------------
+			 *   트랜스폼을 생성한다......
+			 ********/
+			mesh_tr    = Transform::CreateTransform();
+			cam_tr     = Transform::CreateTransform();
+
+			control_tr   = mesh_tr;
+			control_name = L"renderMesh component";
+
+
+			/*-----------------------------------------------------------
+			 *   트랜스폼 컴포넌트들을 초기화하고, 적절한 트랜스폼에 부착한다..
+			 ********/
+			renderMesh.SetMesh(&mesh);
+			
+			for (uint32_t i = 0; i < mats.size(); i++) {
+				Material& mat = mats[i];
+				mat.Shaders.VertexShader   = Shader::VertexShader_MulFinalMat;
+				mat.Shaders.FragmentShader = Shader::FragmentShader_Tex0Mapping;
+				renderMesh.AddMaterial(&mats[i]);
+			}
+
+			mesh_tr->AttachTransformComponent(&renderMesh);
+			cam_tr->AttachTransformComponent(&cam);
+
+
+			/*-------------------------------------------------------
+			 *   뷰포트를 초기화한다...
+			 ********/
+			GetViewPort().RenderCamera = &cam;
+		}
+
+
+		/********************************************************************************
+		 *   선택한 트랜스폼을 제어한다....
+		 *******/
+
+		//랜더메시를 조작 대상으로 선택한다...
+		if (input.WasPressedThisFrame(KeyCode::Num_0)) {
+			control_tr = mesh_tr;
+			control_name = L"renderMesh component";
+		}
+
+		//카메라를 조작 대상으로 선택한다...
+		if (input.WasPressedThisFrame(KeyCode::Num_9)) {
+			control_tr = cam_tr;
+			control_name = L"camera component";
+		}
+
+
+
+		/********************************************************************************
+		 *   선택한 트랜스폼을 제어한다....
+		 *******/
+		Transform* control_tr_raw = control_tr.Get();
+
+		const Vector3 add_move = Vector3(
+			input.GetAxis(KeyCode::Left, KeyCode::Right) * moveSpeedSec,
+			input.GetAxis(KeyCode::Down, KeyCode::Up) * moveSpeedSec,
+			input.GetAxis(KeyCode::NUMPAD_2, KeyCode::NUMPAD_8) * moveSpeedSec
+		);
+
+		const Quaternion add_rot = Quaternion::Euler(
+			input.GetAxis(KeyCode::A, KeyCode::D) * rotSpeedSec,
+			input.GetAxis(KeyCode::W, KeyCode::S) * rotSpeedSec,
+			input.GetAxis(KeyCode::E, KeyCode::Q) * rotSpeedSec
+		);
+
+		const Vector3 add_scale = Vector3::One * input.GetAxis(KeyCode::F, KeyCode::R) * scaleSpeedSec;
+
+		control_tr_raw->SetLocalPositionAndScaleAndRotation(
+			(control_tr_raw->GetLocalPosition() + add_move),
+			(control_tr_raw->GetLocalScale() + add_scale),
+			(add_rot * control_tr_raw->GetLocalRotation())
+		);
+
+
+
+		/********************************************************************************
+		 *   랜더메시를 뷰포트의 백버퍼에 그린다....
+		 *******/
+		renderer.DrawRenderMesh(renderMesh, GetViewPort());
+		
+
+
+		/********************************************************************************
+		 *   디버그 출력...
+		 *******/
+		renderer.DrawTextField(w$(
+			L"control transform name: ", control_name,
+			L"\npos: ", control_tr_raw->GetWorldPosition(),
+			L"\nrot: ", control_tr_raw->GetWorldRotation(),
+			L"\nscale: ", control_tr_raw->GetWorldScale()),
+			Vector2Int(0, 300), 
+			GetViewPort()
+		);
+
+		#pragma endregion
+	}
+
+	void Example16_ShowBoneTransforms(const RenderMesh& renderMesh, WeakPtr<Transform>& control_tr)
+	{
+		#pragma region
+		/********************************************************************
+		 *   표시에 필요한 값들을 캐싱하고, 계산한다....
+		 ********/
+		Renderer&			renderer = GetRenderer();
+		const InputManager& input    = GetInputManager();
+
+		const float wHalf = 5.f;
+		const float hHalf = 5.f;
+
+		const Vector3 p1 = Vector3(-wHalf, -hHalf, 0.f);
+		const Vector3 p2 = Vector3(wHalf, -hHalf, 0.f);
+		const Vector3 p3 = Vector3(-wHalf, hHalf, 0.f);
+		const Vector3 p4 = Vector3(wHalf, hHalf, 0.f);
+
+		Mesh* mesh = renderMesh.GetMesh().Get();
+
+		if (mesh==nullptr) {
+			return;
+		}
+
+
+
+
+		/********************************************************************
+		 *   표시에 필요한 값들을 캐싱하고, 계산한다....
+		 ********/
+		const uint32_t bone_count = mesh->Bones.size();
+
+		for (uint32_t boneIdx = 0; boneIdx < bone_count; boneIdx++) {
+
+			const Bone& bone   = mesh->Bones[boneIdx];
+			Transform* bone_tr = renderMesh.GetBoneTransformAt(boneIdx).Get();
+
+			if (bone_tr == nullptr) {
+				continue;
+			}
+
+			const Vector3& bone_pos = bone_tr->GetWorldPosition();
+			const Vector2  bone_ScreenPos = renderer.NDCToScreen(renderer.ClipToNDC(P * Vector4(bone_pos, 1.f)), GetViewPort());
+
+			const Vector2 sp1 = (bone_ScreenPos + p1);
+			const Vector2 sp2 = (bone_ScreenPos + p2);
+			const Vector2 sp3 = (bone_ScreenPos + p3);
+			const Vector2 sp4 = (bone_ScreenPos + p4);
+
+			Color rectColor = Color::Yellow;
+
+			//부모 본이 존재할 경우에만 그린다...
+			if (bone.Parent_BoneIdx >= 0 && bone_tr->GetParent() != Transform::GetRoot())
+			{
+				const Bone& parent_bone = mesh.Bones[bone.Parent_BoneIdx];
+				Transform* parent_bone_tr = bone_trs[bone.Parent_BoneIdx].Get();
+
+				if (parent_bone_tr != nullptr) {
+					const Vector3& parent_pos = parent_bone_tr->GetWorldPosition();
+					const Vector2  parent_ScreenPos = renderer.NDCToScreen(renderer.ClipToNDC(P * Vector4(parent_pos, 1.f)), GetViewPort());
+
+					const Vector2 bone2parent = (bone_ScreenPos - parent_ScreenPos);
+					const Vector2 bone2parent_Dir = bone2parent.GetNormalized();
+					const Vector2 bone2parent_right = Vector2(-bone2parent_Dir.y, bone2parent_Dir.x);
+
+					const Vector2 arrow1_pos = parent_ScreenPos + (bone2parent_right * 5.f);
+					const Vector2 arrow2_pos = parent_ScreenPos - (bone2parent_right * 5.f);
+
+					Color boneColor = Color::Red;
+					renderer.DrawLine(boneColor, bone_ScreenPos, parent_ScreenPos, GetViewPort());
+					renderer.DrawLine(boneColor, bone_ScreenPos, arrow1_pos, GetViewPort());
+					renderer.DrawLine(boneColor, bone_ScreenPos, arrow2_pos, GetViewPort());
+					renderer.DrawLine(boneColor, parent_ScreenPos, arrow1_pos, GetViewPort());
+					renderer.DrawLine(boneColor, parent_ScreenPos, arrow2_pos, GetViewPort());
+
+					rectColor = Color::Blue;
+				}
+			}
+
+
+			if (input.WasPressedThisFrame(KeyCode::Left_Mouse)) {
+				const Vector2 mpos = input.GetMouseScreenPosition();
+
+				bool checkUp = (mpos.x > sp1.x && mpos.x < sp2.x) && (mpos.y > sp1.y && mpos.y > sp2.y);
+				bool checkDown = (mpos.x > sp3.x && mpos.x < sp4.x) && (mpos.y < sp3.y && mpos.y < sp4.y);
+
+				//해당 본의 버튼을 클릭했는가?
+				if (checkUp && checkDown) {
+					selected_boneIdx = boneIdx;
+				}
+			}
+
+			if (selected_boneIdx == boneIdx) {
+				rectColor = Color::Green;
+			}
+
+			renderer.DrawLine(rectColor, sp1, sp2, GetViewPort());
+			renderer.DrawLine(rectColor, sp1, sp3, GetViewPort());
+			renderer.DrawLine(rectColor, sp2, sp4, GetViewPort());
+			renderer.DrawLine(rectColor, sp3, sp4, GetViewPort());
+		}
+
+
+		#pragma endregion
+	}
 };
 
 

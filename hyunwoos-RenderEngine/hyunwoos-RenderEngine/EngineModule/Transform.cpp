@@ -179,6 +179,13 @@ void hyunwoo::Transform::operator=(Transform&& prev) noexcept
     prev.m_package.ChildCount = 0;
 
 
+    /**********************************************
+     *   부착된 TransformComponent를 이동시킨다..
+     ******/
+    m_comp = prev.m_comp;
+    prev.m_comp = nullptr;
+
+
     /***********************************************
      *  자식 리스트를 이동한다....
      *****/
@@ -795,7 +802,7 @@ hyunwoo::WeakPtr<hyunwoo::TransformComponent> hyunwoo::Transform::GetTransformCo
 
 
 /*=============================================================================================================================================
- *   해당 Transform의 모델링 행렬 (T*R*S)를 얻습니다....
+ *   해당 Transform의 모델링 행렬 (T*R*S) 또는 역행렬 (S*R*T)를 얻습니다....
  ***********/
 const hyunwoo::Matrix4x4 hyunwoo::Transform::GetTRS()
 {

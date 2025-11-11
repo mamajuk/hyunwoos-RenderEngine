@@ -4,40 +4,20 @@
 #include <xmmintrin.h>
 #include "../UtilityModule/StringLamda.h"
 
-/*=============================================================================================================
- *   랜더러의 소멸자...
- *=========*/
-hyunwoo::Renderer::~Renderer()
-{
-    SelectObject(m_memDC, m_oldBitmap);
-    DeleteObject(m_backBufferBitmap);
-
-    delete[] m_depthBufferPtr;
-}
-
-
-
-
-
-
-
-
-
-
 
 /*=============================================================================================================
  *    좌표계 변환 메소드...
  *============*/
-hyunwoo::Vector2 hyunwoo::Renderer::NDCToScreen(const Vector4& ndcPos)
+hyunwoo::Vector2 hyunwoo::Renderer::NDCToScreen(const Vector4& ndcPos, const ViewPort& vp)
 {
     /*****************************************************************
      *   모든 좌표가 -1 ~ 1 사이인 NDC 좌표에, 스크린의 절반 크기를 곱해
      *   스크린 좌표로 변환시킨다....
      ******/
     return WorldToScreen(Vector2(
-        (ndcPos.x * m_widthf_half), 
-        (ndcPos.y * m_heightf_half)
-    ));
+        (ndcPos.x * vp.RenderTarget.GetBackBufferWidthf() * .5f),
+        (ndcPos.y * vp.RenderTarget.GetBackBufferHeightf() * .5f)), vp
+    );
 }
 
 hyunwoo::Vector3 hyunwoo::Renderer::ClipToNDC(const Vector4& clipPos)
@@ -50,27 +30,27 @@ hyunwoo::Vector3 hyunwoo::Renderer::ClipToNDC(const Vector4& clipPos)
     return Vector3((clipPos.x * wDiv), (clipPos.y * wDiv), (clipPos.z * wDiv));
 }
 
-hyunwoo::Vector2 hyunwoo::Renderer::WorldToScreen(const hyunwoo::Vector2& cartesianPos)
+hyunwoo::Vector2 hyunwoo::Renderer::WorldToScreen(const hyunwoo::Vector2& cartesianPos, const ViewPort& vp)
 {
     /****************************************************************
      *   화면 정중앙이 원점인 카타시안 좌표계 기반의 '월드' 좌표를,
      *   화면 맨 좌측 상단이 원점인 스크린 좌표계로 변환합니다....
      *******/
     return Vector2(
-        (cartesianPos.x  + m_widthf_half), 
-        (-cartesianPos.y + m_heightf_half)
+        (cartesianPos.x  + vp.RenderTarget.GetBackBufferWidthf() * .5f), 
+        (-cartesianPos.y + vp.RenderTarget.GetBackBufferHeightf() * .5f)
     );
 }
 
-hyunwoo::Vector2 hyunwoo::Renderer::ScreenToWorld(const hyunwoo::Vector2& screenPos)
+hyunwoo::Vector2 hyunwoo::Renderer::ScreenToWorld(const hyunwoo::Vector2& screenPos, const ViewPort& vp)
 {
     /****************************************************************
      *   화면 맨 좌측 상단이 원점인 스크린 좌표계를, 화면 정중앙이
      *   원점인 카타시안 좌표계 기반의 '월드' 좌표로 변환합니다....
      *******/
     return Vector2(
-        (screenPos.x - m_widthf_half),
-        (screenPos.y - m_heightf_half)
+        (screenPos.x - vp.RenderTarget.GetBackBufferWidthf() * .5f),
+        (screenPos.y - vp.RenderTarget.GetBackBufferHeightf() * .5f)
     );
 }
 
@@ -287,107 +267,14 @@ float hyunwoo::Renderer::SolveT_Down(const Vector4& fromClipPos, const Vector4& 
 
 
 
-
-
-
-
-
-
-
-/*================================================================================================================
- *   랜더러를 초기화하는 메소드.
- *===========*/
-hyunwoo::Renderer::InitResult hyunwoo::Renderer::Init(HWND renderTargetHwnd, UINT initWidth, UINT initHeight)
-{
-    InitResult ret = { 0, };
-
-
-    /******************************************
-     *   이미 초기화가 되어있는가? 
-         맞다면 결과를 갱신하고 함수를 종료한다..
-     ******/
-    if (m_isInit) {
-        ret.IsAlreadyInit = true;
-        return ret;
-    }
-
-
-    /***********************************************************
-     *   윈도우 창 영역에 그래픽을 출력할 수 있는 화면 DC를 얻는다.
-     *   그리고 해당 DC와 호환되는 메모리 전용 DC를 생성한다.
-     *   이렇게 생성된 메모리 DC는 백버퍼 용으로 사용된다.
-     *******/
-    HDC hdc = GetDC(renderTargetHwnd);
-    
-    //메모리 DC를 생성하는데 실패했는가? 맞다면 결과 갱신 후 함수를 종료한다...
-    if ((m_memDC = CreateCompatibleDC(hdc))==NULL) {
-        ret.CreateMemDCIsFailed = true;
-        return ret;
-    }
-
-
-    /*******************************************************
-     *   메모리 DC에 대응되는 비트맵 GDI 오브젝트를 생성한다.
-     *   생성한 비트맵의 픽셀값들을 수정해, 가공한 뒤 해당 비트맵을
-     *   사용하는 메모리 DC를 화면 DC에 출력하는 용도로 쓰인다.
-     *******/
-    BITMAPINFO info              = { 0, };
-    info.bmiHeader.biWidth       = initWidth;
-    info.bmiHeader.biHeight      = initHeight;
-    info.bmiHeader.biSize        = sizeof(BITMAPINFOHEADER);
-    info.bmiHeader.biBitCount    = 32;
-    info.bmiHeader.biPlanes      = 1;
-    info.bmiHeader.biCompression = BI_RGB;
-
-    //비트맵 생성에 실패했는가? 맞다면 결과 갱신 후 함수를 종료한다...
-    if ((m_backBufferBitmap = CreateDIBSection(hdc, &info, DIB_RGB_COLORS, (void**)&m_backBufferBitmapPtr, NULL, 0))==NULL) {
-        ret.CreateBitmapIsFailed = true;
-        return ret;
-    }
-
-
-    /*****************************************************
-     *    랜더링에 필요한 필드들을 초기화한다....
-     ********/
-    m_width               = initWidth;
-    m_height              = initHeight;
-    m_totalPixelNum       = (initWidth * initHeight);
-    m_widthf              = float(m_width);
-    m_heightf             = float(m_height);
-    m_aspectRatio         = (m_width / m_height);
-    m_widthf_half         = (m_widthf * .5f);
-    m_heightf_half        = (m_heightf * .5f);
-    m_renderTargetHWND    = renderTargetHwnd;
-    m_isInit              = true;
-    m_depthBufferPtr      = new float[m_totalPixelNum];
-    ret.InitSuccess       = true;
-
-
-    /***************************************************************
-     *   생성한 비트맵 GDI 오브젝트를 메모리 DC가 사용하도록 설정한다.
-     *   추후 메모리 DC를 파괴할 때, 기존 GDI오브젝트로 교체할 수 있도록
-     *   기존 비트맵을 기록하고, 사용이 끝난 화면 DC를 반환한다...
-     *******/
-    m_oldBitmap = (HBITMAP)SelectObject(m_memDC, m_backBufferBitmap);
-    ReleaseDC(renderTargetHwnd, hdc);
-
-    return ret;
-}
-
-
-
-
-
-
-
-
 /*=================================================================================================================
  *   가공한 비트맵을 화면 DC에 최종 제출합니다....
  *=============*/
-void hyunwoo::Renderer::Present()
+void hyunwoo::Renderer::Present(HWND clientHwnd, const ViewPort& vp)
 {
-    if (m_isInit == false) return;
-
+    if (vp.RenderTarget.IsInit() == false) {
+        return;
+    }
 
     /************************************************************
      *  GetDC() 대신 BeginPaint()를 사용하여 화면 DC를 얻어오는데,
@@ -397,14 +284,24 @@ void hyunwoo::Renderer::Present()
     HDC         hdc;
     RECT        rect;
     PAINTSTRUCT ps;
-    GetClientRect(m_renderTargetHWND, &rect);
-    hdc = BeginPaint(m_renderTargetHWND, &ps);
+    GetClientRect(clientHwnd, &rect);
+    hdc = BeginPaint(clientHwnd, &ps);
 
     /************************************************************
      *   화면DC를 가져온 후, 메모리 DC의 내용을 고속복사해 출력한다...
      ******/
-    StretchBlt(hdc, 0, 0, rect.right, rect.bottom, m_memDC, 0, 0, m_width, m_height, SRCCOPY);
-    EndPaint(m_renderTargetHWND, &ps);
+    const UINT width  = (vp.ClientRect.RightBottom.x - vp.ClientRect.LeftTop.x);
+    const UINT height = (vp.ClientRect.RightBottom.y - vp.ClientRect.LeftTop.y);
+
+    StretchBlt(
+        hdc, 
+        vp.ClientRect.LeftTop.x, vp.ClientRect.LeftTop.y, 
+        width, height, vp.RenderTarget.GetMemoryDC(), 0, 0,
+        vp.RenderTarget.GetBackBufferWidth(), 
+        vp.RenderTarget.GetBackBufferHeight(), SRCCOPY
+    );
+
+    EndPaint(clientHwnd, &ps);
 }
 
 
@@ -418,16 +315,18 @@ void hyunwoo::Renderer::Present()
 /*===================================================================================================================
  *   화면을 특정 색깔로 초기화합니다...
  *==========*/
-void hyunwoo::Renderer::ClearScreen()
+void hyunwoo::Renderer::ClearScreen(const ViewPort& vp)
 {
-    if (m_isInit == false) return;
+    if (vp.RenderTarget.IsInit() == false) {
+        return;
+    }
 
     /***********************************************************************************
      *   백버퍼를 초기화합니다...
      *********/
     {
-        DWORD* endPtr       = m_backBufferBitmapPtr + m_totalPixelNum;
-        DWORD* alignedBegin = reinterpret_cast<DWORD*>(reinterpret_cast<uintptr_t>(m_backBufferBitmapPtr) + 15 & -16); //메모리 영역에서 16으로 정렬이 시작되는 주소값..
+        DWORD* endPtr       = vp.RenderTarget.GetBackBufferPixels() + vp.RenderTarget.GetTotalPixelNum();
+        DWORD* alignedBegin = reinterpret_cast<DWORD*>(reinterpret_cast<uintptr_t>(vp.RenderTarget.GetBackBufferPixels()) + 15 & -16); //메모리 영역에서 16으로 정렬이 시작되는 주소값..
         DWORD* alignedEnd   = reinterpret_cast<DWORD*>(reinterpret_cast<uintptr_t>(endPtr) & -16);  //메모리 영역에서 16으로 정렬된 구간이 끝나는 주소값...
 
         const DWORD clearColor = ClearColor.ARGB;
@@ -468,8 +367,8 @@ void hyunwoo::Renderer::ClearScreen()
      *   깊이 버퍼를 초기화합니다....
      *******/
     {
-        float* endPtr       = m_depthBufferPtr + m_totalPixelNum;
-        float* alignedBegin = reinterpret_cast<float*>(reinterpret_cast<uintptr_t>(m_depthBufferPtr) + 15 & -16); //메모리 영역에서 16으로 정렬이 시작되는 주소값..
+        float* endPtr       = vp.RenderTarget.GetDepthBufferValues() + vp.RenderTarget.GetTotalPixelNum();
+        float* alignedBegin = reinterpret_cast<float*>(reinterpret_cast<uintptr_t>(vp.RenderTarget.GetDepthBufferValues()) + 15 & -16); //메모리 영역에서 16으로 정렬이 시작되는 주소값..
         float* alignedEnd   = reinterpret_cast<float*>(reinterpret_cast<uintptr_t>(endPtr) & -16);  //메모리 영역에서 16으로 정렬된 구간이 끝나는 주소값...
 
         constexpr float clearValue = std::numeric_limits<float>::infinity();
@@ -516,10 +415,10 @@ void hyunwoo::Renderer::ClearScreen()
 /*===================================================================================================================
  *   백버퍼에서 주어진 두 점 사이의 선을 그립니다....
  *==================*/
-void hyunwoo::Renderer::DrawLine(const Color& color, const Vector2& startScreenPos, const Vector2& endScreenPos, bool useClipping)
+void hyunwoo::Renderer::DrawLine(const Color& color, const Vector2& startScreenPos, const Vector2& endScreenPos, const ViewPort& vp, bool useClipping)
 {
-    float   w        = m_widthf;
-    float   h        = m_heightf;
+    float   w        = vp.RenderTarget.GetBackBufferWidthf();
+    float   h        = vp.RenderTarget.GetBackBufferHeightf();
     Vector2 startPos = startScreenPos;
     Vector2 endPos   = endScreenPos;
 
@@ -655,7 +554,7 @@ void hyunwoo::Renderer::DrawLine(const Color& color, const Vector2& startScreenP
         /**선을 찍는다....*/
         for (int i = 0; i < w2; i++)
         {
-            SetPixel(color, cur);
+            SetPixel(color, cur, vp);
 
             if (d < 0) d += dTrue;
             else
@@ -681,7 +580,7 @@ void hyunwoo::Renderer::DrawLine(const Color& color, const Vector2& startScreenP
     /**선을 찍는다....*/
     for (int i = 0; i < h2; i++)
     {
-        SetPixel(color, cur);
+        SetPixel(color, cur, vp);
 
         if (d < 0) d += dTrue;
         else
@@ -703,27 +602,29 @@ void hyunwoo::Renderer::DrawLine(const Color& color, const Vector2& startScreenP
 /*=====================================================================================================================
  *   백버퍼의 특정 위치의 픽셀을, 지정한 색깔로 바꿉니다.
  *================*/
-void hyunwoo::Renderer::SetPixel(const Color& color, const Vector2Int& screenPos)
+void hyunwoo::Renderer::SetPixel(const Color& color, const Vector2Int& screenPos, const ViewPort& vp)
 {
     /***************************************************************
      *   초기화가 안되어있거나, 인덱스를 벗어나면 함수를 종료한다.
      *   백버퍼의 인덱스에서 y축이 뒤집어져 있기 때문에, 스크린좌표에서
      *   y축만 뒤집어서 계산한다....
      *****/
-    const int idx = ((m_height - screenPos.y) * m_width + screenPos.x);
-    if (m_isInit == false || idx<0 || idx>=m_totalPixelNum) {
+    const int idx = ((vp.RenderTarget.GetBackBufferHeight() - screenPos.y) * vp.RenderTarget.GetBackBufferWidth() + screenPos.x);
+    if (vp.RenderTarget.IsInit() == false || idx<0 || idx >= vp.RenderTarget.GetTotalPixelNum()) {
         return;
     }
 
-    SetPixel_internal(color, idx, 0);
+    SetPixel_internal(color, idx, 0, vp);
 }
 
-void hyunwoo::Renderer::SetPixel_internal(const Color& color, const uint32_t index, const float depth)
+void hyunwoo::Renderer::SetPixel_internal(const Color& color, const uint32_t index, const float depth, const ViewPort& vp)
 {
     /*************************************************************
      *    뒤쪽에 그려져야하는 경우...
      *********/
-    if (m_depthBufferPtr[index] < depth) {
+    float& cur_depth = vp.RenderTarget.GetDepthBufferValues()[index];
+
+    if (cur_depth < depth) {
         //if (UseAlphaBlending == false) return;
 
         ////배경색과의 알파블랜딩을 진행한다....
@@ -747,7 +648,7 @@ void hyunwoo::Renderer::SetPixel_internal(const Color& color, const uint32_t ind
      *********/
 
     //깊이값을 갱신한다....
-    m_depthBufferPtr[index] = depth;
+    cur_depth = depth;
 
     /*------------------------------------------
      *  알파 블랜드를 사용할 경우, 알파값에 따라서
@@ -760,7 +661,7 @@ void hyunwoo::Renderer::SetPixel_internal(const Color& color, const uint32_t ind
     //    m_backBufferBitmapPtr[index] = Color(prevColor + (goalColor - prevColor) * goalColor.A).ARGB;
     //}
 
-    m_backBufferBitmapPtr[index] = color.ARGB;
+    vp.RenderTarget.GetBackBufferPixels()[index] = color.ARGB;
 }
 
 
@@ -775,9 +676,11 @@ void hyunwoo::Renderer::SetPixel_internal(const Color& color, const uint32_t ind
 /*=====================================================================================================================
  *    백버퍼의 지정한 위치에 문자열을 출력합니다.... 
  *=============*/
-void hyunwoo::Renderer::DrawTextField(const std::wstring& out, const hyunwoo::Vector2Int& screenPos)
+void hyunwoo::Renderer::DrawTextField(const std::wstring& out, const hyunwoo::Vector2Int& screenPos, const ViewPort& vp)
 {
-    if (m_isInit == false) return;
+    if (vp.RenderTarget.IsInit() == false) {
+        return;
+    }
 
     RECT rc = { screenPos.x, screenPos.y };
 
@@ -785,8 +688,8 @@ void hyunwoo::Renderer::DrawTextField(const std::wstring& out, const hyunwoo::Ve
      *   출력할 텍스트의 전체 크기를 계산하고, 백버퍼에 텍스트를 그린다...
      *   (계산할 때, memDC가 사용하는 기본 폰트 GDI 오브젝트를 사용한다.)
      ******/
-    DrawTextW(m_memDC, out.c_str(), -1, &rc, (DT_LEFT | DT_TOP | DT_CALCRECT));
-    DrawTextW(m_memDC, out.c_str(), out.size(), &rc, (DT_LEFT | DT_TOP));
+    DrawTextW(vp.RenderTarget.GetMemoryDC(), out.c_str(), -1, &rc, (DT_LEFT | DT_TOP | DT_CALCRECT));
+    DrawTextW(vp.RenderTarget.GetMemoryDC(), out.c_str(), out.size(), &rc, (DT_LEFT | DT_TOP));
 }
 
 
@@ -803,7 +706,7 @@ void hyunwoo::Renderer::DrawTextField(const std::wstring& out, const hyunwoo::Ve
 /*===================================================================================================================
  *    지정된 색상으로 삼각형을 그립니다....
  *=============*/
-void hyunwoo::Renderer::DrawTriangle(const TriangleDescription& triangleDesc)
+void hyunwoo::Renderer::DrawTriangle(const TriangleDescription& triangleDesc, const ViewPort& vp)
 {
     const Vector2& screenPos1 = triangleDesc.ScreenPositions[0];
     const Vector2& screenPos2 = triangleDesc.ScreenPositions[1];
@@ -814,9 +717,9 @@ void hyunwoo::Renderer::DrawTriangle(const TriangleDescription& triangleDesc)
      *    와이어 프레임 모드일 경우, 선만 그리고 종료한다...
      *******/
     if (UseWireFrameMode || triangleDesc.WireFrameMode) {
-        DrawLine(WireFrameColor, screenPos1, screenPos2);
-        DrawLine(WireFrameColor, screenPos1, screenPos3);
-        DrawLine(WireFrameColor, screenPos2, screenPos3);
+        DrawLine(WireFrameColor, screenPos1, screenPos2, vp);
+        DrawLine(WireFrameColor, screenPos1, screenPos3, vp);
+        DrawLine(WireFrameColor, screenPos2, screenPos3, vp);
         return;
     }
 
@@ -856,6 +759,10 @@ void hyunwoo::Renderer::DrawTriangle(const TriangleDescription& triangleDesc)
      *   를 구한다. 현재 처리할 점의 세 스칼라값의 범위가 0~1 사이면 삼각형
      *   범위 안에 있는 점이니, 점을 찍으면 된다..
      ********/
+    const UINT totalPixelNum = vp.RenderTarget.GetTotalPixelNum();
+    const UINT width         = vp.RenderTarget.GetBackBufferWidth();
+    const UINT height        = vp.RenderTarget.GetBackBufferHeight();
+
     const int   xMin = Math::Min(screenPos1.x, screenPos2.x, screenPos3.x);
     const int   xMax = Math::Max(screenPos1.x, screenPos2.x, screenPos3.x);
     const int   yMin = Math::Min(screenPos1.y, screenPos2.y, screenPos3.y);
@@ -878,10 +785,10 @@ void hyunwoo::Renderer::DrawTriangle(const TriangleDescription& triangleDesc)
              *   삼각형 범위 안에 있다면 점을 찍는다..
              *-----*/
             if ((s >= 0.f && s <= 1.f) && (t >= 0.f && t <= 1.f) && (r >= 0.f && r <= 1.f)) {
-                const uint32_t idx   = ((m_height - p.y) * m_width + p.x);
+                const uint32_t idx   = ((height - p.y) * width + p.x);
 
                 //점의 인덱스가 유효한 범위 안에 없다면 넘어간다...
-                if (idx < 0 || idx>m_totalPixelNum) {
+                if (idx < 0 || idx>totalPixelNum) {
                     continue;
                 }
 
@@ -892,14 +799,11 @@ void hyunwoo::Renderer::DrawTriangle(const TriangleDescription& triangleDesc)
                 //텍스쳐 맵핑으로 삼각형을 채운다....
                 if (triangleDesc.MappedTexture!=nullptr) {
                     Vector2 uvPos = (triangleDesc.Uvs[0] * s) + (triangleDesc.Uvs[1] * t) + (triangleDesc.Uvs[2] * r);
-                    uvPos.x *= (triangleDesc.MappedTexture->Width - 1);
-                    uvPos.y *= (triangleDesc.MappedTexture->Height - 1);
-
-                    SetPixel_internal(triangleDesc.MappedTexture->GetPixel(uvPos), idx, depth);
+                    SetPixel_internal(triangleDesc.MappedTexture->GetPixel(uvPos), idx, depth, vp);
                 }
 
                 //주어진 색상으로 삼각형을 채운다...
-                else SetPixel_internal(triangleDesc.FillUpColor, idx, depth);
+                else SetPixel_internal(triangleDesc.FillUpColor, idx, depth, vp);
             }
         }
     }
@@ -907,6 +811,131 @@ void hyunwoo::Renderer::DrawTriangle(const TriangleDescription& triangleDesc)
 
 }
 
+void hyunwoo::Renderer::DrawClipTriangle_internal(const ClipTriangle& clipTriangle, const Vector3& normal, Shader::FragmentShaderFunc* fragmentShader, const Texture2D& tex, const ViewPort& vp)
+{
+    /*******************************************************************
+     *   인자로 받은 클립 삼각형들을 스크린 좌표계로 변환시킨다...
+     ********/
+    const ClipVertex& clip_vertex1 = clipTriangle.Vertices[0];
+    const ClipVertex& clip_vertex2 = clipTriangle.Vertices[1];
+    const ClipVertex& clip_vertex3 = clipTriangle.Vertices[2];
+
+    const Vector3 ndcPos1 = ClipToNDC(clip_vertex1.ClipPos);
+    const Vector3 ndcPos2 = ClipToNDC(clip_vertex2.ClipPos);
+    const Vector3 ndcPos3 = ClipToNDC(clip_vertex3.ClipPos);
+
+    const Vector2 screenPos1 = NDCToScreen(ndcPos1, vp);
+    const Vector2 screenPos2 = NDCToScreen(ndcPos2, vp);
+    const Vector2 screenPos3 = NDCToScreen(ndcPos3, vp);
+
+
+
+    /*******************************************************************
+     *   삼각형의 노멀값을 표시해야한다면 표시한다....
+     *******/
+    if (DrawTriangleNormal) {
+        const Vector2 goal_screenPos1 = NDCToScreen(ndcPos1 + (normal * 100.f), vp);
+        const Vector2 goal_screenPos2 = NDCToScreen(ndcPos2 + (normal * 100.f), vp);
+        const Vector2 goal_screenPos3 = NDCToScreen(ndcPos3 + (normal * 100.f), vp);
+
+        DrawLine(Color::Red, screenPos1, goal_screenPos1, vp);
+        DrawLine(Color::Red, screenPos2, goal_screenPos2, vp);
+        DrawLine(Color::Red, screenPos3, goal_screenPos3, vp);
+    }
+
+
+    /*******************************************************************
+     *    와이어 프레임 모드일 경우, 선만 그리고 종료한다...
+     *******/
+    if (UseWireFrameMode) {
+        DrawLine(WireFrameColor, screenPos1, screenPos2, vp);
+        DrawLine(WireFrameColor, screenPos1, screenPos3, vp);
+        DrawLine(WireFrameColor, screenPos2, screenPos3, vp);
+        return;
+    }
+
+
+
+
+    /*********************************************************************
+     *    컨벡스 결합을 위해 필요한 값들을 계산한다...
+     *******/
+    const Vector2 u = (screenPos1 - screenPos3);
+    const Vector2 v = (screenPos2 - screenPos3);
+
+    const float uv = Vector2::Dot(u, v);
+    const float uu = Vector2::Dot(u, u);
+    const float vv = Vector2::Dot(v, v);
+    const float deno = (uv * uv - uu * vv);
+
+
+
+    /**********************************************************************
+     *     퇴화 삼각형인가? ( 분모가 0 ) 맞다면 함수를 종료한다...
+     **********/
+    if (deno == 0.0f) {
+        return;
+    }
+
+
+
+    /************************************************************************
+     *   두 점에 곱해지는 양의 스칼라값의 합이 1이 되도록 제한하면,
+     *   두 점 사이의 직선 사이의 점들만 만들어진다. 그럼 세 점에 곱해지는
+     *   양의 스칼라값의 합이 1이 되도록 제한하면, 세 점들에서 그려질 수 있는
+     *   직선 사이의 점들만 그려지되, 스칼라의 가중치에 따라 특정 직선에
+     *   치우져진 점이 만들어진다. 화면 해상도에 알맞는 픽셀들만 골라내어
+     *   삼각형을 찍기 위해서, 세 점들이 모두 포함되는 범위를 구한 후, 해당
+     *   범위에 있는 픽셀드을 순회한다. 그리고 한 점에서 다른 두 점을 향하는
+     *   벡터의 내적을 통한 연립으로 세 점에 가해지는 스칼라값(무게중심좌표)
+     *   를 구한다. 현재 처리할 점의 세 스칼라값의 범위가 0~1 사이면 삼각형
+     *   범위 안에 있는 점이니, 점을 찍으면 된다..
+     ********/
+    const UINT totalPixelNum = vp.RenderTarget.GetTotalPixelNum();
+    const UINT width         = vp.RenderTarget.GetBackBufferWidth();
+    const UINT height        = vp.RenderTarget.GetBackBufferHeight();
+
+    const int   xMin = Math::Min(screenPos1.x, screenPos2.x, screenPos3.x);
+    const int   xMax = Math::Max(screenPos1.x, screenPos2.x, screenPos3.x);
+    const int   yMin = Math::Min(screenPos1.y, screenPos2.y, screenPos3.y);
+    const int   yMax = Math::Max(screenPos1.y, screenPos2.y, screenPos3.y);
+    const float div  = (1.f / deno);
+
+    for (int y = yMin; y <= yMax; y++)
+    {
+        for (int x = xMin; x <= xMax; x++)
+        {
+            const Vector2  p = Vector2(x, y);
+            const Vector2  w = (p - screenPos3);
+            const float    wu = Vector2::Dot(w, u);
+            const float    wv = Vector2::Dot(w, v);
+            const float    s = (wv * uv - wu * vv) * div;
+            const float    t = (wu * uv - wv * uu) * div;
+            const float    r = (1.f - s - t);
+
+            /*----------------------------------------------------
+             *   삼각형 범위 안에 있다면 fragment Shader를 적용 후,
+             *   최종 색상을 찍는다...
+             *-----*/
+            if ((s >= 0.f && s <= 1.f) && (t >= 0.f && t <= 1.f) && (r >= 0.f && r <= 1.f)) {
+                const uint32_t idx = ((height - p.y) * width + p.x);
+
+                //점의 인덱스가 유효한 범위 안에 없다면 넘어간다...
+                if (idx < 0 || idx>totalPixelNum) {
+                    continue;
+                }
+
+
+                //깊이버퍼 안의 깊이값과 비교했을 때, 가려진다면 넘어간다...
+                const float   depth      = (clip_vertex1.ClipPos.w * s) + (clip_vertex2.ClipPos.w * t) + (clip_vertex3.ClipPos.w * r);
+                const Vector2 uvPos      = (clip_vertex1.UvPos * s) + (clip_vertex2.UvPos * t) + (clip_vertex3.UvPos * r);
+                const Color   finalColor = fragmentShader(uvPos, Vector3::Zero, tex);
+
+                SetPixel_internal(finalColor, idx, depth, vp);
+            }
+        }
+    }
+}
 
 
 
@@ -921,75 +950,325 @@ void hyunwoo::Renderer::DrawTriangle(const TriangleDescription& triangleDesc)
 
 
 
-/*===================================================================================================================
+
+/*==========================================================================================================================================================
  *    주어진 Render Mesh를 그립니다....
  *=============*/
-void hyunwoo::Renderer::DrawRenderMesh(const RenderMesh& renderMesh)
+void hyunwoo::Renderer::DrawRenderMesh(const RenderMesh& renderMesh, const ViewPort& vp)
 {
+    /*********************************************************************************************************
+     *   RenderMesh가 Transform에 부착되지 않았거나, 참조하고 있는 Mesh/Camera가 없는 상태라면 함수를 종료한다..
+     *******/
+    Mesh*      mesh      = renderMesh.GetMesh().Get();
+    Camera*    cam       = vp.RenderCamera.Get();
+    Transform* transform = renderMesh.GetAttachedTransform().Get();
+
+    static Texture2D              invalid_tex;
+    static std::vector<Matrix4x4> skinning_mats;
+    static std::vector<Matrix4x4> blending_mats;
+
+    if (transform==nullptr || mesh==nullptr || cam==nullptr) {
+        return;
+    }
+
+
+    /**********************************************************************************************************
+     *   ViewPort의 RenderTarget이 초기화되지 않았다면, 함수를 종료한다..
+     *******/
+    if (vp.RenderTarget.IsInit()==false) {
+        return;
+    }
+
+
+    /***********************************************************************************************************
+     *   메시의 회전과 위치를 구성하는 행렬을 만든다...
+     ********/
+    const Matrix4x4 M   = transform->GetTRS();
+    const Matrix4x4 V   = cam->GetViewMatrix();
+    const Matrix4x4 P   = cam->GetPerspectiveMatrix(vp.RenderTarget.GetAspectRatio());
+    const Matrix4x4 PV  = (P*V);
+    const Matrix4x4 PVM = (P*V*M);
 
 
 
-}
+    /*************************************************************************************************************
+     *   메시의 바운딩 박스가 절두체를 벗어났는지를 판별하고, 맞다면 삼각형 그리기를 넘어간다...
+     *******/
+    Frustum frustum = Frustum(PVM);
+
+    if (frustum.IsOverlapped(mesh->BoundBox)==false) {
+        return;
+    }
+
+
+    /**************************************************************************************************************
+     *   스켈레탈 메시일 경우, 스키닝 행렬과 블랜딩 행렬을 계산한 후 랜더링을 진행한다....
+     ********/
+    if (mesh->Bones.size() > 0) 
+    {
+        /*-------------------------------------------------------------------------
+         *   스키닝 행렬을 계산하고, 캐싱한다...
+         ******/
+        const uint32_t bone_size = mesh->Bones.size();
+        skinning_mats.resize(bone_size);
+
+        for (uint32_t i = 0; i < bone_size; i++) 
+        {
+            const Bone& bone    = mesh->Bones[i];
+            Transform*  bone_tr = renderMesh.GetBoneTransformAt(i).Get();
+
+            //유효하지 않은 본이라면, 단위 행렬으로 설정한다...
+            if (bone_tr==nullptr) {
+                skinning_mats[i] = Matrix4x4::Identity;
+                continue;
+            }
+
+            //스키닝 행렬을 계산하고 캐싱한다...
+            skinning_mats[i] = (bone_tr->GetTRS() * bone.BindingPose.GetTRS_Inverse());
+        }
+
+
+        /*------------------------------------------------------------------------
+         *   모든 버텍스마다 적절한 블랜딩 행렬을 계산하고, 캐싱한다...
+         *******/
+        const uint32_t vertices_size = mesh->Vertices.size();
+        blending_mats.resize(vertices_size);
+
+        for (uint32_t i = 0; i < vertices_size; i++) 
+        {
+            const Vertex&                       vertex = mesh->Vertices[i];
+            const Vertex::SkinDeformDescriptor& desc   = vertex.SkinDeformDesc;
+
+            //블랜딩 행렬을 초기값으로 초기화한다...
+            Matrix4x4& blending_mat = blending_mats[i];
+            blending_mat = Matrix4x4(Vector4::Zero, Vector4::Zero, Vector4::Zero, Vector4::Zero);
+
+            for (uint32_t j = 0; j < desc.Weight_Count; j++) {
+                const SkinDeformWeight& weight = mesh->DeformWeights[desc.Weight_StartIdx + j];
+                blending_mat += (skinning_mats[weight.BoneTransformIdx] * weight.Weight);
+            }
+
+            blending_mat = (PV * blending_mat);
+        }
+
+
+        /*-----------------------------------------------------------------------
+         *   서브 메시별로 삼각형들을 그린다....
+         ********/
+        const uint32_t   subMesh_size = mesh->SubMeshs.size();
+        ClipTriangleList clip_triangle_list;
+
+
+        for (uint32_t subMeshIdx = 0, triangleIdx = 0; subMeshIdx < subMesh_size; subMeshIdx++ ) 
+        {
+            const SubMesh& subMesh  = mesh->SubMeshs[subMeshIdx];
+            const uint32_t goal_idx = (triangleIdx + subMesh.Triangle_Count);
+
+            Texture2D*                  tex = &invalid_tex;
+            Shader::VertexShaderFunc*   vs  = Shader::VertexShader_MulFinalMat;
+            Shader::FragmentShaderFunc* fs  = Shader::FragmentShader_InvalidTex;
+
+
+            /*---------------------------------------------------
+              *  해당 서브메시에 배정된 머터리얼이 유효한 경우,
+              *  쉐이더 및 텍스쳐 주소값을 갱신한다....
+              *******/
+            if (Material* material = renderMesh.GetMaterialAt(subMeshIdx).Get(); material!=nullptr) {
+
+                //해당 머터리얼의 버텍스 쉐이더가 유효할 경우 갱신한다...
+                if (material->Shaders.VertexShader!=nullptr) {
+                    vs = material->Shaders.VertexShader;
+                }
+
+                //해당 머터리얼의 프래그먼트 쉐이더가 유효할 경우 갱신한다...
+                if (material->Shaders.FragmentShader != nullptr) {
+                    fs = material->Shaders.FragmentShader;
+                }
+                
+                //해당 머터리얼의 텍스쳐가 유효할 경우 갱신한다...
+                if (Texture2D* mat_tex = material->MappedTexture.Get(); mat_tex!=nullptr) {
+                    tex = mat_tex;
+                }
+            }
+
+
+            /*---------------------------------------------------
+             *   해당 서브메시에 소속된 모든 삼각형들을 랜더링한다..
+             *******/
+            while (triangleIdx < goal_idx) {
+                const IndexedTriangle& triangle = mesh->Triangles[triangleIdx++];
+
+                const Vertex& vertex1 = mesh->Vertices[triangle.Indices[0]];
+                const Vertex& vertex2 = mesh->Vertices[triangle.Indices[1]];
+                const Vertex& vertex3 = mesh->Vertices[triangle.Indices[2]];
+
+                const Matrix4x4& blending_mat1 = blending_mats[triangle.Indices[0]];
+                const Matrix4x4& blending_mat2 = blending_mats[triangle.Indices[1]];
+                const Matrix4x4& blending_mat3 = blending_mats[triangle.Indices[2]];
+
+                const Vector4 clipPos1 = vs(vertex1, blending_mat1);
+                const Vector4 clipPos2 = vs(vertex2, blending_mat2);
+                const Vector4 clipPos3 = vs(vertex3, blending_mat3);
+
+                const Vector3 ndcPos1 = ClipToNDC(clipPos1);
+                const Vector3 ndcPos2 = ClipToNDC(clipPos2);
+                const Vector3 ndcPos3 = ClipToNDC(clipPos3);
+
+
+                /*------------------------------------
+                 *   삼각형이 카메라와 같은 방향을 보고 
+                 *   있다면, 삼각형 그리기를 넘어간다...
+                 ********/
+                const Vector3 u      = (ndcPos1 - ndcPos3);
+                const Vector3 v      = (ndcPos2 - ndcPos3);
+                const Vector3 normal = Vector3::Cross(u, v);
+
+                if (UseBackfaceCulling && Vector3::Dot(Vector3::Forward, normal)>=0.f) {
+                    continue;
+                }
+
+
+                /*-------------------------------------
+                 *   삼각형 클립핑을 진행한다...
+                 ********/
+                clip_triangle_list.triangleCount = 1;
+                clip_triangle_list.Triangles[0]  = ClipTriangle(
+                    ClipVertex( clipPos1, vertex1.UvPos ),
+                    ClipVertex( clipPos2, vertex2.UvPos ),
+                    ClipVertex( clipPos3, vertex3.UvPos )
+                );
+
+                //+Z, -Z 평면에 대한 클립핑을 적용한다..
+                ClippingTriangle(clip_triangle_list, ClippingTest_Far, SolveT_Far);
+                ClippingTriangle(clip_triangle_list, ClippingTest_Near, SolveT_Near);
+
+                //+X, -X 평면에 대한 클립핑을 적용한다...
+                ClippingTriangle(clip_triangle_list, ClippingTest_Right, SolveT_Right);
+                ClippingTriangle(clip_triangle_list, ClippingTest_Left, SolveT_Left);
+
+                //+Y, -Y 평면에 대한 클립핑을 적용한다...
+                ClippingTriangle(clip_triangle_list, ClippingTest_Up, SolveT_Up);
+                ClippingTriangle(clip_triangle_list, ClippingTest_Down, SolveT_Down);
+
+
+                /*----------------------------------
+                 *  분할된 삼각형들을 랜더링한다...
+                 *******/
+                for (uint32_t i = 0; i < clip_triangle_list.triangleCount; i++) {
+                    const ClipTriangle& triangle = clip_triangle_list.Triangles[i];
+                    DrawClipTriangle_internal(triangle, normal, fs, *tex, vp);
+                }
+            }
+        }
+
+        return;
+    }
 
 
 
+    /**************************************************************************************************************
+     *   스타틱 메시일 경우, PVM 행렬로 서브 메시별 삼각형들을 그린다....
+     ********/
+    const uint32_t   subMesh_size = mesh->SubMeshs.size();
+    ClipTriangleList clip_triangle_list;
 
 
+    for (uint32_t subMeshIdx = 0, triangleIdx = 0; subMeshIdx < subMesh_size; subMeshIdx++)
+    {
+        const SubMesh& subMesh  = mesh->SubMeshs[subMeshIdx];
+        const uint32_t goal_idx = (triangleIdx + subMesh.Triangle_Count);
+
+        Texture2D*                  tex = &invalid_tex;
+        Shader::VertexShaderFunc*   vs  = Shader::VertexShader_MulFinalMat;
+        Shader::FragmentShaderFunc* fs  = Shader::FragmentShader_InvalidTex;
 
 
+        /*---------------------------------------------------
+          *  해당 서브메시에 배정된 머터리얼이 유효한 경우,
+          *  쉐이더를 갱신한다....
+          *******/
+        if (Material* material = renderMesh.GetMaterialAt(subMeshIdx).Get(); material != nullptr) {
+
+            //해당 머터리얼의 버텍스 쉐이더가 유효할 경우 갱신한다...
+            if (material->Shaders.VertexShader != nullptr) {
+                vs = material->Shaders.VertexShader;
+            }
+
+            //해당 머터리얼의 프래그먼트 쉐이더가 유효할 경우 갱신한다...
+            if (material->Shaders.FragmentShader != nullptr) {
+                fs = material->Shaders.FragmentShader;
+            }
+
+            //해당 머터리얼의 텍스쳐가 유효할 경우 갱신한다...
+            if (Texture2D* mat_tex = material->MappedTexture.Get(); mat_tex != nullptr) {
+                tex = mat_tex;
+            }
+        }
 
 
+        /*---------------------------------------------------
+         *   해당 서브메시에 소속된 모든 삼각형들을 랜더링한다..
+         *******/
+        while (triangleIdx < goal_idx) {
+            const IndexedTriangle& triangle = mesh->Triangles[triangleIdx++];
+
+            const Vertex& vertex1 = mesh->Vertices[triangle.Indices[0]];
+            const Vertex& vertex2 = mesh->Vertices[triangle.Indices[1]];
+            const Vertex& vertex3 = mesh->Vertices[triangle.Indices[2]];
+
+            const Vector4 clipPos1 = vs(vertex1, PVM);
+            const Vector4 clipPos2 = vs(vertex2, PVM);
+            const Vector4 clipPos3 = vs(vertex3, PVM);
+
+            const Vector3 ndcPos1 = ClipToNDC(clipPos1);
+            const Vector3 ndcPos2 = ClipToNDC(clipPos2);
+            const Vector3 ndcPos3 = ClipToNDC(clipPos3);
 
 
+            /*------------------------------------
+             *   삼각형이 카메라와 같은 방향을 보고
+             *   있다면, 삼각형 그리기를 넘어간다...
+             ********/
+            const Vector3 u      = (ndcPos1 - ndcPos3);
+            const Vector3 v      = (ndcPos2 - ndcPos3);
+            const Vector3 normal = Vector3::Cross(u, v);
+
+            if (UseBackfaceCulling && Vector3::Dot(Vector3::Forward, normal) >= 0.f) {
+                continue;
+            }
 
 
+            /*-------------------------------------
+             *   삼각형 클립핑을 진행한다...
+             ********/
+            clip_triangle_list.triangleCount = 1;
+            clip_triangle_list.Triangles[0] = ClipTriangle(
+                ClipVertex(clipPos1, vertex1.UvPos),
+                ClipVertex(clipPos2, vertex2.UvPos),
+                ClipVertex(clipPos3, vertex3.UvPos)
+            );
+
+            //+Z, -Z 평면에 대한 클립핑을 적용한다..
+            ClippingTriangle(clip_triangle_list, ClippingTest_Far, SolveT_Far);
+            ClippingTriangle(clip_triangle_list, ClippingTest_Near, SolveT_Near);
+
+            //+X, -X 평면에 대한 클립핑을 적용한다...
+            ClippingTriangle(clip_triangle_list, ClippingTest_Right, SolveT_Right);
+            ClippingTriangle(clip_triangle_list, ClippingTest_Left, SolveT_Left);
+
+            //+Y, -Y 평면에 대한 클립핑을 적용한다...
+            ClippingTriangle(clip_triangle_list, ClippingTest_Up, SolveT_Up);
+            ClippingTriangle(clip_triangle_list, ClippingTest_Down, SolveT_Down);
 
 
-/*=============================================================================
- *   랜더러가 생성한 비트맵의 크기를 반환합니다...
- *=============*/
-UINT hyunwoo::Renderer::GetWidth() const {
-    return m_width;
-}
+            /*----------------------------------
+             *  분할된 삼각형들을 랜더링한다...
+             *******/
+            for (uint32_t i = 0; i < clip_triangle_list.triangleCount; i++) {
+                const ClipTriangle& triangle = clip_triangle_list.Triangles[i];
+                DrawClipTriangle_internal(triangle, normal, fs, *tex, vp);
+            }
+        }
+    }
 
-UINT hyunwoo::Renderer::GetHeight() const {
-    return m_height;
-}
-
-
-float hyunwoo::Renderer::GetWidthf() const {
-    return m_widthf;
-}
-
-float hyunwoo::Renderer::GetHeightf() const {
-    return m_heightf;
-}
-
-
-
-
-
-
-
-
-
-/*=======================================================================
- *   랜더러가 생성한 비트맵의 종횡비를 반환합니다....
- *=========*/
-float hyunwoo::Renderer::GetAspectRatio() const
-{
-    return m_aspectRatio;
-}
-
-
-
-
-
-
-
-/*=====================================================================
- *    랜더러가 초기화 되었는지의 여부를 확인합니다...
- *============*/
-bool hyunwoo::Renderer::IsInit() const {
-    return m_isInit;
 }

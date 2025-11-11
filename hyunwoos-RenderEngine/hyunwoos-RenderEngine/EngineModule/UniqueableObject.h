@@ -385,7 +385,7 @@ public:
 		/**************************************************************
 		 *   nullptr이 대입되었을 경우, 유효하지 않은 UUID값으로 갱신한다..
 		 *******/
-		if (raw_ptr ==nullptr) {
+		if (raw_ptr == nullptr) {
 			m_uuid.Value = 0;
 			return;
 		}

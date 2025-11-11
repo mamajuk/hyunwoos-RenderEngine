@@ -25,6 +25,45 @@ void hyunwoo::RenderMesh::OnDetachment()
 
 
 /*=======================================================================================================================================================
+ *    해당 DisplayMesh가 랜더링 될 때 사용할 Bone들의 Transform개수를 얻습니다....
+ ***********/
+uint32_t hyunwoo::RenderMesh::GetBoneTransformCount() const
+{
+	return (m_boneTransforms.size() - m_rootBoneCount);
+}
+
+
+
+
+
+
+
+
+
+
+
+/*=======================================================================================================================================================
+ *    해당 DisplayMesh가 랜더링 될 때 사용할 Bone Transform을 얻습니다.....
+ ***********/
+hyunwoo::WeakPtr<hyunwoo::Transform> hyunwoo::RenderMesh::GetBoneTransformAt(uint32_t index) const
+{
+	if (index >= 0 && index < m_boneTransforms.size()) {
+		return m_boneTransforms[index];
+	}
+
+	return WeakPtr<Transform>();
+}
+
+
+
+
+
+
+
+
+
+
+/*=======================================================================================================================================================
  *    해당 DisplayMesh가 랜더링 될 때 사용할 Mesh를 설정하거나 얻습니다.....
  ***********/
 hyunwoo::WeakPtr<hyunwoo::Mesh> hyunwoo::RenderMesh::GetMesh() const
@@ -67,6 +106,25 @@ void hyunwoo::RenderMesh::SetMesh(Mesh* mesh)
 
 
 
+/*=======================================================================================================================================================
+ *    해당 DisplayMesh가 랜더링 될 때 사용할 Material의 참조를 추가합니다...
+ ***********/
+void hyunwoo::RenderMesh::AddMaterial(Material* new_mat)
+{
+	m_materials.push_back(new_mat);
+}
+
+
+
+
+
+
+
+
+
+
+
+
 
 /*=======================================================================================================================================================
  *    해당 DisplayMesh가 랜더링 될 때 사용할 Material의 개수/참조를 얻습니다...
@@ -76,7 +134,7 @@ uint32_t hyunwoo::RenderMesh::GetMaterialCount() const
 	return m_materials.size();
 }
 
-hyunwoo::WeakPtr<hyunwoo::Material> hyunwoo::RenderMesh::GetMaterialAt(uint32_t index)
+hyunwoo::WeakPtr<hyunwoo::Material> hyunwoo::RenderMesh::GetMaterialAt(uint32_t index) const
 {
 	if (index >=0 && index < m_materials.size()) {
 		return m_materials[index];
@@ -124,7 +182,8 @@ void hyunwoo::RenderMesh::CreateBoneTransforms()
 
 		for (uint32_t i = 0; i < m_boneTransforms.size(); i++) {
 			if (m_boneTransforms[i].Get()==nullptr) {
-				m_boneTransforms[i] = Transform::CreateTransform();
+				Transform* raw_ptr = Transform::CreateTransform();
+			    m_boneTransforms[i] = raw_ptr;
 			}
 		}
 
@@ -156,7 +215,10 @@ void hyunwoo::RenderMesh::CreateBoneTransforms()
 			else {
 				m_rootBoneCount++;
 				m_boneTransforms.push_back(m_boneTransforms[i]);
-				GetAttachedTransform()->AddChild(bone_tr, true);
+
+				WeakPtr<Transform> attached_to = GetAttachedTransform();
+				Transform*		   raw_ptr = attached_to.Get();
+				raw_ptr->AddChild(bone_tr, true);
 			}
 		}
 	}
@@ -176,6 +238,8 @@ void hyunwoo::RenderMesh::CreateBoneTransforms()
  ***********/
 void hyunwoo::RenderMesh::DestroyBoneTransforms()
 {
+	return;
+
 	/*******************************************************
 	 *   본 트랜스폼들의 맨 좌측에 있는 m_rootBoneCount개의
 	 *   루트 본들을 모두 파괴한다...

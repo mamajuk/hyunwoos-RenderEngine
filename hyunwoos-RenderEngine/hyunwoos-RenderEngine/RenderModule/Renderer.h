@@ -3,6 +3,8 @@
 #include "../MathModule/Color.h"
 #include "../MathModule/Vector.h"
 #include "Material.h"
+#include "Camera.h"
+#include "RenderTarget.h"
 #include "../EngineModule/RenderMesh.h"
 
 namespace hyunwoo {
@@ -19,17 +21,22 @@ class hyunwoo::Renderer final
 	///////									 Defines..									////////
 	//==========================================================================================
 public:
-	/********************************************
-	 *   랜더러의 초기화 결과가 담긴 구조체입니다..
-	 *****/
-	struct InitResult
+	/**********************************************
+	 *   랜더링 결과물이 표시될 화면 영역을 서술하는 
+	 *   클래스입니다....
+	 ***********/
+	struct ViewPort final
 	{
-		bool InitSuccess		  : 1;
-		bool IsAlreadyInit		  : 1;
-		bool CreateBitmapIsFailed : 1;
-		bool CreateMemDCIsFailed  : 1;
-	};
+		struct ClientRect final 
+		{
+			Vector2Int LeftTop;
+			Vector2Int RightBottom;
+		};
 
+		WeakPtr<Camera> RenderCamera;
+		RenderTarget    RenderTarget;
+		ClientRect		ClientRect;
+	};
 
 
 	/**************************************************
@@ -60,7 +67,6 @@ public:
 		uint32_t	 triangleCount;
 		ClipTriangle Triangles[20];
 	};
-
 
 
 	/*********************************************
@@ -103,12 +109,6 @@ public:
 	//=======================================================================================
 public:
 	/****************************************
-	 *   랜더러 상태 관련 프로퍼티...
-	 ******/
-	bool IsInit() const;
-
-
-	/****************************************
 	 *   화면 클리어 관련 프로퍼티....
 	 ******/
 	bool UseAutoClear       : 1 = true;
@@ -122,52 +122,6 @@ public:
 	Color InvalidTriangleColor = Color::Pink;
 
 
-	/*************************************
-	 *    비트맵 크기 관련 프로퍼티....
-	 ******/
-	UINT  GetWidth() const;
-	UINT  GetHeight() const;
-
-	float GetWidthf() const;
-	float GetHeightf() const;
-
-	float GetAspectRatio() const;
-
-
-
-
-
-
-
-	//=======================================================================================
-	/////////								Fields...								/////////
-	//=======================================================================================
-private:
-	HDC     m_memDC			   = NULL;
-	bool    m_isInit : 1	   = false;
-	HWND    m_renderTargetHWND = NULL;
-
-
-	/****************************
-	 *   비트맵 관련 필드....
-	 ******/
-	UINT m_width         = 0;
-	UINT m_height        = 0;
-	UINT m_totalPixelNum = 0;
-	float m_aspectRatio  = 0.f;
-	float m_widthf	     = 0.f;
-	float m_heightf      = 0.f;
-	float m_widthf_half  = 0;
-	float m_heightf_half = 0;
-
-	HBITMAP m_backBufferBitmap     = NULL;
-	HBITMAP m_oldBitmap			   = NULL;
-	DWORD*  m_backBufferBitmapPtr  = nullptr;
-	float*  m_depthBufferPtr	   = nullptr;
-	
-
-
-
 
 
 
@@ -175,21 +129,20 @@ private:
 	//////////						  Public methods..						/////////
 	//===============================================================================
 public:
-	Renderer()				  = default;
-	Renderer(const Renderer&) = delete;
-	~Renderer();
-
-	InitResult Init(HWND renderTargetHwnd, UINT initWidth, UINT initHeight);
+	Renderer()					  = default;
+	Renderer(const Renderer&)	  = default;
+	Renderer(Renderer&&) noexcept = default;
+	~Renderer()					  = default;
 
 
 
 	/*********************************
 	 *   좌표계 변환 메소드....
 	 ******/
-	Vector2 NDCToScreen(const Vector4& ndcPos);
+	Vector2 NDCToScreen(const Vector4& ndcPos, const ViewPort& vp);
 	Vector3 ClipToNDC(const Vector4& clipPos);
-	Vector2 WorldToScreen(const Vector2& cartesianPos);
-	Vector2 ScreenToWorld(const Vector2& screenPos);
+	Vector2 WorldToScreen(const Vector2& cartesianPos, const ViewPort& vp);
+	Vector2 ScreenToWorld(const Vector2& screenPos, const ViewPort& vp);
 	
 
 
@@ -217,13 +170,13 @@ public:
 	/*******************************
 	 *   그래픽 출력 관련 메소드....
 	 ******/
-	void Present();
-	void ClearScreen();
-	void DrawTextField(const std::wstring& out, const Vector2Int& screenPos);
-	void SetPixel(const Color& color, const Vector2Int& screenPos);
-	void DrawLine(const Color& color, const Vector2& startScreenPos, const Vector2& endScreenPos, bool useClipping = true);
-	void DrawTriangle(const TriangleDescription& triangleDesc);
-	void DrawRenderMesh(const RenderMesh& renderMesh);
+	void Present(HWND clientHwnd, const ViewPort& vp);
+	void ClearScreen(const ViewPort& vp);
+	void DrawTextField(const std::wstring& out, const Vector2Int& screenPos, const ViewPort& vp);
+	void SetPixel(const Color& color, const Vector2Int& screenPos, const ViewPort& vp);
+	void DrawLine(const Color& color, const Vector2& startScreenPos, const Vector2& endScreenPos, const ViewPort& vp, bool useClipping = true);
+	void DrawTriangle(const TriangleDescription& triangleDesc, const ViewPort& vp);
+	void DrawRenderMesh(const RenderMesh& renderMesh, const ViewPort& vp);
 
 
 
@@ -234,5 +187,6 @@ public:
 	////////////					   Private methods..				 //////////////
 	//=================================================================================
 private:
-	inline void SetPixel_internal(const Color& color, const uint32_t index, const float depth);
+	inline void SetPixel_internal(const Color& color, const uint32_t index, const float depth, const ViewPort& vp);
+	inline void DrawClipTriangle_internal(const ClipTriangle& clipTriangle, const Vector3& normal, Shader::FragmentShaderFunc* fragmentShader, const Texture2D& tex, const ViewPort& vp);
 };

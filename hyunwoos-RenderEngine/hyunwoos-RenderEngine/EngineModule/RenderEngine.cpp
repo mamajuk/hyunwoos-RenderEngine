@@ -85,10 +85,12 @@ hyunwoo::RenderEngine::EndReason hyunwoo::RenderEngine::Run(const std::wstring& 
 	GetClientRect(m_mainHwnd, &rect);
 
 	//랜더러 초기화에 실패했는가? 이유를 갱신하고 함수를 종료한다...
-	if ((endReason.RendererInitResult = m_renderer.Init(m_mainHwnd, rect.right, rect.bottom)).InitSuccess==false) {
+	if ((endReason.RenderTargetInitRet = m_viewPort.RenderTarget.Init(GetClientHwnd(), GetClientSize())).InitSuccess==false) {
 		return endReason;
 	}
 
+	m_viewPort.ClientRect.LeftTop     = Vector2Int(rect.left, rect.top);
+	m_viewPort.ClientRect.RightBottom = Vector2Int(rect.right, rect.bottom);
 
 
 	/******************************************************************
@@ -135,7 +137,7 @@ hyunwoo::RenderEngine::EndReason hyunwoo::RenderEngine::Run(const std::wstring& 
 
 			//화면을 특정 색깔로 초기화하는가?
 			if (m_renderer.UseAutoClear) {
-				m_renderer.ClearScreen();
+				m_renderer.ClearScreen(m_viewPort);
 			}
 
 			OnEnterFrame(elapsedTime);
@@ -207,7 +209,7 @@ LRESULT hyunwoo::RenderEngine::WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARA
 		 *  화면을 갱신해야하는 경우...
 		 *****/
 		case(WM_PAINT): {
-			engine.m_renderer.Present();
+			engine.m_renderer.Present(hWnd, engine.m_viewPort);
 			break;
 		}
 
@@ -363,6 +365,26 @@ bool hyunwoo::RenderEngine::EngineIsRunning() const {
 
 
 
+/*====================================================================
+ *   현재 랜더 엔진 클라이언트 창의 크기를 얻습니다...
+ *==========*/
+hyunwoo::Vector2Int hyunwoo::RenderEngine::GetClientSize() const
+{
+	RECT rect;
+	GetClientRect(m_mainHwnd, &rect);
+
+	return Vector2Int(
+		(rect.right - rect.left), 
+		(rect.bottom - rect.top)
+	);
+}
+
+
+
+
+
+
+
 
 
 
@@ -399,6 +421,11 @@ void hyunwoo::RenderEngine::SetTargetFrameRate(int newTargetFrameRate)
  *=============*/
 const hyunwoo::InputManager& hyunwoo::RenderEngine::GetInputManager() const {
 	return m_inputManager;
+}
+
+HWND hyunwoo::RenderEngine::GetClientHwnd() const
+{
+	return m_mainHwnd;
 }
 
 hyunwoo::Renderer& hyunwoo::RenderEngine::GetRenderer() {

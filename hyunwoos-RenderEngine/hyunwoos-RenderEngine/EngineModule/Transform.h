@@ -70,6 +70,7 @@ public:
 
 /*=====================================================================================================================================================
  *    이동/크기/회전에 대한 변환을 기록하는 구조체입니다. 자식을 가진 부모 Transform이 비균등할 경우, 자식 Transform이 비정상적으로 작동할 수 있습니다.
+ *    생성된 Transform은 별도로 부모가 설정되지 않은 경우, 항상 RootTransform의 자식이 됩니다....
  *************/
 class hyunwoo::Transform final : public hyunwoo::UniqueableObject
 {
@@ -80,9 +81,10 @@ private:
 	/*********************************************
 	 *  각종 상수들의 정의입니다...
 	 *****/
-	constexpr static inline uint32_t m_localBuf_count  = 6;			    //로컬 버퍼의 개수입니다...
-	constexpr static inline uint16_t m_root_idx        = 0;			    //루트 Transform의 인덱스 값입니다...
-	constexpr static inline uint16_t m_max_tr_count    = UINT16_MAX;    //최대 Transform 개수입니다...
+	constexpr static inline uint32_t m_localBuf_count  = 6;			     //로컬 버퍼의 개수입니다...
+	constexpr static inline uint16_t m_root_idx        = 0;				//루트 Transform의 인덱스 값입니다...
+	constexpr static inline uint16_t m_invalid_idx     = UINT16_MAX;	//유효하지 않은 Transform의 인덱스 값입니다...
+	constexpr static inline uint16_t m_max_tr_count    = UINT16_MAX;    //존재할 수 있는 최대 Transform 개수입니다...
 	constexpr static inline uint16_t m_max_child_count = ((1<<14) - 1);	//최대 자식 Transform의 개수입니다...
 
 
@@ -102,9 +104,11 @@ private:
 	 ******/
 	struct TransformArray final
 	{
-		Transform* Transforms;
+		Transform* RawPtr;
 		uint32_t   Capacity;
 		uint32_t   Count;
+
+		TransformArray();
 	};
 
 
@@ -123,14 +127,14 @@ private:
 	Vector3 m_local_scale = Vector3::One;
 	Vector3	m_world_scale = Vector3::One;
 
-	Quaternion m_local_rotation  = Quaternion::Identity;
-	Quaternion m_world_rotation  = Quaternion::Identity;
+	Quaternion m_local_rotation;
+	Quaternion m_world_rotation;
 
 	uint16_t*				    m_child_list = m_localBuf;
 	WeakPtr<TransformComponent> m_comp;
 
 
-	uint16_t	   m_parent = m_root_idx;
+	uint16_t	   m_parent = m_invalid_idx;
 	CompactPackage m_package;
 
 	union {
@@ -243,6 +247,7 @@ public:
 	//===================================================================================================
 private:
 	void Clear();
+	void RemoveChild_internal(Transform* removeChild, bool addRootsChild);
 
 	/*******************************************
 	 *   인덱스 관련 메소드들...

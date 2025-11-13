@@ -1,5 +1,6 @@
 #pragma once
 #include "../MathModule/Vector.h"
+#include "../RenderModule/Renderer.h"
 
 namespace hyunwoo {
 	class InputManager;
@@ -187,11 +188,7 @@ public:
 	/********************************************
 	 *   마우스 좌표 관련 메소드....
 	 ******/
-	Vector2 GetMouseScreenPosition() const {
-		return m_mouse_screenPos;
-	}
-
-	void SetMouseScreenPosition(Vector2 newPosition) {
-		m_mouse_screenPos = newPosition;
-	}
+	Vector2 GetMouseScreenPosition(const Renderer::ViewPort& viewPort) const;
+	Vector2 GetMouseScreenPosition() const;
+	void    SetMouseScreenPosition(Vector2 newPosition);
 };

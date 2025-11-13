@@ -74,6 +74,8 @@ public:
 	static Color FragmentShader_Tex0Mapping(const Vector2& inUv, const hyunwoo::Vector3& inNormal, const hyunwoo::Texture2D& inTex);
 
 
+
+
 	//=======================================================================================
 	///////////						     Properties...							 ////////////
 	//=======================================================================================

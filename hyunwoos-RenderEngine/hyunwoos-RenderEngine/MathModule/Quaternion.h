@@ -31,7 +31,7 @@ public:
 	////////////					Public methods..			   ////////////
 	//=========================================================================
 public:
-	Quaternion(const float W = 0.f, const Vector3& XYZ = Vector3::Zero):W(W), XYZ(XYZ) {}
+	Quaternion(const float W = 1.f, const Vector3& XYZ = Vector3::Zero):W(W), XYZ(XYZ) {}
 	Quaternion(const Quaternion&) = default;
 	~Quaternion()				  = default;
 

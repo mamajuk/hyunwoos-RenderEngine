@@ -46,35 +46,11 @@ protected:
 		Renderer& renderer        = GetRenderer();
 		renderer.UseAutoClear     = true;	
 		renderer.UseAlphaBlending = false;
-		renderer.WireFrameColor   = Color::Black;
-		renderer.ClearColor       = Color::White;
+		renderer.WireFrameColor   = Color::White;
+		renderer.ClearColor       = Color::Black;
 		SetTargetFrameRate(60);
 
 		//GetViewPort().RenderTarget.Init(GetClientHwnd(), Vector2Int(800, 720));
-
-		return;
-		/********************************************************
-		 *   메시를 불러온다...
-		 *****/
-		PmxImporter::StorageDescription pmx_storage_desc;
-		pmx_storage_desc.OutMesh	  = &m_mesh;
-		pmx_storage_desc.OutTextures  = &m_textures;
-		pmx_storage_desc.OutMaterials = &m_materials;
-
-		PmxImporter::ImportResult pmxRet;
-		if ((pmxRet=PmxImporter::Import(pmx_storage_desc, L"Resources/steve/steve.pmx")).Success==false) {
-			throw "Pmx import failed!!";
-		}
-
-
-		/*********************************************************
-		 *   바운딩 스피어 메시를 구축한다...
-		 *****/
-		m_mesh.RecalculateBoundingSphere();
-		m_mesh.CreateBoundingSphereMesh(m_mesh_boundingSphere);
-
-		m_mesh.RecalculateBoundingBox();
-		m_mesh.CreateBoundingBoxMesh(m_mesh_boundingBox);
 	}
 
 
@@ -2030,8 +2006,9 @@ private:
 		const float moveSpeedSec  = (100.f * speedScale * deltaTime);
 		const float rotSpeedSec   = (200.f * speedScale * deltaTime);
 		const float scaleSpeedSec = (1.f * speedScale * deltaTime);
-
-		static bool	isInit = false;
+		
+		static bool showBones = false;
+		static bool	isInit    = false;
 
 		static Camera	  cam;
 		static RenderMesh renderMesh;
@@ -2052,6 +2029,7 @@ private:
 		 *******/
 		if (isInit==false) 
 		{
+			#pragma region Init
 			isInit = true;
 
 			/*---------------------------------------------------------
@@ -2063,7 +2041,7 @@ private:
 			storage_desc.OutTextures  = &texs;
 
 			PmxImporter::ImportResult pmx_ret;
-			if ((pmx_ret = PmxImporter::Import(storage_desc, L"Resources/steve/steve.pmx")).Success == false) {
+			if ((pmx_ret = PmxImporter::Import(storage_desc, L"Resources/Paymon/paymon.pmx")).Success == false) {
 				throw "Pmx import failed!!";
 			}
 
@@ -2073,8 +2051,8 @@ private:
 			/*-------------------------------------------------------
 			 *   트랜스폼을 생성한다......
 			 ********/
-			mesh_tr    = Transform::CreateTransform();
-			cam_tr     = Transform::CreateTransform();
+			mesh_tr = Transform::CreateTransform();
+			cam_tr  = Transform::CreateTransform();
 
 			control_tr   = mesh_tr;
 			control_name = L"renderMesh component";
@@ -2095,11 +2073,15 @@ private:
 			mesh_tr->AttachTransformComponent(&renderMesh);
 			cam_tr->AttachTransformComponent(&cam);
 
+			mesh_tr->SetLocalPosition(Vector3(0.f, -3.f, 14.f));
+			cam.Far = 200.f;
+
 
 			/*-------------------------------------------------------
 			 *   뷰포트를 초기화한다...
 			 ********/
 			GetViewPort().RenderCamera = &cam;
+			#pragma endregion
 		}
 
 
@@ -2117,6 +2099,17 @@ private:
 		if (input.WasPressedThisFrame(KeyCode::Num_9)) {
 			control_tr = cam_tr;
 			control_name = L"camera component";
+		}
+
+		//루트를 조작 대상으로 선택한다...
+		if (input.WasPressedThisFrame(KeyCode::Num_8)) {
+			control_tr = Transform::GetRoot();
+			control_name = L"root transform";
+		}
+
+		//본을 표시한다...
+		if (input.WasPressedThisFrame(KeyCode::Num_7)) {
+			showBones = !showBones;
 		}
 
 
@@ -2146,12 +2139,20 @@ private:
 			(add_rot * control_tr_raw->GetLocalRotation())
 		);
 
+		if (input.WasPressedThisFrame(KeyCode::Tab)) {
+			control_tr_raw->SetLocalPosition(Vector3::Zero);
+		}
+
 
 
 		/********************************************************************************
 		 *   랜더메시를 뷰포트의 백버퍼에 그린다....
 		 *******/
 		renderer.DrawRenderMesh(renderMesh, GetViewPort());
+		
+		if (showBones) {
+			Example16_ShowBoneTransforms(renderMesh, control_tr, control_name);
+		}
 		
 
 
@@ -2160,9 +2161,12 @@ private:
 		 *******/
 		renderer.DrawTextField(w$(
 			L"control transform name: ", control_name,
-			L"\npos: ", control_tr_raw->GetWorldPosition(),
-			L"\nrot: ", control_tr_raw->GetWorldRotation(),
-			L"\nscale: ", control_tr_raw->GetWorldScale()),
+			L"\n\nlocal_pos: ", control_tr_raw->GetLocalPosition(),
+			L"\nlocal_rot: ", control_tr_raw->GetLocalRotation(),
+			L"\nlocal_scale: ", control_tr_raw->GetLocalScale(),
+			L"\n\nworld_pos: ", control_tr_raw->GetWorldPosition(),
+			L"\nworld_rot: ", control_tr_raw->GetWorldRotation(),
+			L"\nworld_scale: ", control_tr_raw->GetWorldScale()),
 			Vector2Int(0, 300), 
 			GetViewPort()
 		);
@@ -2170,7 +2174,7 @@ private:
 		#pragma endregion
 	}
 
-	void Example16_ShowBoneTransforms(const RenderMesh& renderMesh, WeakPtr<Transform>& control_tr)
+	void Example16_ShowBoneTransforms(const RenderMesh& renderMesh, WeakPtr<Transform>& control_tr, const wchar_t*& control_name)
 	{
 		#pragma region
 		/********************************************************************
@@ -2187,17 +2191,21 @@ private:
 		const Vector3 p3 = Vector3(-wHalf, hHalf, 0.f);
 		const Vector3 p4 = Vector3(wHalf, hHalf, 0.f);
 
-		Mesh* mesh = renderMesh.GetMesh().Get();
+		Mesh*   mesh = renderMesh.GetMesh().Get();
+		Camera* cam  = GetViewPort().RenderCamera.Get();
 
-		if (mesh==nullptr) {
+		if (mesh==nullptr || cam==nullptr) {
 			return;
 		}
 
+		const Matrix4x4 V  = cam->GetViewMatrix();
+		const Matrix4x4 P  = cam->GetPerspectiveMatrix(GetViewPort().RenderTarget.GetAspectRatio());
+		const Matrix4x4 PV = (P*V);
 
 
 
 		/********************************************************************
-		 *   표시에 필요한 값들을 캐싱하고, 계산한다....
+		 *   각 본들을 랜더링한다....
 		 ********/
 		const uint32_t bone_count = mesh->Bones.size();
 
@@ -2210,8 +2218,8 @@ private:
 				continue;
 			}
 
-			const Vector3& bone_pos = bone_tr->GetWorldPosition();
-			const Vector2  bone_ScreenPos = renderer.NDCToScreen(renderer.ClipToNDC(P * Vector4(bone_pos, 1.f)), GetViewPort());
+			const Vector3& bone_pos       = bone_tr->GetWorldPosition();
+			const Vector2  bone_ScreenPos = renderer.NDCToScreen(renderer.ClipToNDC(PV * Vector4(bone_pos, 1.f)), GetViewPort());
 
 			const Vector2 sp1 = (bone_ScreenPos + p1);
 			const Vector2 sp2 = (bone_ScreenPos + p2);
@@ -2221,17 +2229,16 @@ private:
 			Color rectColor = Color::Yellow;
 
 			//부모 본이 존재할 경우에만 그린다...
-			if (bone.Parent_BoneIdx >= 0 && bone_tr->GetParent() != Transform::GetRoot())
+			if (bone_tr->GetParent() != Transform::GetRoot())
 			{
-				const Bone& parent_bone = mesh.Bones[bone.Parent_BoneIdx];
-				Transform* parent_bone_tr = bone_trs[bone.Parent_BoneIdx].Get();
+				Transform* parent_bone_tr = renderMesh.GetBoneTransformAt(bone.Parent_BoneIdx).Get();
 
 				if (parent_bone_tr != nullptr) {
-					const Vector3& parent_pos = parent_bone_tr->GetWorldPosition();
-					const Vector2  parent_ScreenPos = renderer.NDCToScreen(renderer.ClipToNDC(P * Vector4(parent_pos, 1.f)), GetViewPort());
+					const Vector3& parent_pos       = parent_bone_tr->GetWorldPosition();
+					const Vector2  parent_ScreenPos = renderer.NDCToScreen(renderer.ClipToNDC(PV * Vector4(parent_pos, 1.f)), GetViewPort());
 
-					const Vector2 bone2parent = (bone_ScreenPos - parent_ScreenPos);
-					const Vector2 bone2parent_Dir = bone2parent.GetNormalized();
+					const Vector2 bone2parent       = (bone_ScreenPos - parent_ScreenPos);
+					const Vector2 bone2parent_Dir   = bone2parent.GetNormalized();
 					const Vector2 bone2parent_right = Vector2(-bone2parent_Dir.y, bone2parent_Dir.x);
 
 					const Vector2 arrow1_pos = parent_ScreenPos + (bone2parent_right * 5.f);
@@ -2257,11 +2264,12 @@ private:
 
 				//해당 본의 버튼을 클릭했는가?
 				if (checkUp && checkDown) {
-					selected_boneIdx = boneIdx;
+					control_tr = bone_tr;
+					control_name = L"bone transform";
 				}
 			}
 
-			if (selected_boneIdx == boneIdx) {
+			if (control_tr.GetUUID() == bone_tr->GetUUID()) {
 				rectColor = Color::Green;
 			}
 

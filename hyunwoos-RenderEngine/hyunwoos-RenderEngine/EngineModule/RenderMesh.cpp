@@ -2,7 +2,7 @@
 
 
 /*=======================================================================================================================================================
- *    해당 DisplayMesh가 Transform에 부착되거나/떼어졌을 때 호출되는 메소드들입니다....
+ *    해당 RenderMesh가 Transform에 부착되거나/떼어졌을 때 호출되는 메소드들입니다....
  ***********/
 void hyunwoo::RenderMesh::OnAttachment()
 {
@@ -25,7 +25,7 @@ void hyunwoo::RenderMesh::OnDetachment()
 
 
 /*=======================================================================================================================================================
- *    해당 DisplayMesh가 랜더링 될 때 사용할 Bone들의 Transform개수를 얻습니다....
+ *    해당 RenderMesh가 랜더링 될 때 사용할 Bone들의 Transform개수를 얻습니다....
  ***********/
 uint32_t hyunwoo::RenderMesh::GetBoneTransformCount() const
 {
@@ -43,7 +43,7 @@ uint32_t hyunwoo::RenderMesh::GetBoneTransformCount() const
 
 
 /*=======================================================================================================================================================
- *    해당 DisplayMesh가 랜더링 될 때 사용할 Bone Transform을 얻습니다.....
+ *    해당 RenderMesh가 랜더링 될 때 사용할 Bone Transform을 얻습니다.....
  ***********/
 hyunwoo::WeakPtr<hyunwoo::Transform> hyunwoo::RenderMesh::GetBoneTransformAt(uint32_t index) const
 {
@@ -64,7 +64,7 @@ hyunwoo::WeakPtr<hyunwoo::Transform> hyunwoo::RenderMesh::GetBoneTransformAt(uin
 
 
 /*=======================================================================================================================================================
- *    해당 DisplayMesh가 랜더링 될 때 사용할 Mesh를 설정하거나 얻습니다.....
+ *    해당 RenderMesh가 랜더링 될 때 사용할 Mesh를 설정하거나 얻습니다.....
  ***********/
 hyunwoo::WeakPtr<hyunwoo::Mesh> hyunwoo::RenderMesh::GetMesh() const
 {
@@ -107,7 +107,7 @@ void hyunwoo::RenderMesh::SetMesh(Mesh* mesh)
 
 
 /*=======================================================================================================================================================
- *    해당 DisplayMesh가 랜더링 될 때 사용할 Material의 참조를 추가합니다...
+ *    해당 RenderMesh가 랜더링 될 때 사용할 Material의 참조를 추가합니다...
  ***********/
 void hyunwoo::RenderMesh::AddMaterial(Material* new_mat)
 {
@@ -127,7 +127,7 @@ void hyunwoo::RenderMesh::AddMaterial(Material* new_mat)
 
 
 /*=======================================================================================================================================================
- *    해당 DisplayMesh가 랜더링 될 때 사용할 Material의 개수/참조를 얻습니다...
+ *    해당 RenderMesh가 랜더링 될 때 사용할 Material의 개수/참조를 얻습니다...
  ***********/
 uint32_t hyunwoo::RenderMesh::GetMaterialCount() const
 {
@@ -154,7 +154,7 @@ hyunwoo::WeakPtr<hyunwoo::Material> hyunwoo::RenderMesh::GetMaterialAt(uint32_t 
 
 
 /*=======================================================================================================================================================
- *    해당 DisplayMesh에 설정된 메시가 유효하고, 본을 가지고 있다면 본에 대한 Transform을 생성해 자식 Transform으로 추가합니다...
+ *    해당 RenderMesh에 설정된 메시가 유효하고, 본을 가지고 있다면 본에 대한 Transform을 생성해 자식 Transform으로 추가합니다...
  ***********/
 void hyunwoo::RenderMesh::CreateBoneTransforms()
 {
@@ -192,33 +192,30 @@ void hyunwoo::RenderMesh::CreateBoneTransforms()
 		 *   본 트랜스폼들을 초기화하고, 계층구조를
 		 *   구축한다...
 		 ******/
-		for (uint32_t i = 0; i < bone_list.size(); i++) {
-			const Bone&	bone    = bone_list[i];
-			Transform*  bone_tr = m_boneTransforms[i].Get();
+		Transform* attached_to = GetAttachedTransform().Get();
 
-			//본 트랜스폼의 로컬 데이터를, 바인딩 포즈로 초기화한다...
-			bone_tr->SetLocalPositionAndScaleAndRotation(
+		for (uint32_t i = 0; i < bone_list.size(); i++) {
+			const Bone&	bone      = bone_list[i];
+			Transform*  bone_tr   = m_boneTransforms[i].Get();
+
+			//본 트랜스폼의 월드 데이터를, 바인딩 포즈로 초기화한다...
+			bone_tr->SetWorldPositionAndScaleAndRotation(
 				bone.BindingPose.Position,
 				bone.BindingPose.Scale,
 				bone.BindingPose.Rotation
 			);
-
 
 			//부모 본이 존재하는가? 맞다면 부모의 자식으로 추가한다..
 			if (bone.Parent_BoneIdx >=0) {
 				bone_tr->SetParent(m_boneTransforms[bone.Parent_BoneIdx].Get(), true);
 			}
 
-
-			//부모 본이 존재하지 않는가? 맞다면 DisplayMesh의 자식으로 추가한다..
+			//부모 본이 존재하지 않는가? 맞다면 RenderMesh의 자식으로 추가한다..
 			//해당 본은 이후 빠른 삭제를 위해서 본 트랜스폼 목록의 맨 뒤에 삽입된다...
 			else {
 				m_rootBoneCount++;
 				m_boneTransforms.push_back(m_boneTransforms[i]);
-
-				WeakPtr<Transform> attached_to = GetAttachedTransform();
-				Transform*		   raw_ptr = attached_to.Get();
-				raw_ptr->AddChild(bone_tr, true);
+				attached_to->AddChild(bone_tr, true);
 			}
 		}
 	}
@@ -238,11 +235,9 @@ void hyunwoo::RenderMesh::CreateBoneTransforms()
  ***********/
 void hyunwoo::RenderMesh::DestroyBoneTransforms()
 {
-	return;
-
 	/*******************************************************
 	 *   본 트랜스폼들의 맨 좌측에 있는 m_rootBoneCount개의
-	 *   루트 본들을 모두 파괴한다...
+	 *   루트 본들을 모두 파괴하여, 모든 본들을 연쇄파괴한다...
 	 ******/
 	const uint32_t start_idx = (m_boneTransforms.size() - m_rootBoneCount);
 	const uint32_t goal_idx  = (m_boneTransforms.size() - 1);

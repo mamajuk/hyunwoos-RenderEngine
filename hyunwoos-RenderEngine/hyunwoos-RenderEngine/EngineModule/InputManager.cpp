@@ -44,3 +44,31 @@ float hyunwoo::InputManager::GetAxis(KeyCode minusKey, KeyCode plusKey) const
 
     return ret;
 }
+
+
+
+/*=============================================================
+ *   마우스 좌표를, 인자로 준 뷰포트의 해상도에 맞게 변경합니다...
+ *==========*/
+hyunwoo::Vector2 hyunwoo::InputManager::GetMouseScreenPosition(const Renderer::ViewPort& viewPort) const
+{
+    return Vector2();
+}
+
+
+
+/*=============================================================
+ *   클라이언트 창 해상도에 알맞는 마우스 좌표를 얻습니다...
+ *==========*/
+hyunwoo::Vector2 hyunwoo::InputManager::GetMouseScreenPosition() const {
+    return m_mouse_screenPos;
+}
+
+
+
+/*=============================================================
+ *   마우스 좌표를, 인자로 준 뷰포트의 해상도에 맞게 변경합니다...
+ *==========*/
+void hyunwoo::InputManager::SetMouseScreenPosition(Vector2 newPosition) {
+    m_mouse_screenPos = newPosition;
+}

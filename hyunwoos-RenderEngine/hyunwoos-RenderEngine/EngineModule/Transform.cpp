@@ -33,14 +33,24 @@ hyunwoo::WeakPtr<hyunwoo::Transform> hyunwoo::TransformComponent::GetAttachedTra
 
 
 
+
+
+
+
+
+
+
+
+
+
 /**********************************************************
  *   Transform 의 메소드들의 정의....
  *******/
 
 /*=========================================================================================================================================
- *   정적 메소드들의 정의....
+ *   정적 필드들의 정의....
  *********/
-hyunwoo::Transform::TransformArray hyunwoo::Transform::m_transforms = hyunwoo::Transform::TransformArray{ new Transform[10], 10, 1};
+hyunwoo::Transform::TransformArray hyunwoo::Transform::m_transforms;
 std::vector<uint16_t>              hyunwoo::Transform::m_freeList;
 
 
@@ -60,8 +70,15 @@ std::vector<uint16_t>              hyunwoo::Transform::m_freeList;
  *********/
 void hyunwoo::Transform::Clear()
 {
-    SetParent(nullptr);
+    /********************************************
+     *  부모 및 부착된 컴포넌트와의 관계를 끊는다...
+     ******/
+    if(m_parent!=m_invalid_idx){
+        GetRawptr(m_parent)->RemoveChild_internal(this, false);
+    }
+
     DetachTransformComponent();
+
 
     /********************************************
      *  자식 목록을 순회해서, 관계를 끊는다...
@@ -173,7 +190,7 @@ void hyunwoo::Transform::operator=(Transform&& prev) noexcept
      *   부모 데이터와, 자식 개수를 이동한다...
      ******/
     m_parent      = prev.m_parent;
-    prev.m_parent = m_root_idx;
+    prev.m_parent = m_invalid_idx;
 
     m_package = prev.m_package;
     prev.m_package.ChildCount = 0;
@@ -194,6 +211,7 @@ void hyunwoo::Transform::operator=(Transform&& prev) noexcept
     if (prev.m_child_list != prev.m_localBuf) {
         m_child_list = prev.m_child_list;
         prev.m_child_list = prev.m_localBuf;
+        m_capacity = prev.m_capacity;
     }
 
     //prev가 로컬버퍼를 사용중이였는가?
@@ -523,21 +541,18 @@ void hyunwoo::Transform::SetParent(Transform* newParent, bool fixedParent)
         return;
     }
 
-
-    /*********************************************************
-     *   기존 부모가 설정되어 있었다면, 부모->자식관계를 해제한다..
-     *******/
-    if (m_parent != m_root_idx) {
-        Transform* parent_ptr = GetRawptr(m_parent);
-        parent_ptr->RemoveChild(this);
-    }
-
-
     /***********************************************************
      *  새로운 부모가 유효하다면, 자신을 자식으로 추가한다...   
      ********/
     if (newParent!=nullptr) {
         newParent->AddChild(this, fixedParent);
+    }
+
+    /***********************************************************
+     *   새로운 부모가 유효하지 않다면, 루투의 자식으로 추가한다...
+     *******/
+    else {
+        GetRoot()->AddChild(this, fixedParent);
     }
 }
 
@@ -588,23 +603,32 @@ hyunwoo::Transform* hyunwoo::Transform::GetChildAt(uint32_t index) const
 void hyunwoo::Transform::AddChild(Transform* newChild, bool fixedParent)
 {
     /**********************************************************
-     *  이미 추가되어 있는 자식이거나, 추가될 자식이 자기 자신 또는
-     *  루트 트랜스폼이거나, 자식 개수 한도를 초과했다면, 
-     *  함수를 종료한다....
-     *******/
+     *   이미 추가되어 있는 자식이거나, 유효하지 않은 자식이라면
+     *   함수를 종료한다...
+     ******/
     const uint16_t my_idx = GetIndex(this);
-    if (newChild==nullptr || newChild->m_package.FixedParent || newChild->m_parent==my_idx || newChild == this || newChild == GetRoot() || m_package.ChildCount >= m_max_child_count) {
+    if (newChild==nullptr || newChild->m_package.FixedParent || newChild->m_parent==my_idx) {
         return;
     }
+
+
+    /**********************************************************
+     *   추가할 자식이 자기 자신이거나, 루트 트랜스폼이거나, 가질 수
+     *   있는 최대 자식 수를 넘어섰다면 함수를 종료한다...
+     ********/
+    if (newChild==this || newChild==GetRoot() || m_package.ChildCount >= m_max_child_count) {
+        return;
+    }
+
 
 
 
     /********************************************************
      *  추가할 자식이 기존 부모를 가지고 있다면 해제한다...
      *******/
-    if (newChild->m_parent != m_root_idx) {
+    if (newChild->m_parent != m_invalid_idx) {
         Transform* newChild_parentPtr = GetRawptr(newChild->m_parent);
-        newChild_parentPtr->RemoveChild(newChild);
+        newChild_parentPtr->RemoveChild_internal(newChild, false);
     }
 
 
@@ -666,26 +690,43 @@ void hyunwoo::Transform::AddChild(Transform* newChild, bool fixedParent)
 /*=========================================================================================================================================
  *    특정 자식 Transform을 제거합니다....
  ***********/
-void hyunwoo::Transform::RemoveChild(Transform* removeChild)
+void hyunwoo::Transform::RemoveChild_internal(Transform* removeChild, bool addRootsChild)
 {
     /*************************************************
-     *  자식 목록을 순회해서, 자식 객체라면 제거한다...
+     *  삭제가 불가능하다면 함수를 종료한다....
      ******/
-    if (removeChild==nullptr || removeChild->m_package.FixedParent) {
+    if (removeChild == nullptr || removeChild->m_package.FixedParent || removeChild->m_parent == m_invalid_idx) {
         return;
     }
 
+
+    /*************************************************
+     *  자식 목록을 순회해서, 자식 객체라면 제거한다...
+     ******/
     const uint32_t remove_child_idx = GetIndex(removeChild);
     for (uint32_t i = 0; i < m_package.ChildCount; i++)
     {
         //제거할 대상과 동일한 객체를 제거한다...
         if (m_child_list[i] == remove_child_idx) {
-            removeChild->m_parent = m_root_idx;
+            removeChild->m_parent = m_invalid_idx;
             removeChild->UpdateLocalTransform();
             m_child_list[i] = m_child_list[--m_package.ChildCount];
-            return;
+            break;
         }
     }
+
+
+    /*************************************************
+     *   루트의 자식으로 추가해야할 경우....
+     ******/
+    if (addRootsChild) {
+        GetRoot()->AddChild(removeChild);
+    }
+}
+
+void hyunwoo::Transform::RemoveChild(Transform* removeChild)
+{
+    RemoveChild_internal(removeChild, true);
 }
 
 void hyunwoo::Transform::RemoveChildAt(uint32_t index)
@@ -698,9 +739,7 @@ void hyunwoo::Transform::RemoveChildAt(uint32_t index)
     }
 
     Transform* child = GetRawptr(m_child_list[index]);
-    child->m_parent  = m_root_idx;
-    child->UpdateLocalTransform();
-    m_child_list[index] = m_child_list[--m_package.ChildCount];
+    RemoveChild_internal(child, true);
 }
 
 
@@ -874,7 +913,7 @@ const hyunwoo::Matrix4x4 hyunwoo::Transform::GetTRS_Inverse()
  ***********/
 hyunwoo::Transform* hyunwoo::Transform::GetRoot()
 {
-    return &m_transforms.Transforms[0];
+    return &m_transforms.RawPtr[0];
 }
 
 
@@ -915,8 +954,8 @@ hyunwoo::Transform* hyunwoo::Transform::CreateTransform(Transform* parent, bool 
     {
         const uint16_t free_idx = m_freeList[0];
 
-        Transform* new_tr = new(&m_transforms.Transforms[free_idx]) Transform();
-        new_tr->SetParent(GetRoot());
+        Transform* new_tr = new(&m_transforms.RawPtr[free_idx]) Transform();
+        new_tr->SetParent(parent, fixedParent);
         m_freeList[0] = m_freeList[m_freeList.size() - 1];
         m_freeList.pop_back();
 
@@ -936,18 +975,18 @@ hyunwoo::Transform* hyunwoo::Transform::CreateTransform(Transform* parent, bool 
          *   이동시킨다...
          ******/
         if (m_transforms.Capacity < (m_transforms.Count+1)) {
-            Transform* prev_buf     = m_transforms.Transforms;
-            m_transforms.Transforms = new Transform[m_transforms.Capacity*=2];
+            Transform* prev_buf     = m_transforms.RawPtr;
+            m_transforms.RawPtr = new Transform[m_transforms.Capacity*=2];
             
             //기존 Transform들을 새 버퍼로 이동시킨다...
             for (uint32_t i = 0; i < m_transforms.Count; i++) {
-                m_transforms.Transforms[i] = std::move(prev_buf[i]);
+                m_transforms.RawPtr[i] = std::move(prev_buf[i]);
             }
 
             delete[] prev_buf;
         }
 
-        Transform* new_tr = new(&m_transforms.Transforms[m_transforms.Count++]) Transform();
+        Transform* new_tr = new(&m_transforms.RawPtr[m_transforms.Count++]) Transform();
         new_tr->SetParent(parent, fixedParent);
         return new_tr;
     }
@@ -964,6 +1003,7 @@ void hyunwoo::Transform::DestroyTransform(Transform* target)
         return;
     }
 
+    target->m_package.FixedParent = false;
     target->~Transform();
     m_freeList.push_back(GetIndex(target));
 }
@@ -989,7 +1029,7 @@ void hyunwoo::Transform::UpdateWorldTransform()
     /*-------------------------------------------
      *  부모가 없다면, 로컬과 똑같은 값을 가진다...
      *****/
-    if (m_parent==m_root_idx) {
+    if (m_parent == m_invalid_idx) {
         m_world_position  = m_local_position;
         m_world_rotation  = m_local_rotation;
         m_world_scale     = m_local_scale;
@@ -1028,7 +1068,7 @@ void hyunwoo::Transform::UpdateLocalTransform()
     /*-------------------------------------------
      *  부모가 없다면, 월드와 똑같은 값을 가진다...
      *****/
-    if (m_parent==m_root_idx) {
+    if (m_parent == m_invalid_idx) {
         m_local_position  = m_world_position;
         m_local_rotation  = m_world_rotation;
         m_local_scale     = m_world_scale;
@@ -1110,4 +1150,25 @@ void hyunwoo::Transform::UpdateDirtyParentWorldTransforms()
         parent_ptr->UpdateWorldTransform();
         parent_ptr->m_package.IsDirty = false;
     }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+/*=============================================================================================================================================
+ *   Transform의 풀이 구현된 Array의 생성자...
+ ***********/
+hyunwoo::Transform::TransformArray::TransformArray()
+:RawPtr(new Transform[10]), Capacity(10), Count(1)
+{
 }

@@ -134,9 +134,11 @@
     <ClCompile Include="EngineModule\RenderEngine.cpp" />
     <ClCompile Include="EngineModule\Transform.cpp" />
     <ClCompile Include="EngineModule\UniqueableObject.cpp" />
+    <ClCompile Include="GeometryModule\Curve.cpp" />
     <ClCompile Include="GeometryModule\Geometry.cpp" />
     <ClCompile Include="ImportModule\PmxImporter.cpp" />
     <ClCompile Include="ImportModule\PngImporter.cpp" />
+    <ClCompile Include="ImportModule\VmdImporter.cpp" />
     <ClCompile Include="MathModule\Color.cpp" />
     <ClCompile Include="MathModule\Math.cpp" />
     <ClCompile Include="MathModule\Matrix.cpp" />
@@ -149,16 +151,21 @@
     <ClCompile Include="RenderModule\RenderTarget.cpp" />
     <ClCompile Include="Source.cpp" />
     <ClCompile Include="UtilityModule\BitStream.cpp" />
+    <ClCompile Include="UtilityModule\StringKey.cpp" />
     <ClCompile Include="UtilityModule\StringLamda.cpp" />
     <ClCompile Include="UtilityModule\Zlib.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="AnimationModule\AnimateMesh.h" />
+    <ClInclude Include="AnimationModule\AnimationClip.h" />
     <ClInclude Include="EngineModule\UniqueableObject.h" />
     <ClInclude Include="EngineModule\InputManager.h" />
     <ClInclude Include="EngineModule\RenderEngine.h" />
     <ClInclude Include="EngineModule\Transform.h" />
+    <ClInclude Include="GeometryModule\Curve.h" />
     <ClInclude Include="ImportModule\PmxImporter.h" />
     <ClInclude Include="ImportModule\PngImporter.h" />
+    <ClInclude Include="ImportModule\VmdImporter.h" />
     <ClInclude Include="MathModule\Color.h" />
     <ClInclude Include="MathModule\Math.h" />
     <ClInclude Include="MathModule\Matrix.h" />
@@ -172,6 +179,8 @@
     <ClInclude Include="RenderModule\Material.h" />
     <ClInclude Include="RenderModule\RenderTarget.h" />
     <ClInclude Include="UtilityModule\BitStream.h" />
+    <ClInclude Include="UtilityModule\Class.h" />
+    <ClInclude Include="UtilityModule\StringKey.h" />
     <ClInclude Include="UtilityModule\StringLamda.h" />
     <ClInclude Include="UtilityModule\Zlib.h" />
   </ItemGroup>
@@ -219,6 +228,7 @@
   <ItemGroup>
     <None Include="Resources\anbo\anbo.pmx" />
     <None Include="Resources\feixieer\feixieer.pmx" />
+    <None Include="Resources\lisha\Catwalk.vmd" />
     <None Include="Resources\lisha\lisha.pmx" />
     <None Include="Resources\Minecraft\Alex_1.8.pmx" />
     <None Include="Resources\Minecraft\Steve_1.8.pmx" />

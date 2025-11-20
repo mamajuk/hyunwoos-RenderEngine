@@ -4,55 +4,11 @@
 #include <vector>
 
 namespace hyunwoo {
-	struct ClassID;
-	template<typename T> class Class;
-
 	class UniqueableObject;
 
 	template<typename T> struct WeakPtr;
 	template<typename T> struct CachedWeakPtr;
 }
-
-
-/*=============================================================================================================================================================
- *    각 클래스들의 정보들을 제공하는 템플릿 클래스입니다....
- ***********/
-struct hyunwoo::ClassID final
-{
-	template<typename T> friend class Class;
-
-private:
-	uintptr_t m_id = 0;
-
-public:
-	uintptr_t GetValue() const {
-		return m_id;
-	}
-
-	bool operator==(const ClassID rhs) const {
-		return (m_id == rhs.m_id);
-	}
-};
-
-
-template<typename T>
-class hyunwoo::Class final
-{
-public:
-	static inline ClassID GetID() {
-		return ClassID{ reinterpret_cast<intptr_t>(&GetID) };
-	} 
-};
-
-
-
-
-
-
-
-
-
-
 
 
 
@@ -345,7 +301,7 @@ public:
 		m_uuid.Value = 0;
 	}
 
-	UniqueableObject::UUID GetUUID() 
+	UniqueableObject::UUID GetUUID() const
 	{
 		return m_uuid;
 	}

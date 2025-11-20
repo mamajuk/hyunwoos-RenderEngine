@@ -2,7 +2,6 @@
 #include <filesystem>
 #include <vector>
 #include "../UtilityModule/StringLamda.h"
-#include "../UtilityModule/StringLamda.h"
 
 /*=======================================================================================================================
  *  지정한 주소의 Png파일로부터, 텍스쳐 데이터를 읽어들입니다....
@@ -1061,6 +1060,7 @@ void hyunwoo::PmxImporter::Import_StoreBoneData(std::ifstream& in, const Header&
     /********************************************************************
      *   본 데이터들을 모두 읽어들인다...
      *******/
+    std::wstring        bone_name;
     std::vector<IKLink> ik_links;
     for (uint32_t i = 0; i < bone_count; i++) 
     {
@@ -1069,8 +1069,10 @@ void hyunwoo::PmxImporter::Import_StoreBoneData(std::ifstream& in, const Header&
         /*---------------------------------------------
          *   본의 로컬/유니버설 이름을 읽어들인다...
          *****/
+        ReadText(in, header, &bone_name);
         ReadText(in, header, nullptr);
-        ReadText(in, header, nullptr);
+
+        new_bone.Name = bone_name.c_str();
 
        
 

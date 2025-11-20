@@ -74,11 +74,10 @@ public:
 	 ********/
 	struct TriangleDescription
 	{
-		bool             WireFrameMode		= false;
 		float			 Depths[3]			= { 0, };
+		Color			 FillUpColor		= Color::Pink;
 		Vector2			 ScreenPositions[3] = { 0, };
 		Vector2		     Uvs[3]				= { 0, };
-		Color			 FillUpColor		= Color::Pink;
 		const Texture2D* MappedTexture		= nullptr;
 
 		void SetScreenPositions(const Vector2& screenPos1, const Vector2& screenPos2, const Vector2& screenPos3) {

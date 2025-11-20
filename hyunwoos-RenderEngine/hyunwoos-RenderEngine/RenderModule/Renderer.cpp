@@ -704,7 +704,7 @@ void hyunwoo::Renderer::DrawTextField(const std::wstring& out, const hyunwoo::Ve
 
 
 /*===================================================================================================================
- *    지정된 색상으로 삼각형을 그립니다....
+ *    주어진 삼각형 서술 정보를 기반으로, 삼각형을 그립니다...
  *=============*/
 void hyunwoo::Renderer::DrawTriangle(const TriangleDescription& triangleDesc, const ViewPort& vp)
 {
@@ -716,7 +716,7 @@ void hyunwoo::Renderer::DrawTriangle(const TriangleDescription& triangleDesc, co
     /*******************************************************************
      *    와이어 프레임 모드일 경우, 선만 그리고 종료한다...
      *******/
-    if (UseWireFrameMode || triangleDesc.WireFrameMode) {
+    if (UseWireFrameMode) {
         DrawLine(WireFrameColor, screenPos1, screenPos2, vp);
         DrawLine(WireFrameColor, screenPos1, screenPos3, vp);
         DrawLine(WireFrameColor, screenPos2, screenPos3, vp);

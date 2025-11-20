@@ -13,6 +13,10 @@
 #include "EngineModule/Transform.h"
 #include "RenderModule/Mesh.h"
 #include "EngineModule/UniqueableObject.h"
+#include "ImportModule/VmdImporter.h"
+#include "AnimationModule/AnimationClip.h"
+#include "GeometryModule/Curve.h"
+#include "UtilityModule/StringKey.h"
 using namespace hyunwoo;
 using KeyCode = hyunwoo::InputManager::KeyCode;
 
@@ -46,8 +50,8 @@ protected:
 		Renderer& renderer        = GetRenderer();
 		renderer.UseAutoClear     = true;	
 		renderer.UseAlphaBlending = false;
-		renderer.WireFrameColor   = Color::White;
-		renderer.ClearColor       = Color::Black;
+		renderer.WireFrameColor   = Color::Black;
+		renderer.ClearColor       = Color::White;
 		SetTargetFrameRate(60);
 
 		//GetViewPort().RenderTarget.Init(GetClientHwnd(), Vector2Int(800, 720));
@@ -84,7 +88,8 @@ protected:
 			renderer.DrawTriangleNormal = !renderer.DrawTriangleNormal;
 		}
 
-		Example15_DrawRenderMesh(deltaTime);
+		//Example15_DrawRenderMesh(deltaTime);
+		Example17_BazierTest(deltaTime);
 		Example1_ShowInfo(deltaTime);
 	}
 
@@ -95,7 +100,7 @@ protected:
 	////////							Example methods..						/////////
 	//===================================================================================
 private:
-	#pragma region
+	#pragma region Example1~14
 	void Example1_ShowInfo(float deltaTime)
 	{
 		#pragma region
@@ -1996,6 +2001,7 @@ private:
 
 	#pragma endregion
 
+	#pragma region Example15~
 	void Example15_DrawRenderMesh(float deltaTime)
 	{
 		#pragma region
@@ -2013,7 +2019,7 @@ private:
 		static Camera	  cam;
 		static RenderMesh renderMesh;
 
-		static const wchar_t*     control_name = L"none";
+		static WStringKey		  control_name;
 		static WeakPtr<Transform> control_tr;
 
 		static WeakPtr<Transform> cam_tr;
@@ -2022,6 +2028,7 @@ private:
 		static Mesh					  mesh;
 		static std::vector<Material>  mats;
 		static std::vector<Texture2D> texs;
+		static AnimationClip		  clip;
 
 
 		/********************************************************************************
@@ -2033,7 +2040,7 @@ private:
 			isInit = true;
 
 			/*---------------------------------------------------------
-			 *   리소스를 로드한다....
+			 *   Mesh, Material, Texture 리소스를 로드한다....
 			 ********/
 			PmxImporter::StorageDescription storage_desc;
 			storage_desc.OutMesh      = &mesh;
@@ -2041,11 +2048,23 @@ private:
 			storage_desc.OutTextures  = &texs;
 
 			PmxImporter::ImportResult pmx_ret;
-			if ((pmx_ret = PmxImporter::Import(storage_desc, L"Resources/Paymon/paymon.pmx")).Success == false) {
+			if ((pmx_ret = PmxImporter::Import(storage_desc, L"Resources/steve/steve.pmx")).Success == false) {
 				throw "Pmx import failed!!";
 			}
 
 			mesh.RecalculateBoundingBox();
+
+
+
+			/*-------------------------------------------------------
+			 *   AnimationClip 리소스를 로드한다...
+			 **********/
+			VmdImporter::ImportResult vmd_ret;
+			if ((vmd_ret = VmdImporter::Import(clip, L"Resources/lisha/Catwalk.vmd")).Success == false) {
+				throw "Vmd import failed!!!";
+			}
+
+
 			
 
 			/*-------------------------------------------------------
@@ -2160,7 +2179,7 @@ private:
 		 *   디버그 출력...
 		 *******/
 		renderer.DrawTextField(w$(
-			L"control transform name: ", control_name,
+			L"control transform name: ", control_name.GetView().data(),
 			L"\n\nlocal_pos: ", control_tr_raw->GetLocalPosition(),
 			L"\nlocal_rot: ", control_tr_raw->GetLocalRotation(),
 			L"\nlocal_scale: ", control_tr_raw->GetLocalScale(),
@@ -2174,7 +2193,7 @@ private:
 		#pragma endregion
 	}
 
-	void Example16_ShowBoneTransforms(const RenderMesh& renderMesh, WeakPtr<Transform>& control_tr, const wchar_t*& control_name)
+	void Example16_ShowBoneTransforms(const RenderMesh& renderMesh, WeakPtr<Transform>& control_tr, WStringKey& control_name)
 	{
 		#pragma region
 		/********************************************************************
@@ -2265,7 +2284,7 @@ private:
 				//해당 본의 버튼을 클릭했는가?
 				if (checkUp && checkDown) {
 					control_tr = bone_tr;
-					control_name = L"bone transform";
+					control_name = bone.Name;
 				}
 			}
 
@@ -2282,6 +2301,199 @@ private:
 
 		#pragma endregion
 	}
+
+	void Example17_BazierTest(float deltaTime)
+	{
+		#pragma region
+		Renderer&			renderer     = GetRenderer();
+		const InputManager& input        = GetInputManager();
+		const float         moveSpeedSec = (100.f * deltaTime);
+
+		static std::vector<Texture2D> texs;
+		static Vector2				  points[4];
+
+
+		/***************************************************************************
+		 *   텍스쳐들을 로드한다...
+		 ********/
+		if (texs.size()==0) {
+			PngImporter::ImportResult ret = PngImporter::Imports(texs, {
+				L"Resources/zero.png",
+				L"Resources/one.png",
+				L"Resources/two.png",
+				L"Resources/three.png"
+			});
+
+			if (ret.Success==false) {
+				throw "png load is falied!!";
+			}
+
+			points[0] = Vector2(-385.f, -60.f);
+			points[1] = Vector2(-305.f, 70.f);
+			points[2] = Vector2(-133.f, 68.f);
+			points[3] = Vector2(30.f, -70.f);
+		}
+
+
+
+		/*****************************************************************************
+		 *   선택한 점을 조작한다....
+		 ********/
+		static uint32_t point_idx = 0;
+
+		for (uint32_t i = 0; i < 4; i++) {
+
+			if (input.WasPressedThisFrame(KeyCode(int(KeyCode::NUMPAD_0) + i))) {
+				point_idx = i;
+				break;
+			}
+		}
+
+
+		points[point_idx] += Vector2(
+			input.GetAxis(KeyCode::Left, KeyCode::Right) * moveSpeedSec,
+			input.GetAxis(KeyCode::Down, KeyCode::Up) * moveSpeedSec
+		);
+
+
+
+		/*****************************************************************************
+		 *   각 점들을 표시한다....
+		 *********/
+		Renderer::TriangleDescription triangle_desc;
+
+		const float   half        = .5f;
+		const float   scale		  = 30.f;
+		const Vector2 leftTop     = Vector2(-half, half);
+		const Vector2 rightTop    = Vector2(half, half);
+		const Vector2 leftBottom  = Vector2(-half, -half);
+		const Vector3 rightBottom = Vector2(half, -half);
+
+		for (uint32_t i = 0; i < 4; i++) 
+		{
+			Vector2& point = points[i];
+
+			const Matrix3x3 T = Matrix3x3(
+				Vector3::BasisX,
+				Vector3::BasisY,
+				Vector3(point, 1.f)
+			);
+
+			const Matrix3x3 S = Matrix3x3(
+				Vector3::BasisX * scale,
+				Vector3::BasisY * scale,
+				Vector3::BasisZ
+			);
+
+			const Matrix3x3 TS = (T*S);
+
+
+			/*---------------------------------------------
+			 *   첫번째 삼각형을 그린다...
+		     ********/
+			triangle_desc.MappedTexture = &texs[i];
+
+			triangle_desc.SetScreenPositions(
+				renderer.WorldToScreen(TS * Vector3(leftTop, 1.f), GetViewPort()),
+				renderer.WorldToScreen(TS * Vector3(rightTop, 1.f), GetViewPort()),
+				renderer.WorldToScreen(TS * Vector3(leftBottom, 1.f), GetViewPort())
+			);
+
+			triangle_desc.SetUvPositions(
+				Vector2(0.f, 0.f),
+				Vector2(1.f, 0.f),
+				Vector2(0.f, 1.f)
+			);
+
+			renderer.DrawTriangle(triangle_desc, GetViewPort());
+
+
+			/*---------------------------------------------
+			 *   두번째 삼각형을 그린다...
+			 ********/
+			triangle_desc.SetScreenPositions(
+				renderer.WorldToScreen(TS * Vector3(rightTop, 1.f), GetViewPort()),
+				renderer.WorldToScreen(TS * Vector3(leftBottom, 1.f), GetViewPort()),
+				renderer.WorldToScreen(TS * Vector3(rightBottom, 1.f), GetViewPort())
+			);
+
+			triangle_desc.SetUvPositions(
+				Vector2(1.f, 0.f),
+				Vector2(0.f, 1.f),
+				Vector2(1.f, 1.f)
+			);
+
+			renderer.DrawTriangle(triangle_desc, GetViewPort());
+		}
+
+
+
+		/*****************************************************************************
+		 *   베지어 곡선을 표시한다...
+		 *********/
+		static float test_t = 0.5f;
+
+		test_t = Math::Clamp01(test_t + input.GetAxis(KeyCode::A, KeyCode::D) * deltaTime);
+
+		const Vector2 A_screenPos = renderer.WorldToScreen(points[0], GetViewPort());
+		const Vector2 B_screenPos = renderer.WorldToScreen(points[1], GetViewPort());
+		const Vector2 C_screenPos = renderer.WorldToScreen(points[2], GetViewPort());
+		const Vector2 D_screenPos = renderer.WorldToScreen(points[3], GetViewPort());
+
+		const Vector2 E_screenPos = A_screenPos + (B_screenPos - A_screenPos) * test_t;
+		const Vector2 F_screenPos = B_screenPos + (C_screenPos - B_screenPos) * test_t;
+		const Vector2 G_screenPos = C_screenPos + (D_screenPos - C_screenPos) * test_t;
+
+		const Vector2 Q_screenPos = E_screenPos + (F_screenPos - E_screenPos) * test_t;
+		const Vector2 R_screenPos = F_screenPos + (G_screenPos - F_screenPos) * test_t;
+
+		const Vector2 P_screenPos = Q_screenPos + (R_screenPos - Q_screenPos) * test_t;
+
+		renderer.DrawLine(Color::Black, A_screenPos, B_screenPos, GetViewPort());
+		renderer.DrawLine(Color::Black, B_screenPos, C_screenPos, GetViewPort());
+		renderer.DrawLine(Color::Black, C_screenPos, D_screenPos, GetViewPort());
+
+		renderer.DrawLine(Color::Red, E_screenPos, F_screenPos, GetViewPort());
+		renderer.DrawLine(Color::Red, F_screenPos, G_screenPos, GetViewPort());
+
+		renderer.DrawLine(Color::Blue, Q_screenPos, R_screenPos, GetViewPort());
+		renderer.DrawLine(Color::Pink, F_screenPos, P_screenPos, GetViewPort());
+
+
+		float   t         = 0.f;
+		float   addOffset = (1.f / 100.f);
+		Vector2 prevPos   = points[0];
+
+		CubicBezierCurve xCurve = { points[0].x, points[1].x, points[2].x, points[3].x };
+		CubicBezierCurve yCurve = { points[0].y, points[1].y, points[2].y, points[3].y };
+
+		for (uint32_t i = 0; i < 100; i++) {
+			const Vector2 prevScreenPos = renderer.WorldToScreen(prevPos, GetViewPort());
+			const Vector2 nxtScreenPos  = renderer.WorldToScreen((prevPos = Vector2(xCurve.Evaluate(t), yCurve.Evaluate(t))), GetViewPort());
+
+			t += addOffset;
+			renderer.DrawLine(Color::Purple, prevScreenPos, nxtScreenPos, GetViewPort());
+		}
+
+
+
+		/****************************************************************************
+		 *   디버그 출력...
+		 *********/
+		renderer.DrawTextField(w$(
+			L"test_t: ", test_t,
+			L"\nselected idx: ", point_idx,
+			L"\ncurve.p0: ", points[0],
+			L"\ncurve.p1: ", points[1],
+			L"\ncurve.p2: ", points[2],
+			L"\ncurve.p3: ", points[3]),
+			Vector2Int(0,300),
+			GetViewPort()
+		);
+
+		#pragma endregion
+	}
+	#pragma endregion
 };
 
 

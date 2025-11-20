@@ -3,6 +3,7 @@
 #include "../MathModule/Quaternion.h"
 #include "../GeometryModule/Geometry.h"
 #include "../EngineModule/UniqueableObject.h"
+#include "../UtilityModule/StringKey.h"
 
 namespace hyunwoo {
 	struct Vertex;
@@ -157,8 +158,9 @@ struct hyunwoo::Bone
 		Matrix4x4 GetTRS_Inverse() const;
 	};
 
-	Pose    BindingPose;
-	int32_t Parent_BoneIdx;
+	int32_t    Parent_BoneIdx;
+	WStringKey Name;
+	Pose	   BindingPose;
 };
 
 

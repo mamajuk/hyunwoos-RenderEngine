@@ -14,6 +14,8 @@ namespace hyunwoo {
  ***********/
 class hyunwoo::WStringKey final
 {
+	friend class std::hash<WStringKey>;
+
 	//=================================================================================================
 	//////////////////							Defines..							///////////////////
 	//=================================================================================================
@@ -35,7 +37,7 @@ private:
 
 
 	/***********************************************************
-	 *   RefString를 가지는 구조체입니다...
+	 *   RefString의 인덱스를 가지는 구조체입니다...
 	 ********/
 	struct RefWStringView final
 	{
@@ -72,8 +74,8 @@ private:
 	//=================================================================================================
 private:
 	static std::vector<RefWString> m_stringPools;
-	static std::vector<uint32_t>  m_freeStrList;
-	static RefWStringMap		  m_viewMap;
+	static std::vector<uint32_t>   m_freeStrList;
+	static RefWStringMap		   m_viewMap;
 
 	uint32_t m_poolIdx = 0;
 
@@ -107,3 +109,33 @@ public:
 private:
 	void SetKey(const std::wstring_view view);
 };
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+/*=======================================================================================================================================================
+ *    WStringKey에 대한 std::hash의 템플릿 특수화 버전입니다....
+ ***********/
+namespace std {
+
+	template<>
+	class hash<hyunwoo::WStringKey>
+	{
+	public:
+		std::size_t operator()(const hyunwoo::WStringKey& key) const
+		{
+			return std::hash<uint32_t>()(key.m_poolIdx);
+		}
+	};
+}

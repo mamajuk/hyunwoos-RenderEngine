@@ -1,10 +1,12 @@
 #pragma once
 #include <fstream>
 #include <string>
+#include <cstdint>
 #include "../MathModule/Vector.h"
 #include "../MathModule/Quaternion.h"
 #include "../AnimationModule/AnimationClip.h"
 #include "../UtilityModule/StringKey.h"
+#include "../ImportModule/PmxImporter.h"
 
 namespace hyunwoo {
 	class VmdImporter;
@@ -43,49 +45,38 @@ public:
 	};
 
 
+
 	/*******************************************
-	 *   본의 프레임 구조를 나타내는 구조체입니다..
+	 *   본의 보간 방식을 나타내는 구조체입니다...
 	 *********/
-	struct BoneKeyFrame final
+	struct InterpolationData
 	{
-		struct InterpolationData
+		uint8_t ControlPointX[4];
+		uint8_t ControlPointY[4];
+		uint8_t ControlPointZ[4];
+		uint8_t ControlPointR[4];
+		uint8_t disabled[48];
+	};
+
+
+	/*******************************************
+	 *   IK의 키프레임 데이터를 나타내는 구조체..
+	 *********/
+	struct IK_KeyFrame
+	{
+		enum class DisplayMode : uint8_t { Off = 0, On  = 1 };
+		enum class IKMode	   : uint8_t { Off = 0, On  = 1 };
+
+		struct BoneDesc
 		{
-			Vector2 ControlPointX[2];
-			Vector2 ControlPointY[2];
-			Vector2 ControlPointZ[2];
-			Vector2 ControlPointR[2];
+			WStringKey Name;
+			IKMode     Mode;
 		};
 
-		uint32_t		  FrameNumber;
-		Vector3			  BonePosition;
-		Quaternion		  BoneRotation;
-		InterpolationData Interpolations;
-	};
-
-
-	/********************************************
-	 *   얼굴의 프레임 구조를 나타내는 구조체입니다..
-	 *********/
-	struct FaceKeyFrame final
-	{
-		WStringKey   Name;
-		uint32_t     FrameNumber;
-		float        Weight;
-	};
-
-
-	/**********************************************
-	 *   카메라의 프레임 구조를 나타내는 구조체입니다..
-	 *********/
-	struct CameraKeyFrame final
-	{
-		uint32_t FrameNumber;
-		float    CamToTargetDistance;
-		float	 TargetPosition[3];
-		float    CameraRotation[3];
-		uint8_t  InterpolationData[24];
-		uint32_t CameraFOVAngle;
-		uint8_t  CameraPerspective;
+		uint32_t    FrameCount;
+		DisplayMode DisplayMode;
+		uint32_t    IKBoneCount;
+		uint32_t    IKBoneStartIdx;
 	};
 
 
@@ -95,7 +86,7 @@ public:
 	/////////////////					   Public methods..						  /////////////////
 	//=============================================================================================
 public:
-	static ImportResult Import(AnimationClip& outAnimClip, const wchar_t* path);
+	static ImportResult Import(AnimationClip& outAnimClip, const Mesh& inPmxMesh, const wchar_t* path);
 
 
 
@@ -104,6 +95,7 @@ public:
 	/////////////////					   Private methods..						  /////////////////
 	//=================================================================================================
 private:
-	static void ReadString(std::ifstream& in, uint32_t shiftJIS_StrSize, wchar_t* outUTF16Str);
+	static void AddKeyFrame(AnimationClip::Property& prop, const AnimationClip::KeyFrame& keyFrame);
+	static void ReadString(std::ifstream& in, uint32_t shiftJIS_StrSize, std::wstring& outUTF16Str);
 
 };

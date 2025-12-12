@@ -22,11 +22,12 @@ public:
 	/*****************************************
 	 *  프로퍼티의 타입을 나타내는 열거형입니다..
 	 ******/
-	enum class PropertyType
+	enum class PropertyType : uint32_t
 	{
-		LocalScale,
-		LocalRotation,
-		LocalPosition
+		Local_Position,
+		Local_Scale,
+		Local_Rotation_Quat,
+		Local_Rotation_Euler
 	};
 
 	/*********************************************
@@ -34,9 +35,14 @@ public:
 	 ******/
 	struct KeyFrame final
 	{
-		float		 Time;
-		float		 Value;
-		CurveVariant Curve;
+		float	 Time;
+		uint32_t CurveStartIdx;
+
+		union 
+		{
+		   Vector3    Vec3;
+		   Quaternion Quat = Quaternion::Identity;
+		};
 	};
 
 	/*****************************************
@@ -45,9 +51,12 @@ public:
 	 ******/
 	struct Property final
 	{
-		PropertyType		  Type;
-		WStringKey			  Name;
-		std::vector<KeyFrame> KeyFrames;
+		PropertyType		      Type;
+		WStringKey			      Name;
+		std::vector<KeyFrame>     KeyFrames;
+		std::vector<CurveVariant> Curves;
+
+		Property(PropertyType type, WStringKey name) :Type(type), Name(name) {};
 	};
 
 
@@ -56,5 +65,6 @@ public:
 	////////////////						  Properties...						//////////////////
 	//============================================================================================
 public:
+	float				  TotalTime = 0.f;
 	std::vector<Property> Properties;
 };

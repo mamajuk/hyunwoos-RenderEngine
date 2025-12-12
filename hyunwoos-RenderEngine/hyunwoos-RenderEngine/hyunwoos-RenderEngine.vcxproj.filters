@@ -90,6 +90,9 @@
     <ClCompile Include="UtilityModule\StringKey.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="AnimationModule\AnimateMesh.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="EngineModule\RenderEngine.h">
@@ -292,6 +295,12 @@
     <Image Include="Resources\anbo\Texture\表情.png">
       <Filter>Resource Files</Filter>
     </Image>
+    <Image Include="Resources\dolphin\dolphin preview.bmp">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="Resources\dolphin\grey.png">
+      <Filter>Resource Files</Filter>
+    </Image>
   </ItemGroup>
   <ItemGroup>
     <None Include="Resources\Paymon\paymon.pmx" />
@@ -303,9 +312,14 @@
     <None Include="Resources\lisha\lisha.pmx" />
     <None Include="Resources\anbo\anbo.pmx" />
     <None Include="Resources\lisha\Catwalk.vmd" />
+    <None Include="Resources\dolphin\dolphin mmd_tools.pmx" />
+    <None Include="Resources\dolphin\dolphin swimming  mmd_tools.vmd" />
+    <None Include="Resources\Paymon\Paimon Idle Motion.vmd" />
+    <None Include="Resources\Paymon\Paimon oi animation.vmd" />
   </ItemGroup>
   <ItemGroup>
     <Text Include="Resources\feixieer\readme【一定要看】.txt" />
     <Text Include="할일리스트.txt" />
+    <Text Include="Resources\dolphin\dolphin readme.txt" />
   </ItemGroup>
 </Project>

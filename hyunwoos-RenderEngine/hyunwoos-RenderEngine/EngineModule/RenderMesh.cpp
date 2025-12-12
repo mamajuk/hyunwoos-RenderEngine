@@ -220,6 +220,7 @@ void hyunwoo::RenderMesh::CreateBoneTransforms()
 		}
 	}
 
+	OnUpdateBoneTransforms();
 }
 
 

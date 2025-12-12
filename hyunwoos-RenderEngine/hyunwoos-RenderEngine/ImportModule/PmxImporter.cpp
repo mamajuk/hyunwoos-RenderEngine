@@ -2,6 +2,7 @@
 #include <filesystem>
 #include <vector>
 #include "../UtilityModule/StringLamda.h"
+#undef max
 
 /*=======================================================================================================================
  *  지정한 주소의 Png파일로부터, 텍스쳐 데이터를 읽어들입니다....
@@ -188,19 +189,19 @@ int32_t hyunwoo::PmxImporter::ReadDefaultIndexType(std::ifstream& in, const Defa
     if (defaultIdxType == DefaultIndexType::Type1_byte) {
         int8_t value;
         in.read((char*)&value, 1);
-        return (uint32_t)value;
+        return (int32_t)value;
     }
 
     if (defaultIdxType == DefaultIndexType::Type2_short) {
         int16_t value;
         in.read((char*)&value, 2);
-        return (uint32_t)value;
+        return (int32_t)value;
     }
 
     if (defaultIdxType == DefaultIndexType::Type4_int) {
         int32_t value;
         in.read((char*)&value, 4);
-        return (uint32_t)value;
+        return (int32_t)value;
     }
 
     return 0;
@@ -237,6 +238,7 @@ void hyunwoo::PmxImporter::ReadText(std::ifstream& in, const Header& header, std
         in.seekg(text_size, std::ios::cur);
         return;
     }
+
 
 
     /*******************************************************************
@@ -319,6 +321,7 @@ void hyunwoo::PmxImporter::Import_StoreVertexData(std::ifstream& in, const Heade
         in.read((char*)&vertex.ObjPos, 12);
         in.seekg(12, std::ios::cur);
         in.read((char*)&vertex.UvPos, 8);
+
 
 
 
@@ -509,27 +512,31 @@ void hyunwoo::PmxImporter::Import_IgnoreVertexData(std::ifstream& in, const Head
         {
             //BDEF1
             case(WeightDeformType::BDEF1): {
-                in.seekg((int)header.Globals.Bone_Index_Size, std::ios::cur);
+                ReadDefaultIndexType(in, header.Globals.Bone_Index_Size);
                 break;
             }
 
              //BDEF2
             case(WeightDeformType::BDEF2): {
-                in.seekg((int)header.Globals.Bone_Index_Size * 2, std::ios::cur);
+                ReadDefaultIndexType(in, header.Globals.Bone_Index_Size);
+                ReadDefaultIndexType(in, header.Globals.Bone_Index_Size);
                 in.seekg(4, std::ios::cur);
                 break;
             }
 
             //BDEF4
             case(WeightDeformType::BDEF4): {
-                in.seekg((int)header.Globals.Bone_Index_Size * 4, std::ios::cur);
+                ReadDefaultIndexType(in, header.Globals.Bone_Index_Size);
+                ReadDefaultIndexType(in, header.Globals.Bone_Index_Size);
+                ReadDefaultIndexType(in, header.Globals.Bone_Index_Size);
+                ReadDefaultIndexType(in, header.Globals.Bone_Index_Size);
                 in.seekg(16, std::ios::cur);
                 break;
             }
 
             //SDEF
             case(WeightDeformType::SDEF): {
-                in.seekg((int)header.Globals.Bone_Index_Size * 2, std::ios::cur);
+                ReadDefaultIndexType(in, header.Globals.Bone_Index_Size);
                 in.seekg(4, std::ios::cur);
                 in.seekg(12 * 3, std::ios::cur);
                 break;
@@ -537,7 +544,10 @@ void hyunwoo::PmxImporter::Import_IgnoreVertexData(std::ifstream& in, const Head
 
             //QDEF
             case(WeightDeformType::QDEF): {
-                in.seekg((int)header.Globals.Vertex_Index_Size * 4, std::ios::cur);
+                ReadDefaultIndexType(in, header.Globals.Bone_Index_Size);
+                ReadDefaultIndexType(in, header.Globals.Bone_Index_Size);
+                ReadDefaultIndexType(in, header.Globals.Bone_Index_Size);
+                ReadDefaultIndexType(in, header.Globals.Bone_Index_Size);
                 in.seekg(4, std::ios::cur);
                 break;
             }
@@ -846,10 +856,9 @@ void hyunwoo::PmxImporter::Import_StoreMaterialData(std::ifstream& in, const Hea
          *  Texture index를 읽어들인다...
          *  ( byte, short, int )
          *------*/
-        int32_t tex_idx = 0;
-        in.read((char*)&tex_idx, (int)header.Globals.Texture_Index_Size);
+        int32_t tex_idx = ReadDefaultIndexType(in, header.Globals.Texture_Index_Size);
 
-        if (storageDesc.OutMaterials != nullptr)
+        if (storageDesc.OutMaterials != nullptr && tex_idx >= 0)
         {
             //머터리얼을 저장하기위해서는, 텍스쳐 데이터의 저장도 필요하다...
             if (storageDesc.OutTextures == nullptr) {
@@ -1060,8 +1069,7 @@ void hyunwoo::PmxImporter::Import_StoreBoneData(std::ifstream& in, const Header&
     /********************************************************************
      *   본 데이터들을 모두 읽어들인다...
      *******/
-    std::wstring        bone_name;
-    std::vector<IKLink> ik_links;
+    std::wstring bone_name;
     for (uint32_t i = 0; i < bone_count; i++) 
     {
         Bone new_bone;
@@ -1078,6 +1086,7 @@ void hyunwoo::PmxImporter::Import_StoreBoneData(std::ifstream& in, const Header&
 
         /*---------------------------------------------
          *   본의 월드 위치를 읽어들인다...
+         *   (Pmx Editor)
          *******/
         in.read((char*)&new_bone.BindingPose.Position, sizeof(Vector3));
 
@@ -1091,7 +1100,9 @@ void hyunwoo::PmxImporter::Import_StoreBoneData(std::ifstream& in, const Header&
 
 
         /*------------------------------------------------
-         *  레이어값을 읽어들인다....
+         *  레이어값을 읽어들인다. PMX에는 본을 화면에서 켜고
+         *  끄는 "표시 패널"이 있는데, 여기서 레이어별로 묶기
+         *  위해서 존재하는 값이다...
          ******/
         int32_t layer;
         in.read((char*)&layer, 4);
@@ -1105,17 +1116,22 @@ void hyunwoo::PmxImporter::Import_StoreBoneData(std::ifstream& in, const Header&
         in.read((char*)&flags, 2);
 
 
+
         /*-------------------------------------------------
          *  Tail position을 나타내는 Vector3를 읽어들인다.
          *  만약 Indexed_tail_position 플래그가 설정되어 
          *  있다면, Vector3값 대신 Bone 인덱스값을 읽어들인다..
          *****/
-        const uint32_t read_size = (flags.Indexed_tail_position ? (int)header.Globals.Bone_Index_Size : sizeof(Vector3));
-        in.seekg(read_size, std::ios::cur);
+        if (flags.Indexed_tail_position) {
+            uint32_t bone_tail_idx = ReadDefaultIndexType(in, header.Globals.Bone_Index_Size);
+        }
+        else in.seekg(sizeof(Vector3), std::ios::cur);
+
 
 
         /*-----------------------------------------------
-         *   상속받은 본이 있는가?
+         *   상속받은 본이 있는가? 상속받은 회전/이동이 유효
+         *   할 경우에만 처리한다...
          ******/
         int32_t inherit_parent_idx = -1;
         float   parent_influence   = 0.f;
@@ -1128,24 +1144,31 @@ void hyunwoo::PmxImporter::Import_StoreBoneData(std::ifstream& in, const Header&
 
         /*--------------------------------------------------
          *   고정된 축을 사용한다면, 해당 본이 가리키는 방향을
-         *   나타내는 Vector3값을 읽어들인다...
+         *   나타내는 Vector3값을 읽어들인다..이는 팔의 동그란
+         *   갈고리 본에 쓰인다...
          *******/
         Vector3 fixed_BoneDir;
 
         if (flags.Fixed_axis) {
             in.read((char*)&fixed_BoneDir, sizeof(Vector3));
+
+            new_bone.useFixedAxis = flags.Fixed_axis;
+            new_bone.FixedAxis    = fixed_BoneDir;
         }
 
 
-        /*--------------------------------------------------
+        /*-----------------------------------------------------
          *  로컬 축을 사용한다면, 로컬 X/Z축 Vector3를 읽어들인다..
+         *  (Y축은 주어진 X/Z축을 외적하면 구할 수 있다.) 
          *******/
         Vector3 axisX;
         Vector3 axisZ;
+        Vector3 axisY;
 
         if (flags.Local_coordinate) {
             in.read((char*)&axisX, sizeof(Vector3));
             in.read((char*)&axisZ, sizeof(Vector3));
+            axisY = Vector3::Cross(axisX, axisZ);
         }
 
 
@@ -1163,21 +1186,21 @@ void hyunwoo::PmxImporter::Import_StoreBoneData(std::ifstream& in, const Header&
         /*---------------------------------------------
          *   IK를 사용한다면, 본 정보들을 읽어들인다...
          *******/
-        int32_t ik_bone_idx  = -1;
-        int32_t loop_count   = 0;
-        int32_t link_count   = 0;
-        float   limit_radian = 0.f;
+        IKDescriptor::IKInfo ik_info;
 
-        if (flags.IK) 
+        if (flags.IK)
         {
-            ik_bone_idx = ReadDefaultIndexType(in, header.Globals.Bone_Index_Size);
-            in.read((char*)&loop_count, 4);
-            in.read((char*)&limit_radian, 4);
-            in.read((char*)&link_count, 4);
+            ik_info.ik_bone_idx        = i;
+            ik_info.ik_target_bone_idx = ReadDefaultIndexType(in, header.Globals.Bone_Index_Size);
+
+            in.read((char*)&ik_info.ik_loop_count, 4);
+            in.read((char*)&ik_info.limit_radian, 4);
+            in.read((char*)&ik_info.link_count, 4);
+
 
             //모든 IK 링크들을 읽어들인다...
-            ik_links.clear();
-            for (uint32_t i = 0; i < link_count; i++) {
+            for (uint32_t j = 0; j < ik_info.link_count; j++)
+            {
                 IKLink new_link;
 
                 new_link.Bone_idx = ReadDefaultIndexType(in, header.Globals.Bone_Index_Size);
@@ -1187,9 +1210,83 @@ void hyunwoo::PmxImporter::Import_StoreBoneData(std::ifstream& in, const Header&
                     in.read((char*)&new_link.AngleLimit.Limit_Min, sizeof(Vector3));
                     in.read((char*)&new_link.AngleLimit.Limit_Max, sizeof(Vector3));
                 }
+
+                if (storageDesc.OutIKDesc != nullptr) {
+                    storageDesc.OutIKDesc->m_links.push_back(new_link);
+                }
+            }
+
+            if (storageDesc.OutIKDesc != nullptr) {
+                ik_info.link_start_idx = (storageDesc.OutIKDesc->m_links.size() - ik_info.link_count);
+                storageDesc.OutIKDesc->m_infos.push_back(ik_info);
             }
         }
 
         storageDesc.OutMesh->Bones.push_back(new_bone);
+    }
+
+
+
+    /*****************************************************************************
+     *   ik용 본들과 대응되는 디스플레이용 본이 있다면, 교체한다....
+     *********/
+    if (storageDesc.OutIKDesc == nullptr) {
+        return;
+    }
+
+    IKDescriptor&      ik_desc = *storageDesc.OutIKDesc;
+    std::vector<Bone>& bones   = storageDesc.OutMesh->Bones;
+
+    for (uint32_t i=0; i<storageDesc.OutIKDesc->m_infos.size(); i++)
+    {
+        IKDescriptor::IKInfo& info        = storageDesc.OutIKDesc->m_infos[i];
+        const Bone&           endEff_bone = bones[info.ik_target_bone_idx];
+
+        /*--------------------------------------------------
+         *  해당 endEffect 본과 대응되는 디스플레이 본을 찾는다..
+         *  ( 가장 가까운 곳에 배치되었다는 가정하에 적용한다... )
+         ******/
+        float    min_dst = std::numeric_limits<float>::max();
+        uint32_t min_idx = info.ik_target_bone_idx;
+
+        for (uint32_t j = 0; j < bones.size(); j++) {
+            const Bone& bone = bones[j];
+
+            const float dst = (bone.BindingPose.Position - endEff_bone.BindingPose.Position).GetSqrMagnitude();
+            if (dst <= min_dst && j!=info.ik_target_bone_idx) {
+                min_dst = dst;
+                min_idx = j;
+            }
+        }
+
+        info.ik_target_bone_idx = min_idx;
+
+
+        /*--------------------------------------------------
+         *  각 링크 본들과 대응되는 디스플레이 본을 찾는다..
+         *  ( 가장 가까운 곳에 배치되었다는 가정하에 적용한다... )
+         *****/
+        min_dst = std::numeric_limits<float>::max();
+
+        for (uint32_t j = 0; j < info.link_count; j++) 
+        {
+            const uint32_t link_idx  = (ik_desc.m_links[info.link_start_idx+j].Bone_idx);
+            const Bone&    link_bone = bones[link_idx];
+
+            min_idx = link_idx;
+            min_dst = std::numeric_limits<float>::max();
+            {
+                for (uint32_t k = 0; k < bones.size(); k++) {
+                    const Bone& bone = bones[k];
+                    const float dst  = (bone.BindingPose.Position - link_bone.BindingPose.Position).GetSqrMagnitude();
+
+                    if (dst < min_dst && link_idx!=k) {
+                        min_dst = dst;
+                        min_idx = k;
+                    }
+                }
+            }
+            ik_desc.m_links[info.link_start_idx + j].Bone_idx = min_idx;
+        } 
     }
 }

@@ -206,6 +206,27 @@ public:
 	};
 
 
+	/*************************************
+	 *   Pmx 파일의 IK정보가 서술된
+	 *   구조체입니다...
+	 ********/
+	struct IKDescriptor final
+	{
+		struct IKInfo
+		{
+			int32_t ik_bone_idx		   = -1;
+			int32_t ik_target_bone_idx = -1;
+			int32_t ik_loop_count	   = 0;
+			int32_t link_start_idx	   = 0;
+			int32_t link_count		   = 0;
+			float   limit_radian	   = 0.f;
+		};
+
+		std::vector<IKInfo> m_infos;
+		std::vector<IKLink> m_links;
+	};
+
+
 
 	/*************************************
 	 *   Pmx 파일로부터 얻어올 데이터를
@@ -214,6 +235,7 @@ public:
 	struct StorageDescription
 	{
 		Mesh*					OutMesh		 = nullptr;
+		IKDescriptor*			OutIKDesc    = nullptr;
 		std::vector<Texture2D>* OutTextures	 = nullptr;
 		std::vector<Material>*  OutMaterials = nullptr;
 	};

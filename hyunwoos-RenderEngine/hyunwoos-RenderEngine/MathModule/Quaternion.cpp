@@ -360,14 +360,42 @@ hyunwoo::Quaternion hyunwoo::Quaternion::Euler(const float yAngle, const float x
 
 
 
+
+
+
+
 /*=============================================================================================================
  *   인자로 주어진 from 벡터를 to 벡터로 회전시킬 수 있는 사원수를 얻습니다...
  *===============*/
 hyunwoo::Quaternion hyunwoo::Quaternion::FromTo(const Vector3& from, const Vector3& to, const float angleScale)
 {
-	const float   c    = Vector3::Dot(from.GetNormalized(), to.GetNormalized()) * angleScale * .5f;
-	const float   s    = Math::Sin(Math::Acos(Math::Clamp(c, -1.f, 1.f)));
-	const Vector3 axis = Vector3::Cross(to, from);
+	/********************************************************
+	 *   두 벡터 사이의 cos값을 구하기 위해서, 정규화를 해준다...
+	 *   ( 두 벡터의 크기가 1이여야, 내적의 결과가 cos만 남는다.. )
+	 ********/
+	const Vector3 from_normal = from.GetNormalized();
+	const Vector3 to_normal   = to.GetNormalized();
+
+
+	/*********************************************************
+	 *  from, to 벡터 사이의 cos값에 대응되는 rad값을 구한다.
+	 *  (Acos의 정의역이 -1 ~ 1 사이인데, 부동소수점 오차로 이 범위를
+	 *  벗어날 수도 있기 때문에, Clamp를 통해 값을 제한한다...)
+	 *  그리고 주어진 각도(rad)를 가진 사원수로 벡터를 정상적으로
+	 *  회전시키기위해서, rad값을 절반으로 만들어준다....
+	 ********/
+	const float dot  = Math::Clamp(Vector3::Dot(from_normal, to_normal), -1.f, 1.f);
+	const float rad  = Math::Acos(dot) * angleScale * .5f;
+
+
+	/*********************************************************
+	 *  회전 사원수를 생성하는데 필요한 cos, sin, 회전축을 생성한다.
+	 *  ( 외적의 결과는 항상 노멀 벡터가 아니기에, 정규화를 해준다.. )
+	 ********/
+	const float c    = Math::Cos(rad);
+	const float s    = Math::Sin(rad);
+	Vector3     axis = Vector3::Cross(from_normal, to_normal).GetNormalized();
+
 
 	/*******************************************************
 	 *   두 벡터가 평행하면 회전축은 0벡터다. 하지만 이는
@@ -375,11 +403,59 @@ hyunwoo::Quaternion hyunwoo::Quaternion::FromTo(const Vector3& from, const Vecto
 	 *   항상 180º 회전이 가능한 회전축을 얻을 수 있다..
 	 ********/
 	if (axis.GetSqrMagnitude()==0.f) {
-		return Quaternion(c, Vector3::Cross(from, Vector3::Up) * s);
+		axis = Vector3::Cross(from_normal, Vector3::Up).GetNormalized();
+
+		if (axis.GetSqrMagnitude()==0.f) { //새로운 축이 또 평행할 경우의 처리....
+			axis = Vector3::Cross(from_normal, Vector3::Right).GetNormalized();
+		}
 	}
 
+
+	/**********************************************************
+	 *   회전 사원수를 만든 후, 반환한다....
+	 ********/
 	return Quaternion(c, axis * s);
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+/*=============================================================================================================
+ *   해당 사원수로부터 오일러 각도를 얻습니다...
+ *===============*/
+hyunwoo::Vector3 hyunwoo::Quaternion::ToEuler_XYZ(const Quaternion& fromQuat)
+{
+	const float a = fromQuat.W;
+	const float b = fromQuat.XYZ.x;
+	const float c = fromQuat.XYZ.y;
+	const float d = fromQuat.XYZ.z;
+
+	const float sx = 2 * (a * b + c * d);                    // sin(x)
+	const float cx = 1 - 2 * (b * b + c * c);                  // cos(x)
+	const float sy = Math::Clamp(2.f * (a * c - b * d), -1.f, 1.f); // sin(y)
+	const float sz = 2 * (a * d + b * c);                      // sin(z)
+	const float cz = 1 - 2 * (c * c + d * d);                    // cos(z)
+
+
+	return Vector3(
+		Math::Atan2(sx, cx),
+		Math::ASin(sy),
+		Math::Atan2(sz, cz)
+	);
+}
+
+
+
+
 
 
 
@@ -416,10 +492,102 @@ const hyunwoo::Quaternion hyunwoo::Quaternion::GetConjugate() const {
  *=============*/
 const float hyunwoo::Quaternion::GetMagnitude() const
 {
-	const Quaternion mulConjugate = operator*(GetConjugate());
+	return Vector4(W, XYZ.x, XYZ.y, XYZ.z).GetMagnitude();
 
-	return Math::Sqrt(mulConjugate.W * mulConjugate.W + XYZ.GetSqrMagnitude());
+	//const Quaternion mulConjugate = operator*(GetConjugate());
+
+	//return Math::Sqrt(mulConjugate.W * mulConjugate.W + XYZ.GetSqrMagnitude());
 }
+
+
+
+
+
+
+
+
+
+
+/*===========================================================================================================
+ *    두 사원수를 더한 사원수를 반환합니다....
+ *=============*/
+hyunwoo::Quaternion hyunwoo::Quaternion::operator+(const Quaternion& rhs) const
+{
+	return Quaternion((W + rhs.W), (XYZ + rhs.XYZ));
+}
+
+hyunwoo::Quaternion& hyunwoo::Quaternion::operator+=(const Quaternion& rhs)
+{
+	W   += rhs.W;
+	XYZ += rhs.XYZ;
+	return *this;
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+/*===========================================================================================================
+ *    두 사원수를 뺀 사원수를 반환합니다....
+ *=============*/
+hyunwoo::Quaternion hyunwoo::Quaternion::operator-(const Quaternion& rhs) const
+{
+	return Quaternion((W - rhs.W), (XYZ - rhs.XYZ));
+}
+
+hyunwoo::Quaternion& hyunwoo::Quaternion::operator-=(const Quaternion& rhs)
+{
+	W   -= rhs.W;
+	XYZ -= rhs.XYZ;
+	return *this;
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+/*===========================================================================================================
+ *    해당 사원수에 주어진 스칼라를 곱합니다....
+ *=============*/
+hyunwoo::Quaternion hyunwoo::Quaternion::operator *(const float scalar) const
+{
+	return Quaternion((W * scalar), (XYZ * scalar));
+}
+
+hyunwoo::Quaternion& hyunwoo::Quaternion::operator *=(const float scalar)
+{
+	W   *= scalar;
+	XYZ *= scalar;
+	return *this;
+}
+
+
+
+
+
 
 
 
@@ -490,6 +658,48 @@ hyunwoo::Matrix4x4 hyunwoo::Quaternion::GetRotateMatrix() const
 		Vector4::BasisW
 	};
 }
+
+
+
+
+
+
+
+
+
+
+
+/*================================================================================================
+ *    해당 사원수를 정규화한 사원수를 얻습니다....
+ *============*/
+const hyunwoo::Quaternion hyunwoo::Quaternion::GetNormalized() const
+{
+	float size = GetMagnitude();
+	if (size == 0.f) return Quaternion::Identity;
+
+	const float size_div = (1.f / GetMagnitude());
+	return Quaternion(
+		(W * size_div),
+		(XYZ * size_div)
+	);
+}
+
+void hyunwoo::Quaternion::Normalized()
+{
+	const float size = GetMagnitude();
+	if (size == 0.f) {
+		operator=(Quaternion::Identity);
+		return;
+	}
+
+	const float size_div = (1.f / GetMagnitude());
+	W   *= size_div;
+	XYZ *= size_div;
+}
+
+
+
+
 
 
 

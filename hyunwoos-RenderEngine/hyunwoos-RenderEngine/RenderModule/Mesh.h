@@ -161,6 +161,9 @@ struct hyunwoo::Bone
 	int32_t    Parent_BoneIdx;
 	WStringKey Name;
 	Pose	   BindingPose;
+
+	bool    useFixedAxis = false;
+	Vector3 FixedAxis;
 };
 
 

@@ -4,10 +4,21 @@
 namespace hyunwoo {
 	struct CurveVariant;
 
+	struct ConstantCurve;
 	struct LinearBezierCurve;
 	struct QuadraticBezierCurve;
 	struct CubicBezierCurve;
 }
+
+
+/*===========================================================================================================================================
+ *    고정된 상수값을 반환하는 커브입니다....
+ ************/
+struct hyunwoo::ConstantCurve final
+{
+	float Yvalue;
+};
+
 
 /*===========================================================================================================================================
  *    1차 베지어 곡선이 구현된 커브입니다...
@@ -58,8 +69,9 @@ public:
 	 *******/
 	enum class VariantType : uint32_t
 	{
+		Constant,
 		Linear_Bazier,
-		Constant_Bazier,
+		Quadratic_Bazier,
 		Cubic_Bezier
 	};
 
@@ -71,6 +83,7 @@ public:
 	VariantType Type = VariantType::Linear_Bazier;
 
 	union {
+		ConstantCurve        Constant;
 		LinearBezierCurve	 LinearBezier;
 		QuadraticBezierCurve QuadraticBezier;
 		CubicBezierCurve	 CubicBezier;

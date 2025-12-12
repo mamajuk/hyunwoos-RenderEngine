@@ -50,7 +50,7 @@ hyunwoo::Vector2 hyunwoo::Renderer::ScreenToWorld(const hyunwoo::Vector2& screen
      *******/
     return Vector2(
         (screenPos.x - vp.RenderTarget.GetBackBufferWidthf() * .5f),
-        (screenPos.y - vp.RenderTarget.GetBackBufferHeightf() * .5f)
+        -(screenPos.y - vp.RenderTarget.GetBackBufferHeightf() * .5f)
     );
 }
 

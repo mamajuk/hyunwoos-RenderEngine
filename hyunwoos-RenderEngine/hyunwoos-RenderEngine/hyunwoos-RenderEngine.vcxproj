@@ -129,6 +129,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="AnimationModule\AnimateMesh.cpp" />
     <ClCompile Include="EngineModule\RenderMesh.cpp" />
     <ClCompile Include="EngineModule\InputManager.cpp" />
     <ClCompile Include="EngineModule\RenderEngine.cpp" />
@@ -191,6 +192,8 @@
     <Image Include="Resources\anbo\Texture\脸.png" />
     <Image Include="Resources\anbo\Texture\衣服.png" />
     <Image Include="Resources\anbo\Texture\表情.png" />
+    <Image Include="Resources\dolphin\dolphin preview.bmp" />
+    <Image Include="Resources\dolphin\grey.png" />
     <Image Include="Resources\feixieer\hair.png" />
     <Image Include="Resources\feixieer\skin.png" />
     <Image Include="Resources\feixieer\tex\发.png" />
@@ -227,16 +230,21 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="Resources\anbo\anbo.pmx" />
+    <None Include="Resources\dolphin\dolphin mmd_tools.pmx" />
+    <None Include="Resources\dolphin\dolphin swimming  mmd_tools.vmd" />
     <None Include="Resources\feixieer\feixieer.pmx" />
     <None Include="Resources\lisha\Catwalk.vmd" />
     <None Include="Resources\lisha\lisha.pmx" />
     <None Include="Resources\Minecraft\Alex_1.8.pmx" />
     <None Include="Resources\Minecraft\Steve_1.8.pmx" />
     <None Include="Resources\Minecraft\Steve_old.pmx" />
+    <None Include="Resources\Paymon\Paimon Idle Motion.vmd" />
+    <None Include="Resources\Paymon\Paimon oi animation.vmd" />
     <None Include="Resources\Paymon\paymon.pmx" />
     <None Include="Resources\steve\steve.pmx" />
   </ItemGroup>
   <ItemGroup>
+    <Text Include="Resources\dolphin\dolphin readme.txt" />
     <Text Include="Resources\feixieer\readme【一定要看】.txt" />
     <Text Include="할일리스트.txt" />
   </ItemGroup>

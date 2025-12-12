@@ -287,7 +287,7 @@ LRESULT hyunwoo::RenderEngine::WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARA
 			KeyState& state = engine.m_inputManager.GetKeyState(KeyCode::Right_Mouse);
 
 			engine.m_inputManager.SetMouseScreenPosition(Vector2(
-				GET_X_LPARAM(lParam), GET_X_LPARAM(lParam))
+				GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam))
 			);
 
 			if (state.IsInProgress == false) {
@@ -307,7 +307,7 @@ LRESULT hyunwoo::RenderEngine::WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARA
 			KeyState& state = engine.m_inputManager.GetKeyState(KeyCode::Right_Mouse);
 
 			engine.m_inputManager.SetMouseScreenPosition(Vector2(
-				GET_X_LPARAM(lParam), GET_X_LPARAM(lParam))
+				GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam))
 			);
 
 			state.IsInProgress = false;

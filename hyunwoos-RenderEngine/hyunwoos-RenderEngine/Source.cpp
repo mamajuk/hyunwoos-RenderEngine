@@ -17,6 +17,7 @@
 #include "AnimationModule/AnimationClip.h"
 #include "GeometryModule/Curve.h"
 #include "UtilityModule/StringKey.h"
+#include "AnimationModule/AnimateMesh.h"
 using namespace hyunwoo;
 using KeyCode = hyunwoo::InputManager::KeyCode;
 
@@ -88,8 +89,8 @@ protected:
 			renderer.DrawTriangleNormal = !renderer.DrawTriangleNormal;
 		}
 
-		//Example15_DrawRenderMesh(deltaTime);
-		Example17_BazierTest(deltaTime);
+		//Example18_CCDIK_Test(deltaTime);
+		Example15_DrawRenderMesh(deltaTime);
 		Example1_ShowInfo(deltaTime);
 	}
 
@@ -2015,20 +2016,26 @@ private:
 		
 		static bool showBones = false;
 		static bool	isInit    = false;
+		static bool playAnim = false;
 
-		static Camera	  cam;
-		static RenderMesh renderMesh;
+		static Camera	   cam;
+		static AnimateMesh renderMesh;
 
 		static WStringKey		  control_name;
 		static WeakPtr<Transform> control_tr;
 
+		static WeakPtr<Transform> from_tr;
+		static WeakPtr<Transform> to_tr;
+
 		static WeakPtr<Transform> cam_tr;
 		static WeakPtr<Transform> mesh_tr;
 
-		static Mesh					  mesh;
-		static std::vector<Material>  mats;
-		static std::vector<Texture2D> texs;
-		static AnimationClip		  clip;
+		static Mesh					     mesh;
+		static PmxImporter::IKDescriptor pmx_ikDesc;
+		static std::vector<Material>     mats;
+		static std::vector<Texture2D>    texs;
+		static std::vector<Quaternion>   init_localRots;
+		static AnimationClip		     clip;
 
 
 		/********************************************************************************
@@ -2046,9 +2053,10 @@ private:
 			storage_desc.OutMesh      = &mesh;
 			storage_desc.OutMaterials = &mats;
 			storage_desc.OutTextures  = &texs;
+			storage_desc.OutIKDesc    = &pmx_ikDesc;
 
 			PmxImporter::ImportResult pmx_ret;
-			if ((pmx_ret = PmxImporter::Import(storage_desc, L"Resources/steve/steve.pmx")).Success == false) {
+			if ((pmx_ret = PmxImporter::Import(storage_desc, L"Resources/lisha/lisha.pmx")).Success == false) {
 				throw "Pmx import failed!!";
 			}
 
@@ -2060,7 +2068,7 @@ private:
 			 *   AnimationClip 리소스를 로드한다...
 			 **********/
 			VmdImporter::ImportResult vmd_ret;
-			if ((vmd_ret = VmdImporter::Import(clip, L"Resources/lisha/Catwalk.vmd")).Success == false) {
+			if ((vmd_ret = VmdImporter::Import(clip, mesh, L"Resources/lisha/Catwalk.vmd")).Success == false) {
 				throw "Vmd import failed!!!";
 			}
 
@@ -2080,6 +2088,7 @@ private:
 			/*-----------------------------------------------------------
 			 *   트랜스폼 컴포넌트들을 초기화하고, 적절한 트랜스폼에 부착한다..
 			 ********/
+			renderMesh.SetCurrentClip(&clip);
 			renderMesh.SetMesh(&mesh);
 			
 			for (uint32_t i = 0; i < mats.size(); i++) {
@@ -2096,6 +2105,17 @@ private:
 			cam.Far = 200.f;
 
 
+			/*----------------------------------------------------------
+			 *   모든 본들의 초기 회전값을 기록해둔다...
+			 ********/
+			init_localRots.resize(mesh.Bones.size());
+
+			for (uint32_t i = 0; i < mesh.Bones.size(); i++) {
+				init_localRots[i] = renderMesh.GetBoneTransformAt(i)->GetLocalRotation();
+			}
+
+			//mesh_tr->SetLocalRotation(Quaternion::Euler(180.f, 0.f, 0.f) * mesh_tr->GetLocalRotation());
+
 			/*-------------------------------------------------------
 			 *   뷰포트를 초기화한다...
 			 ********/
@@ -2107,6 +2127,9 @@ private:
 		/********************************************************************************
 		 *   선택한 트랜스폼을 제어한다....
 		 *******/
+
+		//카메라의 fov를 조절한다...
+		cam.Fov += input.GetAxis(KeyCode::NUMPAD_6, KeyCode::NUMPAD_9);
 
 		//랜더메시를 조작 대상으로 선택한다...
 		if (input.WasPressedThisFrame(KeyCode::Num_0)) {
@@ -2131,6 +2154,30 @@ private:
 			showBones = !showBones;
 		}
 
+		//애니메이션을 재생한다...
+		if (input.WasPressedThisFrame(KeyCode::P)) {
+			playAnim = !playAnim;
+		}
+
+		//from대상을 지정한다...
+		if (input.WasPressedThisFrame(KeyCode::F7)) {
+			Transform* raw = from_tr.Get();
+			if (raw == nullptr) {
+				from_tr = control_tr;
+			}
+
+			else from_tr = nullptr;
+		}
+
+		//to대상을 지정한다...
+		if (input.WasPressedThisFrame(KeyCode::F8)) {
+			Transform* raw = to_tr.Get();
+			if (raw == nullptr) {
+				to_tr = control_tr;
+			}
+
+			else to_tr = nullptr;
+		}
 
 
 		/********************************************************************************
@@ -2167,10 +2214,253 @@ private:
 		/********************************************************************************
 		 *   랜더메시를 뷰포트의 백버퍼에 그린다....
 		 *******/
+		if (playAnim) {
+			renderMesh.Update(scaleSpeedSec);
+		}
+
+
+
+
+		/*******************************************************************************
+		 *   From Transform이 To Transform을 바라보도록 업데이트한다....
+		 *********/
+		Transform* from_raw = from_tr.Get();
+		Transform* to_raw   = to_tr.Get();
+
+		if (from_raw!=nullptr && to_raw!=nullptr && from_raw!=to_raw) {
+			Transform* dir_tr = from_raw->GetChildAt(0);
+
+			if (dir_tr!=nullptr) {
+				const Vector3 from_dir   = (dir_tr->GetWorldPosition() - from_raw->GetWorldPosition()).GetNormalized();
+				const Vector3 fromTo_dir = (to_raw->GetWorldPosition() - from_raw->GetWorldPosition()).GetNormalized();
+
+				from_raw->SetWorldRotation((Quaternion::FromTo(from_dir, fromTo_dir)* from_raw->GetWorldRotation()).GetNormalized());
+			}
+		}
+
+
+		/**************************************************************************************************************
+		 *   CCD IK를 적용한다....
+		 *********/
+		if (playAnim)
+		{
+			/*****************************************************************************************
+			 *  모든 IK Description을 순회하여, IK를 적용한다....
+			 *******/
+			for (uint32_t i=0; i<pmx_ikDesc.m_infos.size(); i++)
+			{
+				const PmxImporter::IKDescriptor::IKInfo& info = pmx_ikDesc.m_infos[i];
+
+				Transform* ik_tr	  = renderMesh.GetBoneTransformAt(info.ik_bone_idx).Get();
+				Transform* target_tr  = renderMesh.GetBoneTransformAt(info.ik_target_bone_idx).Get();
+
+
+				/*--------------------------------------------------------------------*
+				 *   정해진 반복수만큼, CCD IK를 적용한다...
+				 *******/
+				for (uint32_t j = 0; j < info.ik_loop_count; j++) 
+				{
+					/*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+					 *  목표 위치까지 EndEff가 충분히 가까운 상태라면, 반복은 멈춘다..
+					 *******/
+					const float EndEff2ik_dst = (ik_tr->GetWorldPosition() - target_tr->GetWorldPosition()).GetMagnitude();
+					if (EndEff2ik_dst < std::numeric_limits<float>::epsilon()) {
+						break;
+					}
+
+					for (uint32_t k = 0; k < info.link_count; k++) {
+						const PmxImporter::IKLink& link     = pmx_ikDesc.m_links[info.link_start_idx + k];
+						const Bone&				   link_b   = mesh.Bones[link.Bone_idx];
+						Transform*				   link_tr  = renderMesh.GetBoneTransformAt(link.Bone_idx).Get();
+
+						link_tr->SetLocalRotation(init_localRots[link.Bone_idx]);
+
+						const Vector3 link2EndEffDir = (target_tr->GetWorldPosition() - link_tr->GetWorldPosition()).GetNormalized();
+						const Vector3 link2ikDir     = (ik_tr->GetWorldPosition() - link_tr->GetWorldPosition()).GetNormalized();
+
+
+						 /********************************************************
+						  *   두 벡터 사이의 cos값을 구하기 위해서, 정규화를 해준다...
+						  *   ( 두 벡터의 크기가 1이여야, 내적의 결과가 cos만 남는다.. )
+						  ********/
+						const Vector3& from_normal = link2EndEffDir;
+						const Vector3& to_normal   = link2ikDir;
+
+
+						/*********************************************************
+						 *  from, to 벡터 사이의 cos값에 대응되는 rad값을 구한다.
+						 *  (Acos의 정의역이 -1 ~ 1 사이인데, 부동소수점 오차로 이 범위를
+						 *  벗어날 수도 있기 때문에, Clamp를 통해 값을 제한한다...)
+						 *  그리고 주어진 각도(rad)를 가진 사원수로 벡터를 정상적으로
+						 *  회전시키기위해서, rad값을 절반으로 만들어준다....
+						 ********/
+						const float dot = Math::Clamp(Vector3::Dot(from_normal, to_normal), -1.f, 1.f);
+						const float rad = Math::Min(Math::Acos(dot), info.limit_radian);
+
+						if (rad <= std::numeric_limits<float>::epsilon()) {
+							continue;
+						}
+
+
+						/*********************************************************
+						 *  회전 사원수를 생성하는데 필요한 cos, sin, 회전축을 생성한다.
+						 *  ( 외적의 결과는 항상 노멀 벡터가 아니기에, 정규화를 해준다.. )
+						 ********/
+						const float rad_half = (rad * .5f);
+						const float c	     = Math::Cos(rad_half);
+						const float s		 = Math::Sin(rad_half);
+						Vector3     axis	 = (link_b.useFixedAxis? link_b.FixedAxis:Vector3::Cross(from_normal, to_normal)).GetNormalized();
+
+
+						/*******************************************************
+						 *   두 벡터가 평행하면 회전축은 0벡터다. 하지만 이는
+						 *   180º 회전이다. 따라서 아무 기저 벡터 하나와 외적해도
+						 *   항상 180º 회전이 가능한 회전축을 얻을 수 있다..
+						 ********/
+						if (axis.GetSqrMagnitude() == 0.f) {
+							axis = Vector3::Cross(from_normal, Vector3::Up).GetNormalized();
+
+							if (axis.GetSqrMagnitude() == 0.f) { //새로운 축이 또 평행할 경우의 처리....
+								axis = Vector3::Cross(from_normal, Vector3::Right).GetNormalized();
+							}
+						}
+
+
+						/**********************************************************
+						 *   회전 사원수를 만든 후, 반환한다....
+						 ********/
+						const Quaternion fromTo = Quaternion(c, (axis * s));
+						link_tr->SetWorldRotation((fromTo * link_tr->GetWorldRotation()).GetNormalized());
+
+						if (link.Has_limits) 
+						{
+							#pragma region
+							const PmxImporter::IKAngleLimit& angleLimit = link.AngleLimit;
+							const Vector3					 euler		= Quaternion::ToEuler_XYZ(link_tr->GetLocalRotation());
+
+							const Vector3 limit_rads = Vector3(
+								Math::Clamp(euler.x, angleLimit.Limit_Min.x, angleLimit.Limit_Max.x),
+								Math::Clamp(euler.y, angleLimit.Limit_Min.y, angleLimit.Limit_Max.y),
+								Math::Clamp(euler.z, angleLimit.Limit_Min.z, angleLimit.Limit_Max.z)
+							);
+
+							const Quaternion xEuler = Quaternion::AngleAxis(-(limit_rads.x * Math::Rad2Angle), Vector3::Right);
+							const Quaternion yEuler = Quaternion::AngleAxis(-(limit_rads.y * Math::Rad2Angle), Vector3::Up);
+							const Quaternion zEuler = Quaternion::AngleAxis(-(limit_rads.z * Math::Rad2Angle), Vector3::Back);
+
+							const Quaternion final_euler = (zEuler * yEuler * xEuler);
+							link_tr->SetLocalRotation(final_euler.GetNormalized());
+							#pragma endregion
+						}
+					}
+				}
+			}
+		}
+
+
 		renderer.DrawRenderMesh(renderMesh, GetViewPort());
-		
+
+
+
+
+		static uint32_t info_idx = 0;
+		static int32_t  link_idx = 0;
+
+		PmxImporter::IKDescriptor::IKInfo& info			= pmx_ikDesc.m_infos[info_idx];
+		Transform*						   ik_tr		= renderMesh.GetBoneTransformAt(info.ik_bone_idx).Get();
+		Transform*						   endEffect_tr = renderMesh.GetBoneTransformAt(info.ik_target_bone_idx).Get();
+
+		const Matrix4x4 V = cam.GetViewMatrix();
+		const Matrix4x4 P = cam.GetPerspectiveMatrix(GetViewPort().RenderTarget.GetAspectRatio());
+		const Matrix4x4 PV = (P * V);
+
+		if (input.WasPressedThisFrame(KeyCode::L) && ++info_idx >= pmx_ikDesc.m_infos.size()) {
+			info_idx = 0;
+		}
+
+		if (input.IsInProgress(KeyCode::M)) {
+			const PmxImporter::IKLink& link	   = pmx_ikDesc.m_links[info.link_start_idx + link_idx];
+			const Bone&				   link_b  = mesh.Bones[link.Bone_idx];
+			Transform*				   link_tr = renderMesh.GetBoneTransformAt(link.Bone_idx).Get();
+
+			const Vector3 link2EndEff_dir = (endEffect_tr->GetWorldPosition() - link_tr->GetWorldPosition()).GetNormalized();
+			const Vector3 link2Ik_dir     = (ik_tr->GetWorldPosition() - link_tr->GetWorldPosition()).GetNormalized();
+
+			const Quaternion fromTo = Quaternion::FromTo(link2EndEff_dir, link2Ik_dir);
+			link_tr->SetWorldRotation((fromTo * link_tr->GetWorldRotation()).GetNormalized());
+
+			if (link.Has_limits) {
+
+				#pragma region
+				const PmxImporter::IKAngleLimit& angleLimit = link.AngleLimit;
+				const Quaternion				 link_q = (link_tr->GetLocalRotation()).GetNormalized();
+				const Vector3					 euler = Quaternion::ToEuler_XYZ(link_q);
+
+				const Vector3 limit_rads = Vector3(
+					Math::Clamp(euler.x, angleLimit.Limit_Min.x, angleLimit.Limit_Max.x),
+					Math::Clamp(euler.y, angleLimit.Limit_Min.y, angleLimit.Limit_Max.y),
+					Math::Clamp(euler.z, angleLimit.Limit_Min.z, angleLimit.Limit_Max.z)
+				);
+
+				const Quaternion xEuler = Quaternion::AngleAxis(-(limit_rads.x * Math::Rad2Angle), Vector3::Right);
+				const Quaternion yEuler = Quaternion::AngleAxis(-(limit_rads.y * Math::Rad2Angle), Vector3::Up);
+				const Quaternion zEuler = Quaternion::AngleAxis(-(limit_rads.z * Math::Rad2Angle), Vector3::Back);
+				const Quaternion final_euler = (zEuler * yEuler * xEuler);
+
+				link_tr->SetLocalRotation(final_euler.GetNormalized());
+				#pragma endregion
+			}
+
+			if (++link_idx >= info.link_count) {
+				link_idx = 0;
+			}
+		}
+
+		const Vector2 ef_screenPos  = renderer.NDCToScreen(renderer.ClipToNDC((PV * endEffect_tr->GetWorldPosition())), GetViewPort());
+		const Vector2 ef_screenPos2 = (ef_screenPos + Vector2::Right * 100.f);
+
+		renderer.DrawLine(Color::Green, ef_screenPos, ef_screenPos2, GetViewPort());
+		renderer.DrawTextField(w$(L"(Target)(F7)", mesh.Bones[info.ik_target_bone_idx].Name.GetView().data()), ef_screenPos2, GetViewPort());
+
+		static int32_t* idx_ref = &link_idx;
+		if (input.WasPressedThisFrame(KeyCode::F7)) {
+			idx_ref = &info.ik_target_bone_idx;
+		}
+
+
+		const Vector2 ik_screenPos  = renderer.NDCToScreen(renderer.ClipToNDC((PV * ik_tr->GetWorldPosition())), GetViewPort());
+		const Vector2 ik_screenPos2 = (ik_screenPos + Vector2::Left * 300.f);
+
+		renderer.DrawLine(Color::Blue, ik_screenPos, ik_screenPos2, GetViewPort());
+		renderer.DrawTextField(w$(L"(ik)", mesh.Bones[info.ik_bone_idx].Name.GetView().data()), ik_screenPos2, GetViewPort());
+
+
+		for (uint32_t i = 0; i < info.link_count; i++)
+		{
+			PmxImporter::IKLink& link	 = pmx_ikDesc.m_links[info.link_start_idx + i];
+			const Bone&			 link_b  = mesh.Bones[link.Bone_idx];	
+			Transform*			 link_tr = renderMesh.GetBoneTransformAt(link.Bone_idx).Get();
+
+			const Vector2 screenPos  = renderer.NDCToScreen(renderer.ClipToNDC((PV * link_tr->GetWorldPosition())), GetViewPort());
+			const Vector2 screenPos2 = (screenPos + Vector2::Right * 100.f);
+
+			renderer.DrawLine(Color::Green, screenPos, screenPos2, GetViewPort());
+			renderer.DrawTextField(w$(
+				L"(F", (i+1), L")[", i,L"]", mesh.Bones[link.Bone_idx].Name.GetView().data(),
+				L"\nangleLimits(", link.Has_limits, L"): min(", link.AngleLimit.Limit_Min, L")/ max(", link.AngleLimit.Limit_Max, L")",
+				L"\nfixed_axis(", link_b.useFixedAxis, L"): ", link_b.FixedAxis),
+				screenPos2, 
+				GetViewPort()
+			);
+
+			const KeyCode keyCode = KeyCode(int(KeyCode::F1) + i);
+			if (input.WasPressedThisFrame(keyCode)) {
+				idx_ref = &link.Bone_idx;
+			}
+		}
+
 		if (showBones) {
-			Example16_ShowBoneTransforms(renderMesh, control_tr, control_name);
+			Example16_ShowBoneTransforms(renderMesh, control_tr, control_name, idx_ref);
 		}
 		
 
@@ -2179,13 +2469,18 @@ private:
 		 *   디버그 출력...
 		 *******/
 		renderer.DrawTextField(w$(
-			L"control transform name: ", control_name.GetView().data(),
+			L"cam: ( near: ", cam.Near, L"/ far: ", cam.Far, L"/ fov: ", cam.Fov, L")",
+			L"\ninfo_idx: (", info_idx, L"/", pmx_ikDesc.m_infos.size()-1, L")",
+			L"\nlink_idx: (", link_idx, L"/", info.link_count-1, L")",
+			L"\n\ncontrol transform name: ", control_name.GetView().data(),
 			L"\n\nlocal_pos: ", control_tr_raw->GetLocalPosition(),
 			L"\nlocal_rot: ", control_tr_raw->GetLocalRotation(),
 			L"\nlocal_scale: ", control_tr_raw->GetLocalScale(),
 			L"\n\nworld_pos: ", control_tr_raw->GetWorldPosition(),
 			L"\nworld_rot: ", control_tr_raw->GetWorldRotation(),
-			L"\nworld_scale: ", control_tr_raw->GetWorldScale()),
+			L"\nworld_scale: ", control_tr_raw->GetWorldScale(),
+			L"\nAnim time: ", renderMesh.GetNormalizedTime(),
+			L"\nfrom(F7) / to(F8)"),
 			Vector2Int(0, 300), 
 			GetViewPort()
 		);
@@ -2193,7 +2488,7 @@ private:
 		#pragma endregion
 	}
 
-	void Example16_ShowBoneTransforms(const RenderMesh& renderMesh, WeakPtr<Transform>& control_tr, WStringKey& control_name)
+	void Example16_ShowBoneTransforms(const RenderMesh& renderMesh, WeakPtr<Transform>& control_tr, WStringKey& control_name, int32_t* link_idx)
 	{
 		#pragma region
 		/********************************************************************
@@ -2226,9 +2521,9 @@ private:
 		/********************************************************************
 		 *   각 본들을 랜더링한다....
 		 ********/
-		const uint32_t bone_count = mesh->Bones.size();
+		const int32_t bone_count = mesh->Bones.size();
 
-		for (uint32_t boneIdx = 0; boneIdx < bone_count; boneIdx++) {
+		for (int32_t boneIdx = 0; boneIdx < bone_count; boneIdx++) {
 
 			const Bone& bone   = mesh->Bones[boneIdx];
 			Transform* bone_tr = renderMesh.GetBoneTransformAt(boneIdx).Get();
@@ -2285,6 +2580,22 @@ private:
 				if (checkUp && checkDown) {
 					control_tr = bone_tr;
 					control_name = bone.Name;
+				}
+			}
+
+			if (input.WasPressedThisFrame(KeyCode::Right_Mouse)) {
+				const Vector2 mpos = input.GetMouseScreenPosition();
+
+				bool checkUp   = (mpos.x > sp1.x && mpos.x < sp2.x) && (mpos.y > sp1.y && mpos.y > sp2.y);
+				bool checkDown = (mpos.x > sp3.x && mpos.x < sp4.x) && (mpos.y < sp3.y && mpos.y < sp4.y);
+
+				//해당 본의 버튼을 클릭했는가?
+				if (checkUp && checkDown) {
+					//const Vector3 control2bone_dir = (bone_pos - control_tr->GetWorldPosition()).GetNormalized();
+					//const Vector3 control_dir      = (control_tr->GetChildAt(0)->GetWorldPosition() - control_tr->GetWorldPosition()).GetNormalized();
+
+					*link_idx = boneIdx;
+					//control_tr->SetWorldRotation(Quaternion::FromTo(control_dir, control2bone_dir) * control_tr->GetWorldRotation());
 				}
 			}
 
@@ -2490,6 +2801,245 @@ private:
 			Vector2Int(0,300),
 			GetViewPort()
 		);
+
+		#pragma endregion
+	}
+
+	void Example18_CCDIK_Test(float deltaTime)
+	{
+		#pragma region
+		Renderer&			renderer = GetRenderer();
+		const InputManager& input    = GetInputManager();
+
+		static bool							   isInit     = false;
+		static const float					   interval   = 150.f;
+		static const uint32_t				   link_count = 2;
+		static std::vector<WeakPtr<Transform>> links;
+		static std::vector<Texture2D>		   texs;
+
+		/***********************************************************************
+		 *   초기화를 진행한다....
+		 *******/
+		if (isInit==false) {
+
+			isInit = true;
+
+			/*-------------------------------------
+			 *  루트 본을 초기화한다....
+			 ******/
+			Transform* root = Transform::CreateTransform();
+			root->SetWorldPosition(Vector3::Zero);
+			links.push_back(root);
+
+
+			/*-------------------------------------
+			 *  자식 본들을 초기화한다....
+			 ******/
+			Vector3			   initPos = Vector3::Zero;
+			WeakPtr<Transform> parent  = root;
+			for (uint32_t i = 0; i < link_count; i++) {
+				Transform* new_tr = Transform::CreateTransform();
+				new_tr->SetWorldPosition(initPos+=Vector3(interval, 0.f));
+				new_tr->SetParent(parent.Get());
+				links.push_back(new_tr);
+
+				parent = new_tr;
+			}
+
+			/*-------------------------------------
+			 *  텍스쳐들을 불러온다...
+			 ******/
+			PngImporter::ImportResult png_ret = PngImporter::Imports(texs, {
+				L"Resources/zero.png",
+				L"Resources/one.png",
+				L"Resources/two.png",
+				L"Resources/three.png",
+				L"Resources/four.png",
+				L"Resources/five.png",
+				L"Resources/six.png",
+			});
+
+			if (png_ret.Success==false) {
+				throw L"png load faild!!!";
+			}
+		}
+
+
+		/************************************************************************
+		 *    클릭한 지점을 EndEffect가 위치할 지점으로 설정한다...
+		 **********/
+		static Vector2 ik_pos = Vector2::Zero;
+		if (input.WasPressedThisFrame(KeyCode::Left_Mouse)) {
+			ik_pos = input.GetMouseScreenPosition();
+		}
+
+
+
+
+		/*************************************************************************
+		 *    스페이스바를 누를 때마다, 한 링크 본에 대한, CCD IK를 실행한다...
+		 **********/
+		static int32_t ccd_idx = (links.size() - 2);
+		if (input.IsInProgress(KeyCode::Space) || input.WasPressedThisFrame(KeyCode::X))
+		{
+			Transform* from   = links[ccd_idx].Get();
+			Transform* endEff = links[links.size() - 1].Get();
+
+			const Vector3 ik_worldPos = renderer.ScreenToWorld(ik_pos, GetViewPort());
+			const Vector3 fromToDir   = (endEff->GetWorldPosition() - from->GetWorldPosition()).GetNormalized();
+			const Vector3 fromToikDir = (ik_worldPos - from->GetWorldPosition()).GetNormalized();
+
+			const Quaternion fromTo = Quaternion::FromTo(fromToDir, fromToikDir);
+			from->SetWorldRotation((fromTo * from->GetWorldRotation()).GetNormalized());
+
+			if (--ccd_idx < 0) {
+				ccd_idx = (links.size() - 2);
+			}
+		}
+
+
+
+		/****************************************************************************
+		 *  모든 본들을 표시한다....
+		 ********/
+		const float    offset   = 20.f;
+		const float    offset_t = 25.f;
+		const uint32_t last_idx = links.size() - 1;
+
+		const Vector3 leftTop     = Vector3(-1.f, 1.f);
+		const Vector3 rightTop    = Vector3(1.f, 1.f);
+		const Vector3 leftBottom  = Vector3(-1.f, -1.f);
+		const Vector3 rightBottom = Vector3(1.f, -1.f);
+
+		const Vector3 uv_leftTop     = Vector3(0.f, 0.f);
+		const Vector3 uv_leftBottom  = Vector3(0.f, 1.f);
+		const Vector3 uv_rightTop    = Vector3(1.f, 0.f);
+		const Vector3 uv_rightBottom = Vector3(1.f, 1.f);
+
+		static std::wstring final_str;
+		final_str.clear();
+
+		Renderer::TriangleDescription triangle_desc;
+		for (uint32_t i = 0; i < links.size(); i++) 
+		{
+			Transform*    tr	   = links[i].Get();
+			const Vector3 worldPos = tr->GetWorldPosition();
+
+			const Vector2 screenPos_leftTop     = renderer.WorldToScreen((worldPos + (leftTop * offset)), GetViewPort());
+			const Vector2 screenPos_leftBottom  = renderer.WorldToScreen((worldPos + (leftBottom * offset)), GetViewPort());
+			const Vector2 screenPos_rightTop    = renderer.WorldToScreen((worldPos + (rightTop * offset)), GetViewPort());
+			const Vector2 screenPos_rightBottom = renderer.WorldToScreen((worldPos + (rightBottom * offset)), GetViewPort());
+
+			const Vector2 screenPos_leftTop_t  = renderer.WorldToScreen((worldPos + (leftTop * offset_t)), GetViewPort());
+			const Vector2 screenPos_leftBottom_t  = renderer.WorldToScreen((worldPos + (leftBottom * offset_t)), GetViewPort());
+			const Vector2 screenPos_rightTop_t    = renderer.WorldToScreen((worldPos + (rightTop * offset_t)), GetViewPort());
+			const Vector2 screenPos_rightBottom_t = renderer.WorldToScreen((worldPos + (rightBottom * offset_t)), GetViewPort());
+
+			final_str += (const std::wstring&)w$(L"[", i, L"]-------------\n-localPos: ", tr->GetLocalPosition(), L"\n-localScale: ", tr->GetLocalScale(), L"\n-localRot: ", tr->GetLocalRotation(), L"\n\n");
+
+
+			/*------------------------------------------------------
+			 *  링크 사이간 선을 그린다....
+			 ******/
+			if (i != last_idx) {
+				Transform* child = tr->GetChildAt(0);
+
+				const Vector2 screenPos_begin = renderer.WorldToScreen(worldPos, GetViewPort());
+				const Vector2 screenPos_end = renderer.WorldToScreen(child->GetWorldPosition(), GetViewPort());
+				renderer.DrawLine(Color::Red, screenPos_begin, screenPos_end, GetViewPort());
+			}
+
+			/*----------------------------------------------------
+			 *  현재 CCD IK가 적용된 링크일 경우의 처리..
+			 *******/
+			if (i == ccd_idx) {
+				renderer.DrawLine(Color::Red, screenPos_leftTop, screenPos_rightTop, GetViewPort());
+				renderer.DrawLine(Color::Red, screenPos_leftTop, screenPos_leftBottom, GetViewPort());
+				renderer.DrawLine(Color::Red, screenPos_rightTop, screenPos_rightBottom, GetViewPort());
+				renderer.DrawLine(Color::Red, screenPos_leftBottom, screenPos_rightBottom, GetViewPort());
+
+				/*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+				 *  첫번째 테두리 삼각형을 그린다...
+				 ******/
+				triangle_desc.MappedTexture = nullptr;
+				triangle_desc.FillUpColor   = Color::Red;
+				triangle_desc.SetScreenPositions(screenPos_leftTop_t, screenPos_leftBottom_t, screenPos_rightTop_t);
+				triangle_desc.SetUvPositions(uv_leftTop, uv_leftBottom, uv_rightTop);
+				renderer.DrawTriangle(triangle_desc, GetViewPort());
+
+				/*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+				 *  두번째 테두리 삼각형을 그린다...
+				 ******/
+				triangle_desc.SetScreenPositions(screenPos_rightTop_t, screenPos_leftBottom_t, screenPos_rightBottom_t);
+				triangle_desc.SetUvPositions(uv_rightTop, uv_leftBottom, uv_rightBottom);
+				renderer.DrawTriangle(triangle_desc, GetViewPort());
+
+				/*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+				 *  ik, endEff까지의 선을 긋는다..
+				 ******/
+				Transform* endEff_tr = links[links.size() - 1].Get();
+				
+				const Vector3 screenPos        = renderer.WorldToScreen(worldPos, GetViewPort());
+				const Vector3 endEff_screenPos = renderer.WorldToScreen(endEff_tr->GetWorldPosition(), GetViewPort());
+
+				renderer.DrawLine(Color::Blue, ik_pos, screenPos, GetViewPort());
+				renderer.DrawLine(Color::Green, endEff_screenPos, screenPos, GetViewPort());
+			}
+			
+
+			/*------------------------------------------------------
+			 *  첫번째 삼각형을 그린다...
+			 ******/
+			triangle_desc.MappedTexture = &texs[i];
+			triangle_desc.SetScreenPositions(screenPos_leftTop, screenPos_leftBottom, screenPos_rightTop);
+			triangle_desc.SetUvPositions(uv_leftTop, uv_leftBottom, uv_rightTop);
+			renderer.DrawTriangle(triangle_desc, GetViewPort());
+
+			/*--------------------------------------------------------
+			 *  두번째 삼각형을 그린다...
+			 ******/
+			triangle_desc.SetScreenPositions(screenPos_rightTop, screenPos_leftBottom, screenPos_rightBottom);
+			triangle_desc.SetUvPositions(uv_rightTop, uv_leftBottom, uv_rightBottom);
+			renderer.DrawTriangle(triangle_desc, GetViewPort());
+		}
+
+
+
+
+		/********************************************************************************
+		 *   EndEffect가 위치해야할 최종 위치를 그린다...
+		 *******/
+		const float ik_offset = 10.f;
+
+		const Vector2 ikpos_leftTop     = ik_pos + Vector2(-ik_offset, -ik_offset);
+		const Vector2 ikpos_leftBottom  = ik_pos + Vector2(-ik_offset, ik_offset);
+		const Vector2 ikpos_rightTop    = ik_pos + Vector2(ik_offset, -ik_offset);
+		const Vector2 ikpos_rightBottom = ik_pos + Vector2(ik_offset, ik_offset);
+
+		triangle_desc.FillUpColor   = Color::Blue;
+		triangle_desc.MappedTexture = nullptr;
+
+		/*-------------------------------------
+		 *   첫번째 삼각형을 그린다...
+		 *********/
+		triangle_desc.SetScreenPositions(ikpos_leftTop, ikpos_leftBottom, ikpos_rightTop);
+		triangle_desc.SetUvPositions(uv_leftTop, uv_leftBottom, uv_rightTop);
+		renderer.DrawTriangle(triangle_desc, GetViewPort());
+
+		/*------------------------------------
+		 *   두번째 삼각형을 그린다...
+		 *********/
+		triangle_desc.SetScreenPositions(ikpos_rightTop, ikpos_leftBottom, ikpos_rightBottom);
+		triangle_desc.SetUvPositions(uv_rightTop, uv_leftBottom, uv_rightBottom);
+		renderer.DrawTriangle(triangle_desc, GetViewPort());
+
+
+
+		/*********************************************************************************
+		 *   디버그 출력....
+		 ********/
+		renderer.DrawTextField(final_str, Vector3(0.f, 300.f), GetViewPort());
+
 
 		#pragma endregion
 	}

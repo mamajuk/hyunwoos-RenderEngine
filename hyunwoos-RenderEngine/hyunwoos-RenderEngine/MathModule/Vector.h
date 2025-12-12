@@ -69,7 +69,10 @@ struct hyunwoo::Vector2
 
 	void Normalized() {
 		const float size = GetMagnitude();
-		if (size == 0.0f) return;;
+		if (size == 0.0f) {
+			operator=(Vector2::Zero);
+			return;
+		}
 
 		const float invSize = (1.f / size);
 		x *= invSize;
@@ -205,7 +208,11 @@ struct hyunwoo::Vector2Int
 
 	void Normalized() {
 		const float size = GetMagnitude();
-		if (size == 0.0f) return;;
+
+		if (size == 0.0f) {
+			operator=(Vector2Int::Zero);
+			return;
+		}
 
 		x /= size;
 		y /= size;
@@ -352,7 +359,7 @@ struct hyunwoo::Vector3
 
 	const Vector3 GetNormalized() const 
 	{
-		const float size = GetMagnitude();
+		float size = GetMagnitude();
 		if (size == 0.0f) return Vector3::Zero;
 
 		const float invSize = (1.f / size);
@@ -361,8 +368,12 @@ struct hyunwoo::Vector3
 
 	void Normalized() 
 	{
-		const float size = GetMagnitude();
-		if (size == 0.0f) return;
+		float size = GetMagnitude();
+
+		if (size == 0.0f) {
+			operator=(Vector3::Zero);
+			return;
+		}
 
 		const float invSize = (1.f / size);
 		x *= invSize;
@@ -522,7 +533,10 @@ struct hyunwoo::Vector3Int
 
 	void Normalized() {
 		const int size = GetMagnitude();
-		if (size == 0) return;
+		if (size == 0) {
+			operator=(Vector3Int::Zero);
+			return;
+		}
 
 		x /= size;
 		y /= size;
@@ -674,7 +688,10 @@ struct hyunwoo::Vector4
 
 	void Normalized() {
 		const float size = GetMagnitude();
-		if (size == 0.0f) return;
+		if (size == 0.0f) {
+			operator=(Vector4::Zero);
+			return;
+		}
 
 		const float invSize = (1.f / size);
 		x *= invSize;
@@ -831,7 +848,11 @@ struct hyunwoo::Vector4Int
 
 	void Normalized() {
 		const int size = GetMagnitude();
-		if (size == 0) return;
+
+		if (size == 0) {
+			operator=(Vector4Int::Zero);
+			return;
+		}
 
 		x /= size;
 		y /= size;

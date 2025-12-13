@@ -42,6 +42,7 @@ uint32_t hyunwoo::RenderMesh::GetBoneTransformCount() const
 
 
 
+
 /*=======================================================================================================================================================
  *    해당 RenderMesh가 랜더링 될 때 사용할 Bone Transform을 얻습니다.....
  ***********/
@@ -200,9 +201,9 @@ void hyunwoo::RenderMesh::CreateBoneTransforms()
 
 			//본 트랜스폼의 월드 데이터를, 바인딩 포즈로 초기화한다...
 			bone_tr->SetWorldPositionAndScaleAndRotation(
-				bone.BindingPose.Position,
-				bone.BindingPose.Scale,
-				bone.BindingPose.Rotation
+				bone.BindingPose.WorldPosition,
+				bone.BindingPose.WorldScale,
+				bone.BindingPose.WorldRotation
 			);
 
 			//부모 본이 존재하는가? 맞다면 부모의 자식으로 추가한다..

@@ -22,7 +22,6 @@ class hyunwoo::RenderEngine
 	/////////							Defines..						//////////
 	//============================================================================
 public:
-
 	/*****************************************
 	 *  엔진의 종료 이유를 저장하는 구조체입니다..
 	 *****/
@@ -65,6 +64,7 @@ public:
 	 *****/
 	int  GetTargetFrameRate() const;
 	void SetTargetFrameRate(int newTargetFrameRate);
+	
 
 
 	/*************************************
@@ -104,7 +104,7 @@ private:
 	/***********************************
 	 *   엔진 코어 모듈 관련 필드...
 	 *****/
-	Renderer     m_renderer;	 //랜더링 기능을 책임지는 모듈입니다...
+	Renderer	 m_renderer;	 //랜더링 기능을 책임지는 모듈입니다...
 	InputManager m_inputManager; //사용자 입력을 책임지는 모듈입니다...
 
 

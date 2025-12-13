@@ -18,6 +18,7 @@
 #include "GeometryModule/Curve.h"
 #include "UtilityModule/StringKey.h"
 #include "AnimationModule/AnimateMesh.h"
+#include "AnimationModule/IK/CCD_IKSolver.h"
 using namespace hyunwoo;
 using KeyCode = hyunwoo::InputManager::KeyCode;
 
@@ -677,9 +678,9 @@ private:
 				Transform& bone_tr = *bone_trs[i].Get();
 
 				bone_tr.SetLocalPositionAndScaleAndRotation(
-					bone_list[i].BindingPose.Position,
-					bone_list[i].BindingPose.Scale,
-					bone_list[i].BindingPose.Rotation
+					bone_list[i].BindingPose.WorldPosition,
+					bone_list[i].BindingPose.WorldScale,
+					bone_list[i].BindingPose.WorldRotation
 				);
 
 				//부모가 존재하는 경우에만...
@@ -2016,25 +2017,21 @@ private:
 		
 		static bool showBones = false;
 		static bool	isInit    = false;
-		static bool playAnim = false;
+		static bool playAnim  = false;
 
-		static Camera	   cam;
-		static AnimateMesh renderMesh;
+		static Camera	    cam;
+		static AnimateMesh  renderMesh;
+		static CCD_IKSolver ccd_ikSolver;
 
 		static WStringKey		  control_name;
 		static WeakPtr<Transform> control_tr;
-
-		static WeakPtr<Transform> from_tr;
-		static WeakPtr<Transform> to_tr;
 
 		static WeakPtr<Transform> cam_tr;
 		static WeakPtr<Transform> mesh_tr;
 
 		static Mesh					     mesh;
-		static PmxImporter::IKDescriptor pmx_ikDesc;
 		static std::vector<Material>     mats;
 		static std::vector<Texture2D>    texs;
-		static std::vector<Quaternion>   init_localRots;
 		static AnimationClip		     clip;
 
 
@@ -2050,10 +2047,10 @@ private:
 			 *   Mesh, Material, Texture 리소스를 로드한다....
 			 ********/
 			PmxImporter::StorageDescription storage_desc;
-			storage_desc.OutMesh      = &mesh;
-			storage_desc.OutMaterials = &mats;
-			storage_desc.OutTextures  = &texs;
-			storage_desc.OutIKDesc    = &pmx_ikDesc;
+			storage_desc.OutMesh        = &mesh;
+			storage_desc.OutMaterials   = &mats;
+			storage_desc.OutTextures    = &texs;
+			storage_desc.OutCCDIKSolver = &ccd_ikSolver;
 
 			PmxImporter::ImportResult pmx_ret;
 			if ((pmx_ret = PmxImporter::Import(storage_desc, L"Resources/lisha/lisha.pmx")).Success == false) {
@@ -2104,16 +2101,6 @@ private:
 			mesh_tr->SetLocalPosition(Vector3(0.f, -3.f, 14.f));
 			cam.Far = 200.f;
 
-
-			/*----------------------------------------------------------
-			 *   모든 본들의 초기 회전값을 기록해둔다...
-			 ********/
-			init_localRots.resize(mesh.Bones.size());
-
-			for (uint32_t i = 0; i < mesh.Bones.size(); i++) {
-				init_localRots[i] = renderMesh.GetBoneTransformAt(i)->GetLocalRotation();
-			}
-
 			//mesh_tr->SetLocalRotation(Quaternion::Euler(180.f, 0.f, 0.f) * mesh_tr->GetLocalRotation());
 
 			/*-------------------------------------------------------
@@ -2159,26 +2146,6 @@ private:
 			playAnim = !playAnim;
 		}
 
-		//from대상을 지정한다...
-		if (input.WasPressedThisFrame(KeyCode::F7)) {
-			Transform* raw = from_tr.Get();
-			if (raw == nullptr) {
-				from_tr = control_tr;
-			}
-
-			else from_tr = nullptr;
-		}
-
-		//to대상을 지정한다...
-		if (input.WasPressedThisFrame(KeyCode::F8)) {
-			Transform* raw = to_tr.Get();
-			if (raw == nullptr) {
-				to_tr = control_tr;
-			}
-
-			else to_tr = nullptr;
-		}
-
 
 		/********************************************************************************
 		 *   선택한 트랜스폼을 제어한다....
@@ -2212,255 +2179,114 @@ private:
 
 
 		/********************************************************************************
-		 *   랜더메시를 뷰포트의 백버퍼에 그린다....
+		 *   애니메이션 적용과 IK를 적용한 후, 뷰포트에 RenderMesh를 랜더링한다...
 		 *******/
 		if (playAnim) {
 			renderMesh.Update(scaleSpeedSec);
+			ccd_ikSolver.ResolveIK(renderMesh);
 		}
-
-
-
-
-		/*******************************************************************************
-		 *   From Transform이 To Transform을 바라보도록 업데이트한다....
-		 *********/
-		Transform* from_raw = from_tr.Get();
-		Transform* to_raw   = to_tr.Get();
-
-		if (from_raw!=nullptr && to_raw!=nullptr && from_raw!=to_raw) {
-			Transform* dir_tr = from_raw->GetChildAt(0);
-
-			if (dir_tr!=nullptr) {
-				const Vector3 from_dir   = (dir_tr->GetWorldPosition() - from_raw->GetWorldPosition()).GetNormalized();
-				const Vector3 fromTo_dir = (to_raw->GetWorldPosition() - from_raw->GetWorldPosition()).GetNormalized();
-
-				from_raw->SetWorldRotation((Quaternion::FromTo(from_dir, fromTo_dir)* from_raw->GetWorldRotation()).GetNormalized());
-			}
-		}
-
-
-		/**************************************************************************************************************
-		 *   CCD IK를 적용한다....
-		 *********/
-		if (playAnim)
-		{
-			/*****************************************************************************************
-			 *  모든 IK Description을 순회하여, IK를 적용한다....
-			 *******/
-			for (uint32_t i=0; i<pmx_ikDesc.m_infos.size(); i++)
-			{
-				const PmxImporter::IKDescriptor::IKInfo& info = pmx_ikDesc.m_infos[i];
-
-				Transform* ik_tr	  = renderMesh.GetBoneTransformAt(info.ik_bone_idx).Get();
-				Transform* target_tr  = renderMesh.GetBoneTransformAt(info.ik_target_bone_idx).Get();
-
-
-				/*--------------------------------------------------------------------*
-				 *   정해진 반복수만큼, CCD IK를 적용한다...
-				 *******/
-				for (uint32_t j = 0; j < info.ik_loop_count; j++) 
-				{
-					/*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-					 *  목표 위치까지 EndEff가 충분히 가까운 상태라면, 반복은 멈춘다..
-					 *******/
-					const float EndEff2ik_dst = (ik_tr->GetWorldPosition() - target_tr->GetWorldPosition()).GetMagnitude();
-					if (EndEff2ik_dst < std::numeric_limits<float>::epsilon()) {
-						break;
-					}
-
-					for (uint32_t k = 0; k < info.link_count; k++) {
-						const PmxImporter::IKLink& link     = pmx_ikDesc.m_links[info.link_start_idx + k];
-						const Bone&				   link_b   = mesh.Bones[link.Bone_idx];
-						Transform*				   link_tr  = renderMesh.GetBoneTransformAt(link.Bone_idx).Get();
-
-						link_tr->SetLocalRotation(init_localRots[link.Bone_idx]);
-
-						const Vector3 link2EndEffDir = (target_tr->GetWorldPosition() - link_tr->GetWorldPosition()).GetNormalized();
-						const Vector3 link2ikDir     = (ik_tr->GetWorldPosition() - link_tr->GetWorldPosition()).GetNormalized();
-
-
-						 /********************************************************
-						  *   두 벡터 사이의 cos값을 구하기 위해서, 정규화를 해준다...
-						  *   ( 두 벡터의 크기가 1이여야, 내적의 결과가 cos만 남는다.. )
-						  ********/
-						const Vector3& from_normal = link2EndEffDir;
-						const Vector3& to_normal   = link2ikDir;
-
-
-						/*********************************************************
-						 *  from, to 벡터 사이의 cos값에 대응되는 rad값을 구한다.
-						 *  (Acos의 정의역이 -1 ~ 1 사이인데, 부동소수점 오차로 이 범위를
-						 *  벗어날 수도 있기 때문에, Clamp를 통해 값을 제한한다...)
-						 *  그리고 주어진 각도(rad)를 가진 사원수로 벡터를 정상적으로
-						 *  회전시키기위해서, rad값을 절반으로 만들어준다....
-						 ********/
-						const float dot = Math::Clamp(Vector3::Dot(from_normal, to_normal), -1.f, 1.f);
-						const float rad = Math::Min(Math::Acos(dot), info.limit_radian);
-
-						if (rad <= std::numeric_limits<float>::epsilon()) {
-							continue;
-						}
-
-
-						/*********************************************************
-						 *  회전 사원수를 생성하는데 필요한 cos, sin, 회전축을 생성한다.
-						 *  ( 외적의 결과는 항상 노멀 벡터가 아니기에, 정규화를 해준다.. )
-						 ********/
-						const float rad_half = (rad * .5f);
-						const float c	     = Math::Cos(rad_half);
-						const float s		 = Math::Sin(rad_half);
-						Vector3     axis	 = (link_b.useFixedAxis? link_b.FixedAxis:Vector3::Cross(from_normal, to_normal)).GetNormalized();
-
-
-						/*******************************************************
-						 *   두 벡터가 평행하면 회전축은 0벡터다. 하지만 이는
-						 *   180º 회전이다. 따라서 아무 기저 벡터 하나와 외적해도
-						 *   항상 180º 회전이 가능한 회전축을 얻을 수 있다..
-						 ********/
-						if (axis.GetSqrMagnitude() == 0.f) {
-							axis = Vector3::Cross(from_normal, Vector3::Up).GetNormalized();
-
-							if (axis.GetSqrMagnitude() == 0.f) { //새로운 축이 또 평행할 경우의 처리....
-								axis = Vector3::Cross(from_normal, Vector3::Right).GetNormalized();
-							}
-						}
-
-
-						/**********************************************************
-						 *   회전 사원수를 만든 후, 반환한다....
-						 ********/
-						const Quaternion fromTo = Quaternion(c, (axis * s));
-						link_tr->SetWorldRotation((fromTo * link_tr->GetWorldRotation()).GetNormalized());
-
-						if (link.Has_limits) 
-						{
-							#pragma region
-							const PmxImporter::IKAngleLimit& angleLimit = link.AngleLimit;
-							const Vector3					 euler		= Quaternion::ToEuler_XYZ(link_tr->GetLocalRotation());
-
-							const Vector3 limit_rads = Vector3(
-								Math::Clamp(euler.x, angleLimit.Limit_Min.x, angleLimit.Limit_Max.x),
-								Math::Clamp(euler.y, angleLimit.Limit_Min.y, angleLimit.Limit_Max.y),
-								Math::Clamp(euler.z, angleLimit.Limit_Min.z, angleLimit.Limit_Max.z)
-							);
-
-							const Quaternion xEuler = Quaternion::AngleAxis(-(limit_rads.x * Math::Rad2Angle), Vector3::Right);
-							const Quaternion yEuler = Quaternion::AngleAxis(-(limit_rads.y * Math::Rad2Angle), Vector3::Up);
-							const Quaternion zEuler = Quaternion::AngleAxis(-(limit_rads.z * Math::Rad2Angle), Vector3::Back);
-
-							const Quaternion final_euler = (zEuler * yEuler * xEuler);
-							link_tr->SetLocalRotation(final_euler.GetNormalized());
-							#pragma endregion
-						}
-					}
-				}
-			}
-		}
-
 
 		renderer.DrawRenderMesh(renderMesh, GetViewPort());
 
 
+		//static uint32_t info_idx = 0;
+		//static int32_t  link_idx = 0;
+
+		//PmxImporter::IKDescriptor::IKInfo& info			= pmx_ikDesc.m_infos[info_idx];
+		//Transform*						   ik_tr		= renderMesh.GetBoneTransformAt(info.ik_bone_idx).Get();
+		//Transform*						   endEffect_tr = renderMesh.GetBoneTransformAt(info.ik_target_bone_idx).Get();
+
+		//const Matrix4x4 V = cam.GetViewMatrix();
+		//const Matrix4x4 P = cam.GetPerspectiveMatrix(GetViewPort().RenderTarget.GetAspectRatio());
+		//const Matrix4x4 PV = (P * V);
+
+		//if (input.WasPressedThisFrame(KeyCode::L) && ++info_idx >= pmx_ikDesc.m_infos.size()) {
+		//	info_idx = 0;
+		//}
+
+		//if (input.IsInProgress(KeyCode::M)) {
+		//	const PmxImporter::IKLink& link	   = pmx_ikDesc.m_links[info.link_start_idx + link_idx];
+		//	const Bone&				   link_b  = mesh.Bones[link.Bone_idx];
+		//	Transform*				   link_tr = renderMesh.GetBoneTransformAt(link.Bone_idx).Get();
+
+		//	const Vector3 link2EndEff_dir = (endEffect_tr->GetWorldPosition() - link_tr->GetWorldPosition()).GetNormalized();
+		//	const Vector3 link2Ik_dir     = (ik_tr->GetWorldPosition() - link_tr->GetWorldPosition()).GetNormalized();
+
+		//	const Quaternion fromTo = Quaternion::FromTo(link2EndEff_dir, link2Ik_dir);
+		//	link_tr->SetWorldRotation((fromTo * link_tr->GetWorldRotation()).GetNormalized());
+
+		//	if (link.Has_limits) {
+
+		//		#pragma region
+		//		const PmxImporter::IKAngleLimit& angleLimit = link.AngleLimit;
+		//		const Quaternion				 link_q = (link_tr->GetLocalRotation()).GetNormalized();
+		//		const Vector3					 euler = Quaternion::ToEuler_XYZ(link_q);
+
+		//		const Vector3 limit_rads = Vector3(
+		//			Math::Clamp(euler.x, angleLimit.Limit_Min.x, angleLimit.Limit_Max.x),
+		//			Math::Clamp(euler.y, angleLimit.Limit_Min.y, angleLimit.Limit_Max.y),
+		//			Math::Clamp(euler.z, angleLimit.Limit_Min.z, angleLimit.Limit_Max.z)
+		//		);
+
+		//		const Quaternion xEuler = Quaternion::AngleAxis(-(limit_rads.x * Math::Rad2Angle), Vector3::Right);
+		//		const Quaternion yEuler = Quaternion::AngleAxis(-(limit_rads.y * Math::Rad2Angle), Vector3::Up);
+		//		const Quaternion zEuler = Quaternion::AngleAxis(-(limit_rads.z * Math::Rad2Angle), Vector3::Back);
+		//		const Quaternion final_euler = (zEuler * yEuler * xEuler);
+
+		//		link_tr->SetLocalRotation(final_euler.GetNormalized());
+		//		#pragma endregion
+		//	}
+
+		//	if (++link_idx >= info.link_count) {
+		//		link_idx = 0;
+		//	}
+		//}
+
+		//const Vector2 ef_screenPos  = renderer.NDCToScreen(renderer.ClipToNDC((PV * endEffect_tr->GetWorldPosition())), GetViewPort());
+		//const Vector2 ef_screenPos2 = (ef_screenPos + Vector2::Right * 100.f);
+
+		//renderer.DrawLine(Color::Green, ef_screenPos, ef_screenPos2, GetViewPort());
+		//renderer.DrawTextField(w$(L"(Target)(F7)", mesh.Bones[info.ik_target_bone_idx].Name.GetView().data()), ef_screenPos2, GetViewPort());
+
+		//static int32_t* idx_ref = &link_idx;
+		//if (input.WasPressedThisFrame(KeyCode::F7)) {
+		//	idx_ref = &info.ik_target_bone_idx;
+		//}
 
 
-		static uint32_t info_idx = 0;
-		static int32_t  link_idx = 0;
+		//const Vector2 ik_screenPos  = renderer.NDCToScreen(renderer.ClipToNDC((PV * ik_tr->GetWorldPosition())), GetViewPort());
+		//const Vector2 ik_screenPos2 = (ik_screenPos + Vector2::Left * 300.f);
 
-		PmxImporter::IKDescriptor::IKInfo& info			= pmx_ikDesc.m_infos[info_idx];
-		Transform*						   ik_tr		= renderMesh.GetBoneTransformAt(info.ik_bone_idx).Get();
-		Transform*						   endEffect_tr = renderMesh.GetBoneTransformAt(info.ik_target_bone_idx).Get();
-
-		const Matrix4x4 V = cam.GetViewMatrix();
-		const Matrix4x4 P = cam.GetPerspectiveMatrix(GetViewPort().RenderTarget.GetAspectRatio());
-		const Matrix4x4 PV = (P * V);
-
-		if (input.WasPressedThisFrame(KeyCode::L) && ++info_idx >= pmx_ikDesc.m_infos.size()) {
-			info_idx = 0;
-		}
-
-		if (input.IsInProgress(KeyCode::M)) {
-			const PmxImporter::IKLink& link	   = pmx_ikDesc.m_links[info.link_start_idx + link_idx];
-			const Bone&				   link_b  = mesh.Bones[link.Bone_idx];
-			Transform*				   link_tr = renderMesh.GetBoneTransformAt(link.Bone_idx).Get();
-
-			const Vector3 link2EndEff_dir = (endEffect_tr->GetWorldPosition() - link_tr->GetWorldPosition()).GetNormalized();
-			const Vector3 link2Ik_dir     = (ik_tr->GetWorldPosition() - link_tr->GetWorldPosition()).GetNormalized();
-
-			const Quaternion fromTo = Quaternion::FromTo(link2EndEff_dir, link2Ik_dir);
-			link_tr->SetWorldRotation((fromTo * link_tr->GetWorldRotation()).GetNormalized());
-
-			if (link.Has_limits) {
-
-				#pragma region
-				const PmxImporter::IKAngleLimit& angleLimit = link.AngleLimit;
-				const Quaternion				 link_q = (link_tr->GetLocalRotation()).GetNormalized();
-				const Vector3					 euler = Quaternion::ToEuler_XYZ(link_q);
-
-				const Vector3 limit_rads = Vector3(
-					Math::Clamp(euler.x, angleLimit.Limit_Min.x, angleLimit.Limit_Max.x),
-					Math::Clamp(euler.y, angleLimit.Limit_Min.y, angleLimit.Limit_Max.y),
-					Math::Clamp(euler.z, angleLimit.Limit_Min.z, angleLimit.Limit_Max.z)
-				);
-
-				const Quaternion xEuler = Quaternion::AngleAxis(-(limit_rads.x * Math::Rad2Angle), Vector3::Right);
-				const Quaternion yEuler = Quaternion::AngleAxis(-(limit_rads.y * Math::Rad2Angle), Vector3::Up);
-				const Quaternion zEuler = Quaternion::AngleAxis(-(limit_rads.z * Math::Rad2Angle), Vector3::Back);
-				const Quaternion final_euler = (zEuler * yEuler * xEuler);
-
-				link_tr->SetLocalRotation(final_euler.GetNormalized());
-				#pragma endregion
-			}
-
-			if (++link_idx >= info.link_count) {
-				link_idx = 0;
-			}
-		}
-
-		const Vector2 ef_screenPos  = renderer.NDCToScreen(renderer.ClipToNDC((PV * endEffect_tr->GetWorldPosition())), GetViewPort());
-		const Vector2 ef_screenPos2 = (ef_screenPos + Vector2::Right * 100.f);
-
-		renderer.DrawLine(Color::Green, ef_screenPos, ef_screenPos2, GetViewPort());
-		renderer.DrawTextField(w$(L"(Target)(F7)", mesh.Bones[info.ik_target_bone_idx].Name.GetView().data()), ef_screenPos2, GetViewPort());
-
-		static int32_t* idx_ref = &link_idx;
-		if (input.WasPressedThisFrame(KeyCode::F7)) {
-			idx_ref = &info.ik_target_bone_idx;
-		}
+		//renderer.DrawLine(Color::Blue, ik_screenPos, ik_screenPos2, GetViewPort());
+		//renderer.DrawTextField(w$(L"(ik)", mesh.Bones[info.ik_bone_idx].Name.GetView().data()), ik_screenPos2, GetViewPort());
 
 
-		const Vector2 ik_screenPos  = renderer.NDCToScreen(renderer.ClipToNDC((PV * ik_tr->GetWorldPosition())), GetViewPort());
-		const Vector2 ik_screenPos2 = (ik_screenPos + Vector2::Left * 300.f);
+		//for (uint32_t i = 0; i < info.link_count; i++)
+		//{
+		//	PmxImporter::IKLink& link	 = pmx_ikDesc.m_links[info.link_start_idx + i];
+		//	const Bone&			 link_b  = mesh.Bones[link.Bone_idx];	
+		//	Transform*			 link_tr = renderMesh.GetBoneTransformAt(link.Bone_idx).Get();
 
-		renderer.DrawLine(Color::Blue, ik_screenPos, ik_screenPos2, GetViewPort());
-		renderer.DrawTextField(w$(L"(ik)", mesh.Bones[info.ik_bone_idx].Name.GetView().data()), ik_screenPos2, GetViewPort());
+		//	const Vector2 screenPos  = renderer.NDCToScreen(renderer.ClipToNDC((PV * link_tr->GetWorldPosition())), GetViewPort());
+		//	const Vector2 screenPos2 = (screenPos + Vector2::Right * 100.f);
 
+		//	renderer.DrawLine(Color::Green, screenPos, screenPos2, GetViewPort());
+		//	renderer.DrawTextField(w$(
+		//		L"(F", (i+1), L")[", i,L"]", mesh.Bones[link.Bone_idx].Name.GetView().data(),
+		//		L"\nangleLimits(", link.Has_limits, L"): min(", link.AngleLimit.Limit_Min, L")/ max(", link.AngleLimit.Limit_Max, L")",
+		//		L"\nfixed_axis(", link_b.useFixedAxis, L"): ", link_b.FixedAxis),
+		//		screenPos2, 
+		//		GetViewPort()
+		//	);
 
-		for (uint32_t i = 0; i < info.link_count; i++)
-		{
-			PmxImporter::IKLink& link	 = pmx_ikDesc.m_links[info.link_start_idx + i];
-			const Bone&			 link_b  = mesh.Bones[link.Bone_idx];	
-			Transform*			 link_tr = renderMesh.GetBoneTransformAt(link.Bone_idx).Get();
-
-			const Vector2 screenPos  = renderer.NDCToScreen(renderer.ClipToNDC((PV * link_tr->GetWorldPosition())), GetViewPort());
-			const Vector2 screenPos2 = (screenPos + Vector2::Right * 100.f);
-
-			renderer.DrawLine(Color::Green, screenPos, screenPos2, GetViewPort());
-			renderer.DrawTextField(w$(
-				L"(F", (i+1), L")[", i,L"]", mesh.Bones[link.Bone_idx].Name.GetView().data(),
-				L"\nangleLimits(", link.Has_limits, L"): min(", link.AngleLimit.Limit_Min, L")/ max(", link.AngleLimit.Limit_Max, L")",
-				L"\nfixed_axis(", link_b.useFixedAxis, L"): ", link_b.FixedAxis),
-				screenPos2, 
-				GetViewPort()
-			);
-
-			const KeyCode keyCode = KeyCode(int(KeyCode::F1) + i);
-			if (input.WasPressedThisFrame(keyCode)) {
-				idx_ref = &link.Bone_idx;
-			}
-		}
+		//	const KeyCode keyCode = KeyCode(int(KeyCode::F1) + i);
+		//	if (input.WasPressedThisFrame(keyCode)) {
+		//		idx_ref = &link.Bone_idx;
+		//	}
+		//}
 
 		if (showBones) {
-			Example16_ShowBoneTransforms(renderMesh, control_tr, control_name, idx_ref);
+			Example16_ShowBoneTransforms(renderMesh, control_tr, control_name);
 		}
 		
 
@@ -2470,8 +2296,6 @@ private:
 		 *******/
 		renderer.DrawTextField(w$(
 			L"cam: ( near: ", cam.Near, L"/ far: ", cam.Far, L"/ fov: ", cam.Fov, L")",
-			L"\ninfo_idx: (", info_idx, L"/", pmx_ikDesc.m_infos.size()-1, L")",
-			L"\nlink_idx: (", link_idx, L"/", info.link_count-1, L")",
 			L"\n\ncontrol transform name: ", control_name.GetView().data(),
 			L"\n\nlocal_pos: ", control_tr_raw->GetLocalPosition(),
 			L"\nlocal_rot: ", control_tr_raw->GetLocalRotation(),
@@ -2488,7 +2312,7 @@ private:
 		#pragma endregion
 	}
 
-	void Example16_ShowBoneTransforms(const RenderMesh& renderMesh, WeakPtr<Transform>& control_tr, WStringKey& control_name, int32_t* link_idx)
+	void Example16_ShowBoneTransforms(const RenderMesh& renderMesh, WeakPtr<Transform>& control_tr, WStringKey& control_name)
 	{
 		#pragma region
 		/********************************************************************
@@ -2594,7 +2418,7 @@ private:
 					//const Vector3 control2bone_dir = (bone_pos - control_tr->GetWorldPosition()).GetNormalized();
 					//const Vector3 control_dir      = (control_tr->GetChildAt(0)->GetWorldPosition() - control_tr->GetWorldPosition()).GetNormalized();
 
-					*link_idx = boneIdx;
+					//*link_idx = boneIdx;
 					//control_tr->SetWorldRotation(Quaternion::FromTo(control_dir, control2bone_dir) * control_tr->GetWorldRotation());
 				}
 			}

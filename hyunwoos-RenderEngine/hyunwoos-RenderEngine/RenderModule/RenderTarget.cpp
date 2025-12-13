@@ -15,11 +15,19 @@ void hyunwoo::RenderTarget::Clear()
 
     /*************************************************
      *  사용하던 MemoryDC와 관련 리소스를 정리한다...
+     *  memDC가 기존에 사용하던 비트맵 GDI Object로 교체하고,
+     *  사용중이 아닌 bitmap Section을 삭제한다. 그 후,
+     *  memDC도 제거한다....
      *******/
     SelectObject(m_memDC, m_oldBitmap);
     DeleteObject(m_backBufferBitmap);
     DeleteDC(m_memDC);
     delete[] m_depthBufferPtr;
+
+    m_isInit           = false;
+    m_memDC            = NULL;
+    m_backBufferBitmap = NULL;
+    m_depthBufferPtr   = nullptr;       
 }
 
 
@@ -81,6 +89,15 @@ hyunwoo::RenderTarget::InitResult hyunwoo::RenderTarget::Init(HWND clientHwnd, c
         ret.InvalidBackBufferSize = true;
         return ret;
     }
+
+
+
+    /**************************************************************************
+     *   이미 초기화된 상태라면, 기존 자원을 해제한다...
+     ********/
+    Clear();
+
+
 
 
     /********************************************************************

@@ -32,13 +32,6 @@ public:
 	};
 
 
-	struct LocalPair
-	{
-		Vector3    Position;
-		Quaternion Rotation;
-	};
-
-
 
 	//==========================================================================================
 	////////////							Fields...								////////////
@@ -49,7 +42,6 @@ private:
 	float				   m_totalTimeDiv = 0.f;
 	WeakPtr<AnimationClip> m_cur_clip;
 	std::vector<uint32_t>  m_prop2BoneIdx;
-	std::vector<LocalPair> m_localPair;
 
 
 
@@ -66,8 +58,6 @@ protected:
 	////////////						 Public methods...								    ////////////
 	//==================================================================================================
 public:
-	std::vector<LocalPair>& GetLocalPairList() { return m_localPair; };
-
 	void Update(float deltaTime);
 
 	/************************************
@@ -84,6 +74,7 @@ public:
 	 *******/
 	void				   SetCurrentClip(AnimationClip* new_clip);
 	WeakPtr<AnimationClip> GetCurrentClip() const;
+
 
 
 

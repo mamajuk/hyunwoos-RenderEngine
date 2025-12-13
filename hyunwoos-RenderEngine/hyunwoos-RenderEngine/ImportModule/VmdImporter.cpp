@@ -65,6 +65,23 @@ hyunwoo::VmdImporter::ImportResult hyunwoo::VmdImporter::Import(AnimationClip& o
 
 
     /*****************************************************************************************************
+     *   빠른 bone의 바인딩포즈를 얻어오기위한 map을 만든다....
+     *********/
+    std::unordered_map<WStringKey, uint32_t> pose_map;
+
+    for (uint32_t i = 0; i < inPmxMesh.Bones.size(); i++) 
+    {
+        const Bone& bone = inPmxMesh.Bones[i];
+        pose_map.insert(std::pair<WStringKey, uint32_t>(bone.Name, i));
+    }
+
+
+
+
+
+
+
+    /*****************************************************************************************************
      *   본의 키프레임 데이터를 읽어들인다.....
      *********/
     uint32_t maxKeyFrame = 0;
@@ -99,7 +116,7 @@ hyunwoo::VmdImporter::ImportResult hyunwoo::VmdImporter::Import(AnimationClip& o
          *  해당 키프레임에서 사용된 본의 Local Position을 읽어들인다...
          *  해당 좌표는 Pmx Modeling의 본들의 바인딩 포즈(기본 포즈)에 상대적
          *  이기에, 최종 월드 위치는 바인딩 포즈에 vmd의 local_pos를 
-         *  더한 값이다....
+         *  더한 값이다. 따라서 pmx 메시의 LocalPosition값을 미리 더해준다...
          *******/
         Vector3 local_pos;
         in.read((char*)&local_pos, sizeof(Vector3));
@@ -133,7 +150,8 @@ hyunwoo::VmdImporter::ImportResult hyunwoo::VmdImporter::Import(AnimationClip& o
         /*----------------------------------------------------------------
          *  해당 이름을 가진 Property가 존재하지 않을 경우, 키를 삽입한다...
          ******/
-        WStringKey name_key = utf16_name.c_str();
+        WStringKey  name_key = utf16_name.c_str();
+        const Bone& bone     = inPmxMesh.Bones[pose_map[name_key]];
 
         if (prop_startIdx_map.contains(name_key) == false) {
             prop_startIdx_map.insert(std::pair<WStringKey, uint32_t>(
@@ -202,7 +220,7 @@ hyunwoo::VmdImporter::ImportResult hyunwoo::VmdImporter::Import(AnimationClip& o
         AnimationClip::KeyFrame local_pos_keyFrame;
         local_pos_keyFrame.Time          = keyFrame_time;
         local_pos_keyFrame.CurveStartIdx = local_pos_prop.Curves.size();
-        local_pos_keyFrame.Vec3          = local_pos;
+        local_pos_keyFrame.Vec3          = (local_pos + bone.BindingPose.LocalPosition);
 
         local_pos_prop.Curves.push_back(local_Xpos_curve);
         local_pos_prop.Curves.push_back(local_Ypos_curve);
@@ -215,10 +233,9 @@ hyunwoo::VmdImporter::ImportResult hyunwoo::VmdImporter::Import(AnimationClip& o
          *  Local Rotation 프로퍼티의 키프레임을 추가한다..
          ******/
         AnimationClip::KeyFrame local_rot_keyFrame;
-
         local_rot_keyFrame.Time          = keyFrame_time;
         local_rot_keyFrame.CurveStartIdx = local_rot_prop.Curves.size();
-        local_rot_keyFrame.Quat          = Quaternion(local_quat.w, Vector3(local_quat.x, local_quat.y, local_quat.z)).GetNormalized();
+        local_rot_keyFrame.Quat          = (Quaternion(local_quat.w, Vector3(local_quat.x, local_quat.y, local_quat.z)).GetNormalized() * bone.BindingPose.LocalRotation).GetNormalized();
 
         local_rot_prop.Curves.push_back(local_rot_curve);
         AddKeyFrame(local_rot_prop, local_rot_keyFrame);

@@ -26,7 +26,6 @@ void hyunwoo::AnimateMesh::OnUpdateBoneTransforms()
 	if (clip!=nullptr) 
 	{
 		m_prop2BoneIdx.resize(clip->Properties.size());
-		m_localPair.resize(mesh->Bones.size());
 
 		for (uint32_t i = 0; i < m_prop2BoneIdx.size(); i++) {
 			const AnimationClip::Property& prop = clip->Properties[i];
@@ -42,8 +41,6 @@ void hyunwoo::AnimateMesh::OnUpdateBoneTransforms()
 				Bone& bone = bone_list[j];
 				if (bone.Name==prop.Name) {
 					m_prop2BoneIdx[i] = j;
-					m_localPair[j].Position = GetBoneTransformAt(j)->GetLocalPosition();
-					m_localPair[j].Rotation = GetBoneTransformAt(j)->GetLocalRotation();
 					break;
 				}
 			}
@@ -116,7 +113,6 @@ void hyunwoo::AnimateMesh::Update(float deltaTime)
 		 *  주어진 시간값이 포함되는 두 키프레임 사이에서,
 		 *  주어진 시간값의 정규화된 시간값을 구한다....
 		 *******/
-		LocalPair&   localPair = m_localPair[m_prop2BoneIdx[i]];
 		const Bone&  bone      = mesh->Bones[m_prop2BoneIdx[i]];
 		KeyFramePair pair      = GetKeyFramePairByTime(prop.KeyFrames, m_time);
 
@@ -139,7 +135,7 @@ void hyunwoo::AnimateMesh::Update(float deltaTime)
 				new_localPos.y += (nxt.Vec3.y - prev.Vec3.y) * GetCurveY(prop.Curves[prev.CurveStartIdx+1], normalizedTime);
 				new_localPos.z += (nxt.Vec3.z - prev.Vec3.z) * GetCurveY(prop.Curves[prev.CurveStartIdx+2], normalizedTime);
 
-				bone_tr->SetLocalPosition(localPair.Position + new_localPos);
+				bone_tr->SetLocalPosition(new_localPos);
 				break;
 			}
 
@@ -161,7 +157,7 @@ void hyunwoo::AnimateMesh::Update(float deltaTime)
 				const float t			  = GetCurveY(prop.Curves[prev.CurveStartIdx], normalizedTime);
 				Quaternion  new_local_rot = (prev.Quat * (1.f - t)) + (nxt.Quat * t);
 
-				bone_tr->SetLocalRotation((new_local_rot * localPair.Rotation).GetNormalized());
+				bone_tr->SetLocalRotation(new_local_rot.GetNormalized());
 				break;
 			}
 
@@ -173,7 +169,7 @@ void hyunwoo::AnimateMesh::Update(float deltaTime)
 				new_Euler.y += (nxt.Vec3.y - prev.Vec3.y) * GetCurveY(prop.Curves[prev.CurveStartIdx + 1], normalizedTime);
 				new_Euler.z += (nxt.Vec3.z - prev.Vec3.z) * GetCurveY(prop.Curves[prev.CurveStartIdx + 2], normalizedTime);
 
-				bone_tr->SetLocalRotation(Quaternion::Euler(new_Euler.x, new_Euler.y, new_Euler.z));
+				bone_tr->SetLocalRotation(Quaternion::Euler(new_Euler.y, new_Euler.x, new_Euler.z));
 				break;
 			}
 		}

@@ -5,6 +5,7 @@
 #include "../MathModule/Vector.h"
 #include "../RenderModule/Material.h"
 #include "../RenderModule/Mesh.h"
+#include "../AnimationModule/IK/CCD_IKSolver.h"
 #include "PngImporter.h"
 
 namespace hyunwoo {
@@ -137,24 +138,6 @@ public:
 	};
 
 
-	/*********************************************
-	 *   IK 연결 정보를 나타내는 구조체입니다...
-	 *******/
-	struct IKAngleLimit
-	{
-		Vector3 Limit_Min;
-		Vector3 Limit_Max;
-	};
-
-	struct IKLink
-	{
-		int32_t		 Bone_idx;
-		bool		 Has_limits;
-		IKAngleLimit AngleLimit;
-	};
-
-
-
 	/**********************************************
 	 *  Pmx 파일 헤더의 글로벌값들의 목록이 정의된
 	 *  구조체입니다. 각 글로벌값들은 특정 데이터를
@@ -206,27 +189,6 @@ public:
 	};
 
 
-	/*************************************
-	 *   Pmx 파일의 IK정보가 서술된
-	 *   구조체입니다...
-	 ********/
-	struct IKDescriptor final
-	{
-		struct IKInfo
-		{
-			int32_t ik_bone_idx		   = -1;
-			int32_t ik_target_bone_idx = -1;
-			int32_t ik_loop_count	   = 0;
-			int32_t link_start_idx	   = 0;
-			int32_t link_count		   = 0;
-			float   limit_radian	   = 0.f;
-		};
-
-		std::vector<IKInfo> m_infos;
-		std::vector<IKLink> m_links;
-	};
-
-
 
 	/*************************************
 	 *   Pmx 파일로부터 얻어올 데이터를
@@ -234,10 +196,10 @@ public:
 	 ********/
 	struct StorageDescription
 	{
-		Mesh*					OutMesh		 = nullptr;
-		IKDescriptor*			OutIKDesc    = nullptr;
-		std::vector<Texture2D>* OutTextures	 = nullptr;
-		std::vector<Material>*  OutMaterials = nullptr;
+		Mesh*					OutMesh		   = nullptr;
+		CCD_IKSolver*			OutCCDIKSolver = nullptr;
+		std::vector<Texture2D>* OutTextures	   = nullptr;
+		std::vector<Material>*  OutMaterials   = nullptr;
 	};
 
 

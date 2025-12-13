@@ -130,6 +130,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="AnimationModule\AnimateMesh.cpp" />
+    <ClCompile Include="AnimationModule\IK\CCD_IKSolver.cpp" />
     <ClCompile Include="EngineModule\RenderMesh.cpp" />
     <ClCompile Include="EngineModule\InputManager.cpp" />
     <ClCompile Include="EngineModule\RenderEngine.cpp" />
@@ -159,6 +160,8 @@
   <ItemGroup>
     <ClInclude Include="AnimationModule\AnimateMesh.h" />
     <ClInclude Include="AnimationModule\AnimationClip.h" />
+    <ClInclude Include="AnimationModule\IK\CCD_IKSolver.h" />
+    <ClInclude Include="AnimationModule\IK\IKSolver.h" />
     <ClInclude Include="EngineModule\UniqueableObject.h" />
     <ClInclude Include="EngineModule\InputManager.h" />
     <ClInclude Include="EngineModule\RenderEngine.h" />

@@ -13,15 +13,15 @@ hyunwoo::Matrix4x4 hyunwoo::Bone::Pose::GetTRS() const
 		Vector4::BasisX,
 		Vector4::BasisY,
 		Vector4::BasisZ,
-		(Position, 1.f)
+		(WorldPosition, 1.f)
 	);
 
-	const Matrix4x4 R = Rotation.GetRotateMatrix();
+	const Matrix4x4 R = WorldRotation.GetRotateMatrix();
 
 	const Matrix4x4 S = Matrix4x4(
-		(Vector4::BasisX * Scale.x),
-		(Vector4::BasisY * Scale.y),
-		(Vector4::BasisZ * Scale.z),
+		(Vector4::BasisX * WorldScale.x),
+		(Vector4::BasisY * WorldScale.y),
+		(Vector4::BasisZ * WorldScale.z),
 		Vector4::BasisW
 	);
 
@@ -34,15 +34,15 @@ hyunwoo::Matrix4x4 hyunwoo::Bone::Pose::GetTRS_Inverse() const
 		Vector4::BasisX,
 		Vector4::BasisY,
 		Vector4::BasisZ,
-		Vector4(-Position, 1.f)
+		Vector4(-WorldPosition, 1.f)
 	);
 
-	const Matrix4x4 R = Rotation.GetConjugate().GetRotateMatrix();
+	const Matrix4x4 R = WorldRotation.GetConjugate().GetRotateMatrix();
 
 	const Matrix4x4 S = Matrix4x4(
-		(Vector4::BasisX * (1.f / Scale.x)),
-		(Vector4::BasisY * (1.f / Scale.y)),
-		(Vector4::BasisZ * (1.f / Scale.z)),
+		(Vector4::BasisX * (1.f / WorldScale.x)),
+		(Vector4::BasisY * (1.f / WorldScale.y)),
+		(Vector4::BasisZ * (1.f / WorldScale.z)),
 		Vector4::BasisW
 	);
 

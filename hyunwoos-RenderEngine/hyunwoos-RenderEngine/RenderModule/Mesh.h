@@ -150,9 +150,13 @@ struct hyunwoo::Bone
 {
 	struct Pose
 	{
-		Vector3    Position = Vector3::Zero;
-		Vector3    Scale    = Vector3::One;
-		Quaternion Rotation = Quaternion::Identity;
+		Vector3    LocalPosition = Vector3::Zero;
+		Vector3    LocalScale    = Vector3::One;
+		Quaternion LocalRotation = Quaternion::Identity;
+
+		Vector3    WorldPosition = Vector3::Zero;
+		Vector3    WorldScale    = Vector3::One;
+		Quaternion WorldRotation = Quaternion::Identity;
 
 		Matrix4x4 GetTRS()         const;
 		Matrix4x4 GetTRS_Inverse() const;

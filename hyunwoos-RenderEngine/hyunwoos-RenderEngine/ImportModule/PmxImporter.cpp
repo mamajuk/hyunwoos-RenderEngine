@@ -1088,7 +1088,7 @@ void hyunwoo::PmxImporter::Import_StoreBoneData(std::ifstream& in, const Header&
          *   본의 월드 위치를 읽어들인다...
          *   (Pmx Editor)
          *******/
-        in.read((char*)&new_bone.BindingPose.Position, sizeof(Vector3));
+        in.read((char*)&new_bone.BindingPose.WorldPosition, sizeof(Vector3));
 
 
 
@@ -1186,39 +1186,39 @@ void hyunwoo::PmxImporter::Import_StoreBoneData(std::ifstream& in, const Header&
         /*---------------------------------------------
          *   IK를 사용한다면, 본 정보들을 읽어들인다...
          *******/
-        IKDescriptor::IKInfo ik_info;
+        CCD_IKSolver::ResolveDescriptor new_resolveDesc;
 
         if (flags.IK)
         {
-            ik_info.ik_bone_idx        = i;
-            ik_info.ik_target_bone_idx = ReadDefaultIndexType(in, header.Globals.Bone_Index_Size);
+            new_resolveDesc.Target_bone_idx = i;
+            new_resolveDesc.EndEff_bone_idx = ReadDefaultIndexType(in, header.Globals.Bone_Index_Size);
 
-            in.read((char*)&ik_info.ik_loop_count, 4);
-            in.read((char*)&ik_info.limit_radian, 4);
-            in.read((char*)&ik_info.link_count, 4);
+            in.read((char*)&new_resolveDesc.Loop_count, 4);
+            in.read((char*)&new_resolveDesc.Limit_radian, 4);
+            in.read((char*)&new_resolveDesc.Link_count, 4);
 
 
             //모든 IK 링크들을 읽어들인다...
-            for (uint32_t j = 0; j < ik_info.link_count; j++)
+            for (uint32_t j = 0; j < new_resolveDesc.Link_count; j++)
             {
-                IKLink new_link;
+                CCD_IKSolver::Link new_link;
 
                 new_link.Bone_idx = ReadDefaultIndexType(in, header.Globals.Bone_Index_Size);
-                in.read((char*)&new_link.Has_limits, 1);
+                in.read((char*)&new_link.Has_Limits, 1);
 
-                if (new_link.Has_limits) {
-                    in.read((char*)&new_link.AngleLimit.Limit_Min, sizeof(Vector3));
-                    in.read((char*)&new_link.AngleLimit.Limit_Max, sizeof(Vector3));
+                if (new_link.Has_Limits) {
+                    in.read((char*)&new_link.Limits.Limit_Min, sizeof(Vector3));
+                    in.read((char*)&new_link.Limits.Limit_Max, sizeof(Vector3));
                 }
 
-                if (storageDesc.OutIKDesc != nullptr) {
-                    storageDesc.OutIKDesc->m_links.push_back(new_link);
+                if (storageDesc.OutCCDIKSolver != nullptr) {
+                    storageDesc.OutCCDIKSolver->Links.push_back(new_link);
                 }
             }
 
-            if (storageDesc.OutIKDesc != nullptr) {
-                ik_info.link_start_idx = (storageDesc.OutIKDesc->m_links.size() - ik_info.link_count);
-                storageDesc.OutIKDesc->m_infos.push_back(ik_info);
+            if (storageDesc.OutCCDIKSolver != nullptr) {
+                new_resolveDesc.Link_start_idx = (storageDesc.OutCCDIKSolver->Links.size() - new_resolveDesc.Link_count);
+                storageDesc.OutCCDIKSolver->ResolveDescs.push_back(new_resolveDesc);
             }
         }
 
@@ -1227,39 +1227,63 @@ void hyunwoo::PmxImporter::Import_StoreBoneData(std::ifstream& in, const Header&
 
 
 
+
+    /*****************************************************************************
+     *   각본들의 로컬 포즈를 구한다....
+     *********/
+    for (uint32_t i = 0; i < storageDesc.OutMesh->Bones.size(); i++) 
+    {
+        Bone& bone = storageDesc.OutMesh->Bones[i];
+
+        if (bone.Parent_BoneIdx >= 0) {
+            const Bone&      bone_parent         = storageDesc.OutMesh->Bones[bone.Parent_BoneIdx];
+            const float      parent_scaleDiv     = (1.f / bone_parent.BindingPose.WorldScale.x);
+            const Quaternion parent_rotConjugate = bone_parent.BindingPose.WorldRotation.GetConjugate();
+
+            bone.BindingPose.LocalPosition = parent_rotConjugate * ((bone.BindingPose.WorldPosition - bone_parent.BindingPose.WorldPosition) * parent_scaleDiv);
+            bone.BindingPose.LocalRotation = (parent_rotConjugate * bone.BindingPose.WorldRotation);
+            bone.BindingPose.LocalScale    = (bone.BindingPose.WorldScale * parent_scaleDiv);
+        }
+    }
+
+
+
+
+
+
     /*****************************************************************************
      *   ik용 본들과 대응되는 디스플레이용 본이 있다면, 교체한다....
      *********/
-    if (storageDesc.OutIKDesc == nullptr) {
+    if (storageDesc.OutCCDIKSolver == nullptr) {
         return;
     }
 
-    IKDescriptor&      ik_desc = *storageDesc.OutIKDesc;
-    std::vector<Bone>& bones   = storageDesc.OutMesh->Bones;
+    CCD_IKSolver&      solver = *storageDesc.OutCCDIKSolver;
+    std::vector<Bone>& bones  = storageDesc.OutMesh->Bones;
 
-    for (uint32_t i=0; i<storageDesc.OutIKDesc->m_infos.size(); i++)
+    for (uint32_t i=0; i< storageDesc.OutCCDIKSolver->ResolveDescs.size(); i++)
     {
-        IKDescriptor::IKInfo& info        = storageDesc.OutIKDesc->m_infos[i];
-        const Bone&           endEff_bone = bones[info.ik_target_bone_idx];
+        CCD_IKSolver::ResolveDescriptor& desc        = storageDesc.OutCCDIKSolver->ResolveDescs[i];
+        const Bone&                      endEff_bone = bones[desc.EndEff_bone_idx];
 
         /*--------------------------------------------------
          *  해당 endEffect 본과 대응되는 디스플레이 본을 찾는다..
          *  ( 가장 가까운 곳에 배치되었다는 가정하에 적용한다... )
          ******/
         float    min_dst = std::numeric_limits<float>::max();
-        uint32_t min_idx = info.ik_target_bone_idx;
+        uint32_t min_idx = desc.EndEff_bone_idx;
 
         for (uint32_t j = 0; j < bones.size(); j++) {
             const Bone& bone = bones[j];
 
-            const float dst = (bone.BindingPose.Position - endEff_bone.BindingPose.Position).GetSqrMagnitude();
-            if (dst <= min_dst && j!=info.ik_target_bone_idx) {
+            const float dst = (bone.BindingPose.WorldPosition - endEff_bone.BindingPose.WorldPosition).GetSqrMagnitude();
+            if (dst <= min_dst && j!=desc.EndEff_bone_idx) {
                 min_dst = dst;
                 min_idx = j;
             }
         }
 
-        info.ik_target_bone_idx = min_idx;
+        desc.EndEff_bone_idx = min_idx;
 
 
         /*--------------------------------------------------
@@ -1268,9 +1292,9 @@ void hyunwoo::PmxImporter::Import_StoreBoneData(std::ifstream& in, const Header&
          *****/
         min_dst = std::numeric_limits<float>::max();
 
-        for (uint32_t j = 0; j < info.link_count; j++) 
+        for (uint32_t j = 0; j < desc.Link_count; j++) 
         {
-            const uint32_t link_idx  = (ik_desc.m_links[info.link_start_idx+j].Bone_idx);
+            const uint32_t link_idx  = (solver.Links[desc.Link_start_idx+j].Bone_idx);
             const Bone&    link_bone = bones[link_idx];
 
             min_idx = link_idx;
@@ -1278,7 +1302,7 @@ void hyunwoo::PmxImporter::Import_StoreBoneData(std::ifstream& in, const Header&
             {
                 for (uint32_t k = 0; k < bones.size(); k++) {
                     const Bone& bone = bones[k];
-                    const float dst  = (bone.BindingPose.Position - link_bone.BindingPose.Position).GetSqrMagnitude();
+                    const float dst  = (bone.BindingPose.WorldPosition - link_bone.BindingPose.WorldPosition).GetSqrMagnitude();
 
                     if (dst < min_dst && link_idx!=k) {
                         min_dst = dst;
@@ -1286,7 +1310,8 @@ void hyunwoo::PmxImporter::Import_StoreBoneData(std::ifstream& in, const Header&
                     }
                 }
             }
-            ik_desc.m_links[info.link_start_idx + j].Bone_idx = min_idx;
+
+            solver.Links[desc.Link_start_idx + j].Bone_idx = min_idx;
         } 
     }
 }

@@ -5,6 +5,36 @@
 #include "../UtilityModule/StringLamda.h"
 
 
+/*============================================================================================================
+ *
+ ********************/
+inline void hyunwoo::Renderer::TriangleDescription::SetScreenPositions(const Vector2& screenPos1, const Vector2& screenPos2, const Vector2& screenPos3) {
+    ScreenPositions[0] = screenPos1;
+    ScreenPositions[1] = screenPos2;
+    ScreenPositions[2] = screenPos3;
+}
+
+inline void hyunwoo::Renderer::TriangleDescription::SetUvPositions(const Vector2& uvPos1, const Vector2& uvPos2, const Vector2& uvPos3) {
+    Uvs[0] = uvPos1;
+    Uvs[1] = uvPos2;
+    Uvs[2] = uvPos3;
+}
+
+inline void hyunwoo::Renderer::TriangleDescription::SetDepths(const float depth1, const float depth2, const float depth3) {
+    Depths[0] = depth1;
+    Depths[1] = depth2;
+    Depths[2] = depth3;
+}
+
+
+
+
+
+
+
+
+
+
 /*=============================================================================================================
  *    좌표계 변환 메소드...
  *============*/

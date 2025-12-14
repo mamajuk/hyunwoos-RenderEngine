@@ -24,10 +24,12 @@ void hyunwoo::RenderTarget::Clear()
     DeleteDC(m_memDC);
     delete[] m_depthBufferPtr;
 
-    m_isInit           = false;
-    m_memDC            = NULL;
-    m_backBufferBitmap = NULL;
-    m_depthBufferPtr   = nullptr;       
+    m_isInit              = false;
+    m_memDC               = NULL;
+    m_backBufferBitmap    = NULL;
+    m_backBufferBitmapPtr = nullptr;
+    m_depthBufferPtr      = nullptr;      
+    m_totalPixelNum       = 0;
 }
 
 

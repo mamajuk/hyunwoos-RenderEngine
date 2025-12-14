@@ -74,7 +74,6 @@ hyunwoo::PmxImporter::ImportResult hyunwoo::PmxImporter::Import(const StorageDes
     /*----------------------------------------
      *  모델 설명을 읽어들인다....
      *-------*/
-    uint32_t textSize = 0;
 
     //모델의 로컬 이름...
     ReadText(in, header, nullptr);
@@ -798,7 +797,10 @@ void hyunwoo::PmxImporter::Import_StoreMaterialData(std::ifstream& in, const Hea
 {
     int32_t material_count = 0;
     int32_t prev_tex_size  = (storageDesc.OutTextures->size() - outRet.TextureLoadResult.ImportCount);
+
     in.read((char*)&material_count, 4);
+    storageDesc.OutMaterials->resize(material_count);
+    storageDesc.OutMesh->SubMeshs.clear();
 
 
     for (int32_t i = 0; i < material_count; i++)
@@ -869,7 +871,7 @@ void hyunwoo::PmxImporter::Import_StoreMaterialData(std::ifstream& in, const Hea
 
             Material newMaterial;
             newMaterial.MappedTexture = &(*storageDesc.OutTextures)[prev_tex_size + tex_idx];
-            storageDesc.OutMaterials->push_back(newMaterial);
+            (*storageDesc.OutMaterials)[i] = newMaterial;
         }
 
 
@@ -1064,6 +1066,12 @@ void hyunwoo::PmxImporter::Import_StoreBoneData(std::ifstream& in, const Header&
 {
     int32_t bone_count;
     in.read((char*)&bone_count, 4);
+    storageDesc.OutMesh->Bones.resize(bone_count);
+
+    if (storageDesc.OutCCDIKSolver!=nullptr) {
+        storageDesc.OutCCDIKSolver->ResolveDescs.clear();
+        storageDesc.OutCCDIKSolver->Links.clear();
+    }
 
 
     /********************************************************************
@@ -1086,7 +1094,9 @@ void hyunwoo::PmxImporter::Import_StoreBoneData(std::ifstream& in, const Header&
 
         /*---------------------------------------------
          *   본의 월드 위치를 읽어들인다...
-         *   (Pmx Editor)
+         *   (다음 섹션에서 이 월드 위치를 기반으로 로컬 위치를
+         *    미리 구해 캐싱한다..이는 빠른 로컬 포즈를 얻기 
+         *    위함이다...)
          *******/
         in.read((char*)&new_bone.BindingPose.WorldPosition, sizeof(Vector3));
 
@@ -1145,36 +1155,33 @@ void hyunwoo::PmxImporter::Import_StoreBoneData(std::ifstream& in, const Header&
         /*--------------------------------------------------
          *   고정된 축을 사용한다면, 해당 본이 가리키는 방향을
          *   나타내는 Vector3값을 읽어들인다..이는 팔의 동그란
-         *   갈고리 본에 쓰인다...
+         *   갈고리 본에 쓰인다..일단 해당 값을 사용하지 않는다...
          *******/
         Vector3 fixed_BoneDir;
 
         if (flags.Fixed_axis) {
             in.read((char*)&fixed_BoneDir, sizeof(Vector3));
-
-            new_bone.useFixedAxis = flags.Fixed_axis;
-            new_bone.FixedAxis    = fixed_BoneDir;
         }
 
 
         /*-----------------------------------------------------
          *  로컬 축을 사용한다면, 로컬 X/Z축 Vector3를 읽어들인다..
-         *  (Y축은 주어진 X/Z축을 외적하면 구할 수 있다.) 
+         *  (Y축은 주어진 X/Z축을 외적하면 구할 수 있다.) 해당 값은
+         *  일단 사용하지 않는다...
          *******/
         Vector3 axisX;
         Vector3 axisZ;
-        Vector3 axisY;
 
         if (flags.Local_coordinate) {
             in.read((char*)&axisX, sizeof(Vector3));
             in.read((char*)&axisZ, sizeof(Vector3));
-            axisY = Vector3::Cross(axisX, axisZ);
         }
 
 
         /*---------------------------------------------
          *  외부 보모의 트랜스폼을 사용한다면, 부모 본의
-         *  인덱스값을 읽어들인다....
+         *  인덱스값을 읽어들인다....해당 값은 일단 사용하지
+         *  않는다...
          *******/
         int32_t external_parent_idx = -1;
 
@@ -1222,7 +1229,7 @@ void hyunwoo::PmxImporter::Import_StoreBoneData(std::ifstream& in, const Header&
             }
         }
 
-        storageDesc.OutMesh->Bones.push_back(new_bone);
+        storageDesc.OutMesh->Bones[i] = new_bone;
     }
 
 
@@ -1252,7 +1259,8 @@ void hyunwoo::PmxImporter::Import_StoreBoneData(std::ifstream& in, const Header&
 
 
     /*****************************************************************************
-     *   ik용 본들과 대응되는 디스플레이용 본이 있다면, 교체한다....
+     *   pmx는 DisplayBone과 IkBone이 별도로 존재한다. 따라서 IkBone을 가장 잘 대응되는
+     *   본이라고 판정되는, 가장 가까운 본을 찾아 교체한다....
      *********/
     if (storageDesc.OutCCDIKSolver == nullptr) {
         return;

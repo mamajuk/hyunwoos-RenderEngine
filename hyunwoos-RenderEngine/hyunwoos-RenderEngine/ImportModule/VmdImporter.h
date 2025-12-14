@@ -42,6 +42,7 @@ public:
 		bool IsNotVmdFile              : 1;
 		bool CreatedWithMMD_1_30       : 1;
 		bool CreatedWithMMD_1_30_later : 1;
+		bool InPmxMeshIsNotValid	   : 1;
 	};
 
 

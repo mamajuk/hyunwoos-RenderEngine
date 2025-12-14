@@ -146,6 +146,7 @@
     <ClCompile Include="MathModule\Matrix.cpp" />
     <ClCompile Include="MathModule\Quaternion.cpp" />
     <ClCompile Include="MathModule\Vector.cpp" />
+    <ClCompile Include="RendererApp.cpp" />
     <ClCompile Include="RenderModule\Camera.cpp" />
     <ClCompile Include="RenderModule\Mesh.cpp" />
     <ClCompile Include="RenderModule\Renderer.cpp" />
@@ -166,9 +167,11 @@
     <ClInclude Include="EngineModule\InputManager.h" />
     <ClInclude Include="EngineModule\RenderEngine.h" />
     <ClInclude Include="EngineModule\Transform.h" />
+    <ClInclude Include="ExampleApp.h" />
     <ClInclude Include="GeometryModule\Curve.h" />
     <ClInclude Include="ImportModule\PmxImporter.h" />
     <ClInclude Include="ImportModule\PngImporter.h" />
+    <ClInclude Include="ImportModule\RendererApp.h" />
     <ClInclude Include="ImportModule\VmdImporter.h" />
     <ClInclude Include="MathModule\Color.h" />
     <ClInclude Include="MathModule\Math.h" />
@@ -177,6 +180,7 @@
     <ClInclude Include="MathModule\Vector.h" />
     <ClInclude Include="GeometryModule\Geometry.h" />
     <ClInclude Include="EngineModule\RenderMesh.h" />
+    <ClInclude Include="RendererApp.h" />
     <ClInclude Include="RenderModule\Camera.h" />
     <ClInclude Include="RenderModule\Mesh.h" />
     <ClInclude Include="RenderModule\Renderer.h" />

@@ -65,11 +65,10 @@ public:
 
 
 	/*******************************************
-	 *   머터리얼를 얻어오는 메소드...
+	 *   머터리얼을 얻어오는 메소드...
 	 ******/
-	void			  AddMaterial(Material* new_mat);
-	uint32_t		  GetMaterialCount() const;
-	WeakPtr<Material> GetMaterialAt(uint32_t index) const;
+	std::vector<WeakPtr<Material>>& GetMaterialList();
+	const std::vector<WeakPtr<Material>>& GetMaterialList() const;
 
 
 

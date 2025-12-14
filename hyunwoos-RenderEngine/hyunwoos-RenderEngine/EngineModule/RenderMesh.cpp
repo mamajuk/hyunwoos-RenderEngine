@@ -107,42 +107,23 @@ void hyunwoo::RenderMesh::SetMesh(Mesh* mesh)
 
 
 
-/*=======================================================================================================================================================
- *    해당 RenderMesh가 랜더링 될 때 사용할 Material의 참조를 추가합니다...
- ***********/
-void hyunwoo::RenderMesh::AddMaterial(Material* new_mat)
-{
-	m_materials.push_back(new_mat);
-}
-
-
-
-
-
-
-
-
-
-
 
 
 
 /*=======================================================================================================================================================
- *    해당 RenderMesh가 랜더링 될 때 사용할 Material의 개수/참조를 얻습니다...
+ *    해당 RenderMesh가 랜더링될 때 사용할, 머터리얼들의 목록의 참조를 얻습니다....
  ***********/
-uint32_t hyunwoo::RenderMesh::GetMaterialCount() const
+std::vector<hyunwoo::WeakPtr<hyunwoo::Material>>& hyunwoo::RenderMesh::GetMaterialList()
 {
-	return m_materials.size();
+	return m_materials;
 }
 
-hyunwoo::WeakPtr<hyunwoo::Material> hyunwoo::RenderMesh::GetMaterialAt(uint32_t index) const
+const std::vector<hyunwoo::WeakPtr<hyunwoo::Material>>& hyunwoo::RenderMesh::GetMaterialList() const
 {
-	if (index >=0 && index < m_materials.size()) {
-		return m_materials[index];
-	}
-
-	return WeakPtr<Material>();
+	return m_materials;
 }
+
+
 
 
 
@@ -243,6 +224,10 @@ void hyunwoo::RenderMesh::DestroyBoneTransforms()
 	 ******/
 	const uint32_t start_idx = (m_boneTransforms.size() - m_rootBoneCount);
 	const uint32_t goal_idx  = (m_boneTransforms.size() - 1);
+
+	if (start_idx <0 || start_idx >= m_boneTransforms.size() || goal_idx<0 || goal_idx>=m_boneTransforms.size()) {
+		return;
+	}
 
 	for (uint32_t i = start_idx; i <= goal_idx; i++) {
 		Transform::DestroyTransform(m_boneTransforms[i].Get());

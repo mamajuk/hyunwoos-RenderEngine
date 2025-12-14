@@ -1103,7 +1103,7 @@ void hyunwoo::Renderer::DrawRenderMesh(const RenderMesh& renderMesh, const ViewP
               *  해당 서브메시에 배정된 머터리얼이 유효한 경우,
               *  쉐이더 및 텍스쳐 주소값을 갱신한다....
               *******/
-            if (Material* material = renderMesh.GetMaterialAt(subMeshIdx).Get(); material!=nullptr) {
+            if (Material* material = renderMesh.GetMaterialList()[subMeshIdx].Get(); material!=nullptr) {
 
                 //해당 머터리얼의 버텍스 쉐이더가 유효할 경우 갱신한다...
                 if (material->Shaders.VertexShader!=nullptr) {
@@ -1217,7 +1217,7 @@ void hyunwoo::Renderer::DrawRenderMesh(const RenderMesh& renderMesh, const ViewP
           *  해당 서브메시에 배정된 머터리얼이 유효한 경우,
           *  쉐이더를 갱신한다....
           *******/
-        if (Material* material = renderMesh.GetMaterialAt(subMeshIdx).Get(); material != nullptr) {
+        if (Material* material = renderMesh.GetMaterialList()[subMeshIdx].Get(); material != nullptr) {
 
             //해당 머터리얼의 버텍스 쉐이더가 유효할 경우 갱신한다...
             if (material->Shaders.VertexShader != nullptr) {

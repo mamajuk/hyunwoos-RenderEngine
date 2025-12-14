@@ -67,7 +67,7 @@ void hyunwoo::AnimateMesh::Update(float deltaTime)
 	/**************************************************************************************
 	 *  애니메이션 재생에 필요한 리소스들이 유효하지 않다면, 함수를 종료한다..
 	 *******/
-	Mesh* mesh			= GetMesh().Get();
+	Mesh*		   mesh	= GetMesh().Get();
 	AnimationClip* clip = m_cur_clip.Get();
 
 	if (clip==nullptr || mesh==nullptr || m_prop2BoneIdx.size()!=clip->Properties.size()) {
@@ -219,10 +219,25 @@ void hyunwoo::AnimateMesh::SetNormalizedTime(float new_time)
  *********/
 void hyunwoo::AnimateMesh::SetCurrentClip(AnimationClip* new_clip)
 {
-	m_cur_clip     = new_clip;
-	m_totalTime    = new_clip->TotalTime;
-	m_totalTimeDiv = (1.f / new_clip->TotalTime);
-	OnUpdateBoneTransforms();
+	m_cur_clip = new_clip;
+
+	/*****************************************************
+	 *  인자로 주어진 AnimationClip이 유효하지 않는가?
+	 *******/
+	if (new_clip==nullptr) {
+		m_totalTime    = 0.f;
+		m_totalTimeDiv = 1.f;
+	}
+
+
+	/*****************************************************
+	 *  인자로 주어진 AnimationClip이 유효한가?
+	 *******/
+	else {
+		m_totalTime = new_clip->TotalTime;
+		m_totalTimeDiv = (1.f / new_clip->TotalTime);
+		OnUpdateBoneTransforms();
+	}
 }
 
 hyunwoo::WeakPtr<hyunwoo::AnimationClip> hyunwoo::AnimateMesh::GetCurrentClip() const

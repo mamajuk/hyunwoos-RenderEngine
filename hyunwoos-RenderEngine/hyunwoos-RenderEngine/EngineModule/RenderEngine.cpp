@@ -100,6 +100,7 @@ hyunwoo::RenderEngine::EndReason hyunwoo::RenderEngine::Run(const std::wstring& 
 	m_runningEnginePtr = this;
 	m_hInstance		   = hInstance;
 
+	DragAcceptFiles(m_mainHwnd, TRUE); //파일의 드로그 앤 드롭을 허용한다...
 	ShowWindow(m_mainHwnd, bShowCmd);
 	OnStart();
 
@@ -336,6 +337,24 @@ LRESULT hyunwoo::RenderEngine::WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARA
 		{
 			PostQuitMessage(0);
 			return 0;
+		}
+
+
+		/*-----------------------------------
+		 *  파일이 드롭되었을 경우....
+		 ******/
+		case(WM_DROPFILES):
+		{
+			HDROP hDrop = (HDROP)wParam;
+			UINT  fileCount = DragQueryFile(hDrop, 0xFFFFFFFF, nullptr, 0);
+
+			wchar_t filePath[MAX_PATH];
+			for (uint32_t i = 0; i < fileCount; i++) {
+				DragQueryFile(hDrop, i, filePath, MAX_PATH);
+				engine.OnFileDropped(filePath);
+			}
+
+			break;
 		}
 	}
 

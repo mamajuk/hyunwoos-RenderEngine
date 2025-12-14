@@ -91,6 +91,7 @@ hyunwoo::VmdImporter::ImportResult hyunwoo::VmdImporter::Import(AnimationClip& o
     std::wstring                             utf16_name;
     std::unordered_map<WStringKey, uint32_t> prop_startIdx_map;
 
+    outAnimClip.Properties.clear();
     in.read((char*)&bone_keyFrame_count, 4);
     for (uint32_t i = 0; i < bone_keyFrame_count; i++) 
     {
@@ -150,8 +151,15 @@ hyunwoo::VmdImporter::ImportResult hyunwoo::VmdImporter::Import(AnimationClip& o
         /*----------------------------------------------------------------
          *  해당 이름을 가진 Property가 존재하지 않을 경우, 키를 삽입한다...
          ******/
-        WStringKey  name_key = utf16_name.c_str();
-        const Bone& bone     = inPmxMesh.Bones[pose_map[name_key]];
+        WStringKey name_key     = utf16_name.c_str();
+        Vector3    initPose_pos = Vector3::Zero;
+        Quaternion initPose_rot = Quaternion::Identity;
+
+        if (pose_map.contains(name_key)) {
+            const Bone& bone = inPmxMesh.Bones[pose_map[name_key]];
+            initPose_pos = bone.BindingPose.LocalPosition;
+            initPose_rot = bone.BindingPose.LocalRotation;
+        }
 
         if (prop_startIdx_map.contains(name_key) == false) {
             prop_startIdx_map.insert(std::pair<WStringKey, uint32_t>(
@@ -211,7 +219,6 @@ hyunwoo::VmdImporter::ImportResult hyunwoo::VmdImporter::Import(AnimationClip& o
         local_rot_curve.CubicBezier.Yvalues[1] = float(interpol.ControlPointR[1]) * uint8_tDiv;
         local_rot_curve.CubicBezier.Yvalues[2] = float(interpol.ControlPointR[3]) * uint8_tDiv;
         local_rot_curve.CubicBezier.Yvalues[3] = 1.f;
-        
 
 
         /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -220,7 +227,7 @@ hyunwoo::VmdImporter::ImportResult hyunwoo::VmdImporter::Import(AnimationClip& o
         AnimationClip::KeyFrame local_pos_keyFrame;
         local_pos_keyFrame.Time          = keyFrame_time;
         local_pos_keyFrame.CurveStartIdx = local_pos_prop.Curves.size();
-        local_pos_keyFrame.Vec3          = (local_pos + bone.BindingPose.LocalPosition);
+        local_pos_keyFrame.Vec3          = (local_pos + initPose_pos);
 
         local_pos_prop.Curves.push_back(local_Xpos_curve);
         local_pos_prop.Curves.push_back(local_Ypos_curve);
@@ -235,7 +242,7 @@ hyunwoo::VmdImporter::ImportResult hyunwoo::VmdImporter::Import(AnimationClip& o
         AnimationClip::KeyFrame local_rot_keyFrame;
         local_rot_keyFrame.Time          = keyFrame_time;
         local_rot_keyFrame.CurveStartIdx = local_rot_prop.Curves.size();
-        local_rot_keyFrame.Quat          = (Quaternion(local_quat.w, Vector3(local_quat.x, local_quat.y, local_quat.z)).GetNormalized() * bone.BindingPose.LocalRotation).GetNormalized();
+        local_rot_keyFrame.Quat          = (Quaternion(local_quat.w, Vector3(local_quat.x, local_quat.y, local_quat.z)).GetNormalized() * initPose_rot).GetNormalized();
 
         local_rot_prop.Curves.push_back(local_rot_curve);
         AddKeyFrame(local_rot_prop, local_rot_keyFrame);

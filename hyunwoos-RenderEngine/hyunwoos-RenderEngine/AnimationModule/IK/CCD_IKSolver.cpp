@@ -8,10 +8,44 @@ void hyunwoo::CCD_IKSolver::ResolveIK(const AnimateMesh& animateMesh)
 	/*****************************************************************************************
 	 *  해당 작업에 필요한 모든 리소스를 읽어들이고, 유효성을 확인한다...
 	 *********/
+
+	/*-----------------------------------------
+	 *  로컬 포즈를 얻어올 메시 리소스는 유효한가?
+	 *******/
 	Mesh* mesh = animateMesh.GetMesh().Get();
 	if (mesh==nullptr) {
 		return;
 	}
+
+	/*------------------------------------------
+	 *  CCD IK에 사용될 target/endEff bone 
+	 *  transform이 유효한가?
+	 *******/
+	for (uint32_t i = 0; i < ResolveDescs.size(); i++) 
+	{
+		const ResolveDescriptor& desc = ResolveDescs[i];
+
+		Transform* target_tr = animateMesh.GetBoneTransformAt(desc.Target_bone_idx).Get();
+		Transform* endEff_tr = animateMesh.GetBoneTransformAt(desc.EndEff_bone_idx).Get();
+
+		if (target_tr==nullptr || endEff_tr==nullptr) {
+			return;
+		}
+	}
+
+	/*-----------------------------------------
+	 *  모든 링크 본들이 유효한가?
+	 *******/
+	for (uint32_t i=0; i<Links.size(); i++)
+	{
+		Link&	   link    = Links[i];
+		Transform* link_tr = animateMesh.GetBoneTransformAt(link.Bone_idx).Get();
+
+		if (link_tr==nullptr) {
+			return;
+		}
+	}
+
 
 
 	/******************************************************************************************
@@ -23,13 +57,6 @@ void hyunwoo::CCD_IKSolver::ResolveIK(const AnimateMesh& animateMesh)
 
 		Transform* target_tr = animateMesh.GetBoneTransformAt(desc.Target_bone_idx).Get();
 		Transform* endEff_tr = animateMesh.GetBoneTransformAt(desc.EndEff_bone_idx).Get();
-
-		/*----------------------------------------------------------------------
-		 *   target과 endEff Transform이 유효하지 않는다면 넘어간다...
-		 *******/
-		if (target_tr==nullptr || endEff_tr==nullptr) {
-			continue;
-		}
 
 
 		/*-----------------------------------------------------------------------
@@ -59,11 +86,6 @@ void hyunwoo::CCD_IKSolver::ResolveIK(const AnimateMesh& animateMesh)
 				const Bone& link_bone = mesh->Bones[link.Bone_idx];
 				Transform*  link_tr   = animateMesh.GetBoneTransformAt(link.Bone_idx).Get();
 
-				//link의 Transform이 유효하지 않는다면 CCD IK를 중단한다...
-				if (link_tr==nullptr) {
-					break;
-				}
-
 
 				link_tr->SetLocalRotation(link_bone.BindingPose.LocalRotation);
 
@@ -73,11 +95,10 @@ void hyunwoo::CCD_IKSolver::ResolveIK(const AnimateMesh& animateMesh)
 				const Quaternion fromTo = Quaternion::FromTo(link2EndEffDir, link2TargetDir);
 				link_tr->SetWorldRotation((fromTo * link_tr->GetWorldRotation()).GetNormalized());
 
-				/*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+				/*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 				 *  각 회전축당 회전량 제한이 있는가?
 				 ******/
-				if (link.Has_Limits)
-				{
+				if (link.Has_Limits){
 					const Link::AngleLimits& angleLimits = link.Limits;
 					const Vector3			 link_euler  = Quaternion::ToEuler_XYZ(link_tr->GetLocalRotation());
 

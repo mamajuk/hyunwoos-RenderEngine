@@ -116,8 +116,22 @@ private:
 	/////////							  Pure Virtual methods..								/////////
 	//===================================================================================================
 protected:
-	virtual void OnStart()                     = 0;
-	virtual void OnEnterFrame(float deltaTime) = 0;
+	virtual void OnStart() {}
+	virtual void OnEnterFrame(float deltaTime) {}
+	virtual void OnFileDropped(const wchar_t* filePath) {}
+
+
+
+
+
+	//=================================================================================================
+	/////////								Protected methods..								 //////////
+	//=================================================================================================
+protected:
+	RenderEngine() = default;
+	RenderEngine(const RenderEngine&) = delete;
+	RenderEngine(RenderEngine&&) noexcept = delete;
+	~RenderEngine() = default;
 
 
 

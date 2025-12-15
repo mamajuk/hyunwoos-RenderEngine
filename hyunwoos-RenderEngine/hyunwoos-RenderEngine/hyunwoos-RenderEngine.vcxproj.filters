@@ -99,6 +99,9 @@
     <ClCompile Include="RendererApp.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="UtilityModule\ByteStream.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="EngineModule\RenderEngine.h">
@@ -195,6 +198,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="ExampleApp.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="UtilityModule\ByteStream.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

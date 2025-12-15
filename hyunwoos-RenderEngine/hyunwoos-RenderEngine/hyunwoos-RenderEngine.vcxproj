@@ -154,6 +154,7 @@
     <ClCompile Include="RenderModule\RenderTarget.cpp" />
     <ClCompile Include="Source.cpp" />
     <ClCompile Include="UtilityModule\BitStream.cpp" />
+    <ClCompile Include="UtilityModule\ByteStream.cpp" />
     <ClCompile Include="UtilityModule\StringKey.cpp" />
     <ClCompile Include="UtilityModule\StringLamda.cpp" />
     <ClCompile Include="UtilityModule\Zlib.cpp" />
@@ -187,6 +188,7 @@
     <ClInclude Include="RenderModule\Material.h" />
     <ClInclude Include="RenderModule\RenderTarget.h" />
     <ClInclude Include="UtilityModule\BitStream.h" />
+    <ClInclude Include="UtilityModule\ByteStream.h" />
     <ClInclude Include="UtilityModule\Class.h" />
     <ClInclude Include="UtilityModule\StringKey.h" />
     <ClInclude Include="UtilityModule\StringLamda.h" />

@@ -271,7 +271,7 @@ void hyunwoo::Zlib::HuffmanTree::InsertNode(uint32_t symbol, uint32_t code, uint
 /*=============================================================================================================================================
  *     Zlib로 압축된 데이터의 압축을 해제합니다.....
  *=========*/
-hyunwoo::Zlib::InflateResult hyunwoo::Zlib::Inflate(std::vector<uint8_t>& inZlibDeflateStream, std::vector<uint8_t>& outInflateStream)
+hyunwoo::Zlib::InflateResult hyunwoo::Zlib::Inflate(ByteStream& inZlibDeflateStream, std::vector<uint8_t>& outInflateStream)
 {
     Zlib::Data          data;
     Zlib::InflateResult ret   = { 0, };
@@ -280,15 +280,13 @@ hyunwoo::Zlib::InflateResult hyunwoo::Zlib::Inflate(std::vector<uint8_t>& inZlib
     /**************************************************************************************************
      *    인자로 받은 압축된 데이터 스트림으로부터, Zlib::Data를 읽어들인다...
      *******/
-    uint32_t stream_idx  = 0;
-
 
     /*-----------------------------------------
      *   Zlib Data의 압축 방식과, 추가 정보가
      *   담긴 엑스트라 플래그값을 읽어들인다...
      *------*/
-    data.CompressionMethod.data = inZlibDeflateStream[stream_idx++];
-    data.Extra_flags.data       = inZlibDeflateStream[stream_idx++];
+    inZlibDeflateStream.ReadBytes((char*)&data.CompressionMethod.data, 1);
+    inZlibDeflateStream.ReadBytes((char*)&data.Extra_flags.data, 1);
 
 
     /*--------------------------------------------
@@ -317,28 +315,9 @@ hyunwoo::Zlib::InflateResult hyunwoo::Zlib::Inflate(std::vector<uint8_t>& inZlib
      *   ( 왠만해서는 사용되지 않는다... )
      *-------*/
     if (data.Extra_flags.fdict >= 1) {
-        data.fdict              = *(uint32_t*)inZlibDeflateStream[stream_idx];
-        stream_idx             += 4;
+        inZlibDeflateStream.ReadBytes((char*)&data.fdict, 4);
         ret.UsePresetDictionary = true;
     }
-
-
-    /*-----------------------------------------------
-     *   압축되어있는 Zlib 블럭 데이터들을 읽어들인다..
-     *-------*/
-    const uint32_t zlib_block_size = (inZlibDeflateStream.size() - stream_idx - 4);
-
-    data.DeflateBlockData.resize(zlib_block_size);
-    memcpy(&data.DeflateBlockData[0], &inZlibDeflateStream[stream_idx], zlib_block_size);
-    stream_idx += zlib_block_size;
-
-
-    /*--------------------------------------------------
-     *   손상여부를 빠르게 확인할 수 있는 확인값을 읽는다..
-     *   하지만 손상여부 확인 과정은 넘어갑니다...
-     *-------*/
-    data.checkSum_alder32 = *(uint32_t*)&inZlibDeflateStream[stream_idx];
-
 
 
 
@@ -348,7 +327,7 @@ hyunwoo::Zlib::InflateResult hyunwoo::Zlib::Inflate(std::vector<uint8_t>& inZlib
      *   읽어들인 Zlib 데이터의 압축을 해제한다.....
      *******/
     bool                       isFinalBlock;
-    BitStream                  bitStream(&data.DeflateBlockData[0], data.DeflateBlockData.size());
+    BitStream                  bitStream(inZlibDeflateStream, data.DeflateBlockData.size());
     Zlib::BlockCompressionType blockType;
 
 
@@ -736,6 +715,11 @@ hyunwoo::Zlib::InflateResult hyunwoo::Zlib::Inflate(std::vector<uint8_t>& inZlib
     } while (!isFinalBlock); //마지막 블럭이 아니라면 다음 블럭으로 넘어간다...
 
 
+    /*--------------------------------------------------
+     *   손상여부를 빠르게 확인할 수 있는 확인값을 읽는다..
+     *   하지만 손상여부 확인 과정은 넘어갑니다...
+     *-------*/
+    inZlibDeflateStream.ReadBytes((char*)&data.checkSum_alder32, 4);
     ret.Success = true;
     return ret;
 }

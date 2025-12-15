@@ -167,6 +167,9 @@ hyunwoo::PngImporter::ImportResult hyunwoo::PngImporter::Import(Texture2D& outTe
 		  +-------------------------------------------------------+*/
 		else if (chunk.Type == ChunkType::IDAT)
 		{
+			//deflate_img_stream.AddFileSpan(in.tellg(), chunk.Length);
+			//in.seekg(chunk.Length, std::ios::cur);
+
 			const uint32_t prev_size = deflate_img_stream.size();
 
 			deflate_img_stream.resize(prev_size + chunk.Length);
@@ -230,8 +233,13 @@ hyunwoo::PngImporter::ImportResult hyunwoo::PngImporter::Import(Texture2D& outTe
 	/*******************************************************************************************
 	 *   온전한 압축 이미지 데이터의 Deflate 압축을 해제한다....
 	 *******/
-	std::vector<uint8_t> filtered_stream;
-	if ((outRet.ZlibInflateRet = Zlib::Inflate(deflate_img_stream, filtered_stream)).Success==false) {
+	ConsecutiveByteStream       deflate_byteStream((char*)deflate_img_stream.data(), deflate_img_stream.size());
+	static std::vector<uint8_t> filtered_stream;
+
+	filtered_stream.reserve(ihdrData.Width * (ihdrData.Height+1));
+	filtered_stream.clear();
+
+	if ((outRet.ZlibInflateRet = Zlib::Inflate(deflate_byteStream, filtered_stream)).Success==false) {
 		outRet.Failed_Deflate = true;
 		return outRet;
 	}
@@ -251,20 +259,16 @@ hyunwoo::PngImporter::ImportResult hyunwoo::PngImporter::Import(Texture2D& outTe
 	}
 
 
-	if (ihdrData.BitDepth<8) {
-		int i = 0;
-	}
-
 
 	/****************************************************************************************
 	 *   필터링을 해제한다. 필터링은 스캔라인 단위로 적용되며, 이미지 데이터의 각 스캔라인(이미지 픽셀
 	 *   의 한 행을 의미)마다 적용된 필터링 방법이 모두 다르다. 그렇기에 각 스캔라인이 시작하기 전에
 	 *   해당 스캔라인에 적용된 필터링 방법을 나타내는 1bytes가 먼저 등장한다..
 	 *********/
-	const int32_t		 scanLineStride = (ihdrData.Width * bitsPerPixel) / 8;
-	std::vector<uint8_t> defiltered_stream;
-
+	const int32_t				scanLineStride = (ihdrData.Width * bitsPerPixel) / 8;
+	static std::vector<uint8_t> defiltered_stream;
 	defiltered_stream.reserve(ihdrData.Width * ihdrData.Height);
+	defiltered_stream.clear();
 
 
 	/*-----------------------------------------------

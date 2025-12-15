@@ -1,5 +1,6 @@
 #pragma once
 #include <cstdint>
+#include "ByteStream.h"
 
 namespace hyunwoo {
 	class BitStream;
@@ -8,7 +9,7 @@ namespace hyunwoo {
 
 
 /*=======================================================================================================================================================================================
- *   바이트 스트림에서 비트 단위로 읽을 수 있도록 해주는 유틸리티 클래스입니다...
+ *   바이트 스트림에서 리틀엔디안(LE)순의 비트 단위로 읽을 수 있도록 해주는 유틸리티 클래스입니다...
  *===============*/
 class hyunwoo::BitStream final
 {
@@ -16,10 +17,9 @@ class hyunwoo::BitStream final
 	////////										Properties..									 /////////
 	//========================================================================================================
 public:
-	uint8_t* ByteStreamPtr   = nullptr;
-	uint32_t BitStreamValue  = 0;
-	uint32_t BitLeft		 = 0;
-	uint32_t ByteLeft		 = 0;
+	uint32_t    BitStreamValue  = 0;
+	uint32_t    BitLeft		    = 0;
+	ByteStream& ByteStreamRef;
 
 
 
@@ -27,7 +27,7 @@ public:
 	////////									  Public methods...									/////////
 	//======================================================================================================
 public:
-	BitStream(uint8_t* byteStreamPtr, uint32_t byteTotal);
+	BitStream(ByteStream& byteStreamRef, uint32_t byteTotal);
 	BitStream(const BitStream&) = default;
 	~BitStream()				= default;
 

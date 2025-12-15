@@ -1,6 +1,7 @@
 #include "RendererApp.h"
 #include "ImportModule/PmxImporter.h"
 #include "ImportModule/VmdImporter.h"
+#include "UtilityModule/ByteStream.h"
 
 /***********************************************************
  *   OnStart()에서 호출되는 메소드들....
@@ -59,6 +60,8 @@ void RendererApp::OnStart_CreateTransforms()
   ***********/
 void RendererApp::OnFileDropped_LoadPmx(const wchar_t* filePath)
 {
+	TimePoint prev_time = HighClock::now();
+
 	if (m_animateMesh.GetMesh().Get()!=nullptr) {
 		m_animateMesh.SetMesh(nullptr);
 		m_animateMesh.SetCurrentClip(nullptr);
@@ -174,6 +177,9 @@ void RendererApp::OnFileDropped_LoadPmx(const wchar_t* filePath)
 	m_animateMesh_tr->SetLocalPosition(Vector3(0.f, -3.f, 14.f));
 	m_meshName = std::filesystem::path(filePath).filename().c_str();
 	m_debugLog = L"pmx file load success!!";
+
+	float import_deltaTime = std::chrono::duration_cast<FloatDuration>((HighClock::now() - prev_time)).count();
+	m_debugLog += (const wchar_t*)w$(L"(", import_deltaTime, L" seconds)");
 }
 
 

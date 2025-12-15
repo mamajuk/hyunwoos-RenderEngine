@@ -2,6 +2,7 @@
 #include <cstdint>
 #include <vector>
 #include "../UtilityModule/BitStream.h"
+#include "../UtilityModule/ByteStream.h"
 
 namespace hyunwoo {
 	class Zlib;
@@ -154,7 +155,7 @@ public:
 	///////////										Public methods..									//////////
 	//============================================================================================================
 public:
-	static InflateResult Inflate(std::vector<uint8_t>& inZlibDeflateStream, std::vector<uint8_t>& outInflateStream);
+	static InflateResult Inflate(ByteStream& inZlibDeflateStream, std::vector<uint8_t>& outInflateStream);
 
 
 

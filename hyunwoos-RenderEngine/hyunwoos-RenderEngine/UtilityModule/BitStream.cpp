@@ -3,8 +3,8 @@
 /*=========================================================================================================================================
  *    BitStream의 생성자입니다...
  *========*/
-hyunwoo::BitStream::BitStream(uint8_t* byteStreamPtr, uint32_t byteTotal)
-:ByteStreamPtr(byteStreamPtr), ByteLeft(byteTotal), BitLeft(0), BitStreamValue(0)
+hyunwoo::BitStream::BitStream(ByteStream& byteStreamRef, uint32_t byteTotal)
+:ByteStreamRef(byteStreamRef), BitLeft(0), BitStreamValue(0)
 {
 }
 
@@ -18,13 +18,14 @@ hyunwoo::BitStream::BitStream(uint8_t* byteStreamPtr, uint32_t byteTotal)
  *=======*/
 uint32_t hyunwoo::BitStream::ReadBits(uint32_t readBitCount)
 {
-	uint32_t ret = 0;
+	uint32_t       ret		 = 0;
+	const uint32_t bytesLeft = ByteStreamRef.GetBytesLeft();
 
 	/***************************************************************
 	 *   읽을 비트 수가 없다면, 결과를 갱신하고
 	 *   함수를 종료한다....
 	 ******/
-	if (readBitCount<=0 || readBitCount>32 || ByteLeft==0 && BitLeft==0) {
+	if (readBitCount<=0 || readBitCount>32 || bytesLeft==0 && BitLeft == 0) {
 		return 0;
 	}
 
@@ -35,21 +36,16 @@ uint32_t hyunwoo::BitStream::ReadBits(uint32_t readBitCount)
 	 ******/
 	uint32_t bit_filter = (0xFFFFFFFF >> (32 - readBitCount));
 
-	if (BitLeft < readBitCount && ByteLeft>0) {
+	if (BitLeft < readBitCount && bytesLeft>0) {
 
 		uint32_t nxt_bits      = 0;
-		uint32_t need_bytes    = (ByteLeft>=4? 4:ByteLeft);
+		uint32_t need_bytes    = (bytesLeft >= 4 ? 4 : bytesLeft);
 		uint32_t nxt_read_bits;
 
 		/*------------------------------------------------
 		 *  바이트스트림으로부터 4bytes를 읽어들인다..
-		 *  ( 남은 바이트가 4보다 작을 경우엔, 남은 바이트
-		 *    만큼만 읽어들인다...)
 		 ******/
-		for (uint32_t i = 0; i < need_bytes; i++) {
-			uint32_t Symbol = (*ByteStreamPtr++);
-			nxt_bits |= Symbol<<(i*8);
-		}
+		ByteStreamRef.ReadBytes((char*)&nxt_bits, 4);
 
 
 		/*-------------------------------------------------
@@ -61,7 +57,6 @@ uint32_t hyunwoo::BitStream::ReadBits(uint32_t readBitCount)
 		nxt_read_bits  = (readBitCount - BitLeft);
 		BitStreamValue = (nxt_bits >> nxt_read_bits);
 		BitLeft		   = (need_bytes * 8) - nxt_read_bits;
-		ByteLeft	  -= need_bytes;
 		
 		return ret;
 	}

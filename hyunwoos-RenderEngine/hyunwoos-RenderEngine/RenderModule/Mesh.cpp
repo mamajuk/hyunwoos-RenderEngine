@@ -106,14 +106,6 @@ void hyunwoo::Mesh::RecalculateBoundingSphere()
 
 
 
-
-
-
-
-
-
-
-
 /*==============================================================================================================
  *   메시의 바운딩 박스를 재계산합니다...
  **********/
@@ -178,10 +170,23 @@ void hyunwoo::Mesh::RecalculateBoundingBox()
 
 
 
+
+
+
+
+
+
+
+
+
+/****************************************************************************
+ *   MeshBuilder 관련 메소드들의 정의.....
+ *********/
+
 /*=================================================================================================================================
  *   메시의 바운딩 박스를 기반으로 메시를 생성합니다....
  ***************/
-void hyunwoo::Mesh::CreateBoundingBoxMesh(Mesh& outMesh)
+void hyunwoo::MeshBuilder::CreateBoundingBoxMesh(const BoundingBox& bound, Mesh& outMesh)
 {
 	std::vector<Vertex>&		  vertices  = outMesh.Vertices;
 	std::vector<IndexedTriangle>& triangles = outMesh.Triangles;
@@ -206,8 +211,8 @@ void hyunwoo::Mesh::CreateBoundingBoxMesh(Mesh& outMesh)
 		Rect rects[4];
 	};
 
-	const Vector3& min			= BoundBox.Min;
-	const Vector3& max			= BoundBox.Max;
+	const Vector3& min			= bound.Min;
+	const Vector3& max			= bound.Max;
 	const Vector2  rectSize		= (Vector2::One * .15f);
 	const Vector2  rectSizeHalf = (rectSize * .5f);
 
@@ -363,7 +368,7 @@ void hyunwoo::Mesh::CreateBoundingBoxMesh(Mesh& outMesh)
 /*====================================================================================================================
  *    메시의 바운딩 스피어를 기반으로 메시를 생성합니다....
  *************/
-void hyunwoo::Mesh::CreateBoundingSphereMesh(Mesh& outMesh)
+void hyunwoo::MeshBuilder::CreateBoundingSphereMesh(const BoundingSphere& bound, Mesh& outMesh)
 {
 	std::vector<Vertex>&		  vertices  = outMesh.Vertices;
 	std::vector<IndexedTriangle>& triangles = outMesh.Triangles;
@@ -380,16 +385,16 @@ void hyunwoo::Mesh::CreateBoundingSphereMesh(Mesh& outMesh)
 		float         angle		= 0.f;
 		const float   addAngle	= 20.f;
 		const float   goalAngle = (360.f - addAngle);
-		const Vector3 forward	= (dirDir * BoundSphere.Radius);
+		const Vector3 forward	= (dirDir * bound.Radius);
 		const Vector3 back		= (forward * .95f);
 		const Vector3 up		= (upDir * 0.15f);
 
 
 		//회전되지 않은 상/하 버텍스를 삽입한다...
-		vertices.push_back(Vertex{ BoundSphere.Center + (forward + up), Vector2::Zero });
-		vertices.push_back(Vertex{ BoundSphere.Center + (forward - up), Vector2::Zero });
-		vertices.push_back(Vertex{ BoundSphere.Center + (back + up), Vector2::Zero });
-		vertices.push_back(Vertex{ BoundSphere.Center + (back - up), Vector2::Zero });
+		vertices.push_back(Vertex{ bound.Center + (forward + up), Vector2::Zero });
+		vertices.push_back(Vertex{ bound.Center + (forward - up), Vector2::Zero });
+		vertices.push_back(Vertex{ bound.Center + (back + up), Vector2::Zero });
+		vertices.push_back(Vertex{ bound.Center + (back - up), Vector2::Zero });
 
 		const uint32_t first_forward_up = (vertices.size() - 4);
 		const uint32_t first_forward_down = (first_forward_up + 1);
@@ -409,8 +414,8 @@ void hyunwoo::Mesh::CreateBoundingSphereMesh(Mesh& outMesh)
 			const uint32_t cur_back_up = (last_forward_up + 6);
 			const uint32_t cur_back_down = (last_forward_up + 7);
 
-			const Vector3  rotForward = (BoundSphere.Center + (Quaternion::AngleAxis(angle += addAngle, rotAxis) * forward));
-			const Vector3  rotBack = (BoundSphere.Center + (Quaternion::AngleAxis(angle, rotAxis) * back));
+			const Vector3  rotForward = (bound.Center + (Quaternion::AngleAxis(angle += addAngle, rotAxis) * forward));
+			const Vector3  rotBack = (bound.Center + (Quaternion::AngleAxis(angle, rotAxis) * back));
 
 			vertices.push_back(Vertex{ (rotForward + up), Vector2::Zero });
 			vertices.push_back(Vertex{ (rotForward - up), Vector2::Zero });

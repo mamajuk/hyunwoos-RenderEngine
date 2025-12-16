@@ -26,7 +26,7 @@ using KeyCode = hyunwoo::InputManager::KeyCode;
 
 
 /*=========================================================================================================================
- *    사용자 정의 랜더 엔진을 정의한다...
+ *    개발하면서 진행한 테스트 함수들이 집합된 클래스입니다....
  *==========*/
 class MyRenderEngine final : public RenderEngine
 {
@@ -63,7 +63,6 @@ protected:
 	{
 		Renderer& renderer = GetRenderer();
 		const InputManager& input = GetInputManager();
-
 		Example15_DrawRenderMesh(deltaTime);
 	}
 
@@ -160,8 +159,9 @@ private:
 		char     symbol_table[] = { 'A','B','C','D','E','F','G','H' };
 		uint32_t code_len_table[] = { 3,3,3,3,3,2,4,4 };
 
-		uint32_t  byteStream = 0b1111011100011101001110010;
-		BitStream bitStream = BitStream((uint8_t*)&byteStream, 4);
+		uint32_t			  byteStream = 0b1111011100011101001110010;
+		ConsecutiveByteStream consecutiveStream((char*)&byteStream, 4);
+		BitStream			  bitStream = BitStream(consecutiveStream, 4);
 
 		Zlib::HuffmanTree tree;
 		tree.Build_Dynamic(code_len_table, sizeof(code_len_table) / 4);

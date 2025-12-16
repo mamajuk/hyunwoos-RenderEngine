@@ -232,6 +232,9 @@ hyunwoo::PngImporter::ImportResult hyunwoo::PngImporter::Import(Texture2D& outTe
 
 	/*******************************************************************************************
 	 *   온전한 압축 이미지 데이터의 Deflate 압축을 해제한다....
+	 *   동적할당을 최소화하기 위해서, filtered_stream은 정적으로 재사용(해당 프로그램에선 런타임에 이 코드
+	 *   를 자주 사용할 것이기 때문이다..)하고, 필터링 된 전체 크기를 알 수 있기 때문에, 필터링 된 전체
+	 *   버퍼 크기를 예약해 놓는 것으로 동적 할당을 최소화한다....
 	 *******/
 	ConsecutiveByteStream       deflate_byteStream((char*)deflate_img_stream.data(), deflate_img_stream.size());
 	static std::vector<uint8_t> filtered_stream;
@@ -263,7 +266,10 @@ hyunwoo::PngImporter::ImportResult hyunwoo::PngImporter::Import(Texture2D& outTe
 	/****************************************************************************************
 	 *   필터링을 해제한다. 필터링은 스캔라인 단위로 적용되며, 이미지 데이터의 각 스캔라인(이미지 픽셀
 	 *   의 한 행을 의미)마다 적용된 필터링 방법이 모두 다르다. 그렇기에 각 스캔라인이 시작하기 전에
-	 *   해당 스캔라인에 적용된 필터링 방법을 나타내는 1bytes가 먼저 등장한다..
+	 *   해당 스캔라인에 적용된 필터링 방법을 나타내는 1bytes가 먼저 등장한다..defiltered_stream
+	 *   또한, 동적할당을 최소화하기 위해서 앞서 이야기 한 filtered_stream과 마찬가지로 정적 변수로
+	 *   정의하고, 전체 크기를 미리 알 수 있으니 미리 버퍼 크기를 예약해놓는 것으로 동적할당을 최소화
+	 *   한다....
 	 *********/
 	const int32_t				scanLineStride = (ihdrData.Width * bitsPerPixel) / 8;
 	static std::vector<uint8_t> defiltered_stream;

@@ -110,10 +110,11 @@ void hyunwoo::FileSpanByteStream::ReadBytes(char* outPtr, uint32_t readBytesCoun
 
 /*=======================================================================================================================================================
  *  주어진 인자 offset으로 현재 오프셋을 이동시킵니다...
+ *  (※해당 기능은 당장 쓸일이 없는데 중요하지 않은 기능이기 때문에, 구현은 나중으로 미룬다...※)
  **********/
 void hyunwoo::FileSpanByteStream::MoveOffset(uint32_t offset)
 {
-    
+    throw L"this method is deprecated!!";
 }
 
 

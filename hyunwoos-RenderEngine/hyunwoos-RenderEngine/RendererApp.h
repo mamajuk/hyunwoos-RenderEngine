@@ -84,20 +84,9 @@ protected:
 	{
 		std::wstring extension = std::filesystem::path(filePath).extension().wstring();
 
-		//확장명이 pmx인가..?
-		if (extension == L".pmx") {
-			OnFileDropped_LoadPmx(filePath);
-		}
-
-		//확장명이 vmd인가..?
-		else if (extension == L".vmd") {
-			OnFileDropped_LoadVmd(filePath);
-		}
-
-		//유효하지 않은 확장명일 경우...
-		else {
-			m_debugLog = (const wchar_t*)w$(L"'", extension.c_str(), L"' is not a supported file format.");
-		}
+		if (extension == L".pmx")	   OnFileDropped_LoadPmx(filePath);
+		else if (extension == L".vmd") OnFileDropped_LoadVmd(filePath);
+		else m_debugLog = (const wchar_t*)w$(L"'", extension.c_str(), L"' is not a supported file format.\nCurrently, only PMX and VMD formats are supported.");
 	}
 
 	virtual void OnEnterFrame(float deltaTime) override final

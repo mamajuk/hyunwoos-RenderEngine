@@ -171,7 +171,7 @@ void RendererApp::OnFileDropped_LoadPmx(const wchar_t* filePath)
 		Material& mat = m_mats[i];
 		mat.Shaders.VertexShader   = Shader::VertexShader_MulFinalMat;
 		mat.Shaders.FragmentShader = Shader::FragmentShader_Tex0Mapping;
-		matList.push_back(&m_mats[i]);
+		matList.push_back(WeakPtr<Material>(& m_mats[i]));
 	}
 
 	m_animateMesh_tr->SetLocalPosition(Vector3(0.f, -3.f, 14.f));
@@ -189,6 +189,8 @@ void RendererApp::OnFileDropped_LoadPmx(const wchar_t* filePath)
  ***********/
 void RendererApp::OnFileDropped_LoadVmd(const wchar_t* filePath)
 {
+	TimePoint prev_time = HighClock::now();
+
 	m_clipName = L"-";
 	m_animateMesh.SetCurrentClip(nullptr);
 
@@ -223,7 +225,9 @@ void RendererApp::OnFileDropped_LoadVmd(const wchar_t* filePath)
 
 	m_animateMesh.SetCurrentClip(&m_clip);
 	m_clipName = std::filesystem::path(filePath).filename().c_str();
-	m_debugLog = L"vmd file load success!!";
+
+	float import_deltaTime = std::chrono::duration_cast<FloatDuration>(HighClock::now() - prev_time).count();
+	m_debugLog = (const wchar_t*)w$(L"vmd file load success!!(", import_deltaTime, L")");
 }
 
 
@@ -385,7 +389,7 @@ void RendererApp::OnEnterFrame_ControlsAndRender(float deltaTime)
 		L"\n-set control transform - camera(5)",
 		L"\n-show bone transforms(6): ", (int)m_showBones,
 		L"\n(click the highlighted bone to manipulate it.)",
-		L"\n\n-decrease or increase the camera FOV(NUMPAD 6 / NUMPAD 9)",
+		L"\n\n-decrease or increase the camera FOV(NUMPAD 6 / NUMPAD 9): ", m_cam.Fov,
 		L"\n-move along the control transform's X-axis(Left / Right)",
 		L"\n-move along the control transform's Y-axis(Down / Up)",
 		L"\n-move along the control transform's Z-axis(NUMPAD 2 / NUMPAD 8)",

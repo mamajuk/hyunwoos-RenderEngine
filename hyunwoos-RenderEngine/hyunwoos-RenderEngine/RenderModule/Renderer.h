@@ -5,7 +5,7 @@
 #include "Material.h"
 #include "Camera.h"
 #include "RenderTarget.h"
-#include "../EngineModule/RenderMesh.h"
+#include "RenderMesh.h"
 
 namespace hyunwoo {
 	class Renderer;

@@ -70,6 +70,11 @@ public:
 				m_sharedStr += std::string(arg);
 			}
 
+			/***std::string인가..?**/
+			else if constexpr (std::is_same_v<arg_t, std::string>) {
+				m_sharedStr += arg;
+			}
+
 			/**이외의 자료형일 경우, 내부적으로 전용 메소드가 정의되어있는가?**/
 			else if constexpr(has_add_string_method_v<arg_t>) {
 				arg.AddString(m_sharedStr);
@@ -160,6 +165,11 @@ public:
 			/***C-Style 문자열인가..?**/
 			else if constexpr (std::is_same_v<arg_t, const wchar_t*>) {
 				m_sharedStr += std::wstring(arg);
+			}
+
+			/***std::wstring인가..?**/
+			else if constexpr (std::is_same_v<arg_t, std::wstring>) {
+				m_sharedStr += arg;
 			}
 
 			/**이외의 자료형일 경우, 내부적으로 전용 메소드가 정의되어있는가?**/

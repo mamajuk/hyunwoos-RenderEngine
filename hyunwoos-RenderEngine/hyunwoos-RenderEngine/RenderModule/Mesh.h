@@ -13,6 +13,7 @@ namespace hyunwoo {
 	struct SubMesh;
 	struct Bone;
 	struct Mesh;
+	struct MeshBuilder;
 
 	enum class SkinDeformType : uint8_t;
 }
@@ -202,7 +203,29 @@ struct hyunwoo::Mesh final : public hyunwoo::UniqueableObject
 	//=========================================================================================
 	void RecalculateBoundingSphere();
 	void RecalculateBoundingBox();
+};
 
-	void CreateBoundingBoxMesh(Mesh& outMesh);
-	void CreateBoundingSphereMesh(Mesh& outMesh);
+
+
+
+
+
+
+
+
+
+
+
+
+/*======================================================================================================================================
+ *   메시를 생성하는 정적 메소드를 제공하는 구조체입니다...
+ *============*/
+struct hyunwoo::MeshBuilder final
+{
+	//=========================================================================================
+	///////////							 Public methods..						///////////////
+	//=========================================================================================
+public:
+	static void CreateBoundingBoxMesh(const BoundingBox& bound, Mesh& outMesh);
+	static void CreateBoundingSphereMesh(const BoundingSphere& bound, Mesh& outMesh);
 };

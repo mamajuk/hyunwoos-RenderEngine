@@ -15,7 +15,7 @@
 
 최종 개발한 각종 모듈들을 활용하여 구현된 컨텐츠에 대한 구현은 ```hyunwoo-RenderEngine/RendererApp.h```,  ```hyunwoo-RenderEngine/RendererApp.cpp```를 통해 확인할 수 있으며, 빌드된 프로그램은 ```hyunwoo-RenderEngine/x64/Release/hyunwoos-RenderEngine.exe``` 를 실행할 수 있습니다. 
 
-마지막으로, 좋은 ```pmx```모델링 및 ```vmd```모션 작업물을 공유해주신 [Hoyoverse](https://www.mihoyo.com/) 와 [tweekcrystal](http://tweekcrystal.deviantart.com/), [PiT_shan](https://bowlroll.net/file/33936) 님 정말 감사합니다. 그리고 ```이득우의 게임수학``` 이라는 좋은 책을 써주신 ***이득우 교수님***께 큰 감사를 드립니다. 특히 개발하면서 많은 조언을 해준 [teumal](https://github.com/teumal) 정말 고맙다구!
+마지막으로, 좋은 ```pmx```모델링 및 ```vmd```모션 작업물을 공유해주신 [Hoyoverse](https://www.mihoyo.com/) 와 [tweekcrystal](http://tweekcrystal.deviantart.com/), [PiT_shan](https://bowlroll.net/file/33936) 님 정말 감사합니다. 그리고 ```이득우의 게임수학``` 이라는 좋은 책을 써주신 [이득우 교수님](https://www.youtube.com/channel/UCt_fa1d5aHEl69_Bll0w1Ww/videos)께 큰 감사를 드립니다. 특히 개발하면서 많은 조언을 해준 [teumal](https://github.com/teumal) 정말 고맙다구!
 
 
 ## How to Load Models and Animations

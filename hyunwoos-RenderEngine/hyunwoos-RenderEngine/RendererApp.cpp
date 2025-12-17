@@ -339,7 +339,7 @@ void RendererApp::OnEnterFrame_ControlsAndRender(float deltaTime)
 
 
 	/**************************************************************
-	 *   각종 옵션들을 조작한다....
+	 *   선택된 Transform을 조작한다....
 	 *******/
 	const float speedScale    = (input.IsInProgress(KeyCode::Space) ? .2f : 1.f);
 	const float moveSpeedSec  = (100.f * speedScale * deltaTime);

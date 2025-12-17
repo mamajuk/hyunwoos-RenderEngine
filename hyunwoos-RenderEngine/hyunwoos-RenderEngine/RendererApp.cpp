@@ -24,7 +24,7 @@ void RendererApp::OnStart_InitRendererProperties()
 /*================================================================================================================================
  *  RenderMesh/Camera 등의 TransformComponent가 부착될 Transform들을 생성하고, TransformComponent들을 부착한다...
  ***********/
-void RendererApp::OnStart_CreateTransforms()
+void RendererApp::OnStart_InitTransformComponents()
 {
 	m_animateMesh_tr = Transform::CreateTransform();
 	m_animateMesh_tr->AttachTransformComponent(&m_animateMesh);
@@ -56,6 +56,39 @@ void RendererApp::OnStart_CreateTransforms()
  *******/
 
  /*================================================================================================================================
+   *   인자로 주어진 확장명에 알맞는 Import 메소드를 호출한다....
+   ***********/
+void hyunwoo::RendererApp::OnFileDropped_Internal(const wchar_t* filePath)
+{
+	std::wstring extension = std::filesystem::path(filePath).extension().wstring();
+
+	/******************************************
+	 *  pmx 모델링 파일인가..?
+	 ******/
+	if (extension == L".pmx") {
+		OnFileDropped_LoadPmx(filePath);
+	}
+
+
+	/******************************************
+	 *  vmd 모델링 파일인가..?
+	 ******/
+	else if (extension == L".vmd") {
+		OnFileDropped_LoadVmd(filePath);
+	}
+
+
+	/******************************************
+	 *  지원하지 않는 파일인가..?
+	 ******/
+	else {
+		m_debugLog = (const wchar_t*)w$(L"'", extension.c_str(), L"' is not a supported file format.\nCurrently, only PMX and VMD formats are supported.");
+	}
+}
+
+
+
+/*================================================================================================================================
   *   드로그 앤 드랍된 파일이, pmx파일이라면 데이터를 읽어들이고 리소스를 갱신한다....
   ***********/
 void RendererApp::OnFileDropped_LoadPmx(const wchar_t* filePath)
@@ -256,8 +289,8 @@ void RendererApp::OnFileDropped_LoadVmd(const wchar_t* filePath)
   ***********/
 void RendererApp::OnEnterFrame_ControlsAndRender(float deltaTime)
 {
-	Renderer& renderer = GetRenderer();
-	const InputManager& input = GetInputManager();
+	Renderer&			renderer = GetRenderer();
+	const InputManager& input    = GetInputManager();
 
 	/**************************************************************
 	 *   각종 옵션들을 조작한다....
@@ -308,9 +341,9 @@ void RendererApp::OnEnterFrame_ControlsAndRender(float deltaTime)
 	/**************************************************************
 	 *   각종 옵션들을 조작한다....
 	 *******/
-	const float speedScale = (input.IsInProgress(KeyCode::Space) ? .2f : 1.f);
-	const float moveSpeedSec = (100.f * speedScale * deltaTime);
-	const float rotSpeedSec = (200.f * speedScale * deltaTime);
+	const float speedScale    = (input.IsInProgress(KeyCode::Space) ? .2f : 1.f);
+	const float moveSpeedSec  = (100.f * speedScale * deltaTime);
+	const float rotSpeedSec   = (200.f * speedScale * deltaTime);
 	const float scaleSpeedSec = (1.f * speedScale * deltaTime);
 
 	Transform* control_tr_raw = m_control_tr.Get();
@@ -368,8 +401,8 @@ void RendererApp::OnEnterFrame_ControlsAndRender(float deltaTime)
 	 *   디버그 출력...
 	 *******/
 	static int   frameCount = 0;
-	static int   lastFps = 0;
-	static float totalTime = 0.f;
+	static int   lastFps    = 0;
+	static float totalTime  = 0.f;
 
 	frameCount++;
 	if ((totalTime += deltaTime) >= 1.f) {
@@ -523,7 +556,4 @@ void hyunwoo::RendererApp::OnEnterFrame_ShowBoneTransforms(const RenderMesh& ren
 		renderer.DrawLine(rectColor, sp2, sp4, GetViewPort());
 		renderer.DrawLine(rectColor, sp3, sp4, GetViewPort());
 	}
-
-
-#pragma endregion
 }

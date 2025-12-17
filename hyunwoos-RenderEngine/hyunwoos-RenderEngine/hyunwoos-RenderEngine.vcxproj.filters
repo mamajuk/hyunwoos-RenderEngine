@@ -346,7 +346,6 @@
   </ItemGroup>
   <ItemGroup>
     <Text Include="Resources\feixieer\readme【一定要看】.txt" />
-    <Text Include="할일리스트.txt" />
     <Text Include="Resources\dolphin\dolphin readme.txt" />
   </ItemGroup>
 </Project>

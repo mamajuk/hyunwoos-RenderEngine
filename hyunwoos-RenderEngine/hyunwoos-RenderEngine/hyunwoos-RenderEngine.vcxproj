@@ -255,7 +255,6 @@
   <ItemGroup>
     <Text Include="Resources\dolphin\dolphin readme.txt" />
     <Text Include="Resources\feixieer\readme【一定要看】.txt" />
-    <Text Include="할일리스트.txt" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

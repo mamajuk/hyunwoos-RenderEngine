@@ -85,7 +85,6 @@ public:
 private:
 	static RenderEngine* m_runningEnginePtr;
 
-	Renderer::ViewPort m_viewPort;
 
 	/**********************************
 	 *   WIN32 API 관련 필드...
@@ -104,8 +103,9 @@ private:
 	/***********************************
 	 *   엔진 코어 모듈 관련 필드...
 	 *****/
-	Renderer	 m_renderer;	 //랜더링 기능을 책임지는 모듈입니다...
-	InputManager m_inputManager; //사용자 입력을 책임지는 모듈입니다...
+	Renderer		   m_renderer;	 //랜더링 기능을 책임지는 모듈입니다...
+	InputManager	   m_inputManager; //사용자 입력을 책임지는 모듈입니다...
+	Renderer::ViewPort m_viewPort;	//랜더링 결과가 그려질 뷰포트입니다...
 
 
 
@@ -128,10 +128,10 @@ protected:
 	/////////								Protected methods..								 //////////
 	//=================================================================================================
 protected:
-	RenderEngine() = default;
-	RenderEngine(const RenderEngine&) = delete;
+	RenderEngine()						  = default;
+	RenderEngine(const RenderEngine&)     = delete;
 	RenderEngine(RenderEngine&&) noexcept = delete;
-	~RenderEngine() = default;
+	~RenderEngine()						  = default;
 
 
 

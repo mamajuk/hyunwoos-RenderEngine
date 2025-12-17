@@ -59,8 +59,8 @@ private:
 	bool		 m_showBones = false;
 	bool		 m_playAnim  = false;
 	bool         m_useIK     = true;
-	std::wstring m_meshName;
-	std::wstring m_clipName;
+	std::wstring m_meshName  = L"-";
+	std::wstring m_clipName  = L"-";
 	std::wstring m_debugLog;
 
 
@@ -74,19 +74,12 @@ protected:
 	virtual void OnStart() override final
 	{
 		OnStart_InitRendererProperties();
-		OnStart_CreateTransforms();
-
-		m_meshName = L"-";
-		m_clipName = L"-";
+		OnStart_InitTransformComponents();
 	}
 
 	virtual void OnFileDropped(const wchar_t* filePath) override final
 	{
-		std::wstring extension = std::filesystem::path(filePath).extension().wstring();
-
-		if (extension == L".pmx")	   OnFileDropped_LoadPmx(filePath);
-		else if (extension == L".vmd") OnFileDropped_LoadVmd(filePath);
-		else m_debugLog = (const wchar_t*)w$(L"'", extension.c_str(), L"' is not a supported file format.\nCurrently, only PMX and VMD formats are supported.");
+		OnFileDropped_Internal(filePath);
 	}
 
 	virtual void OnEnterFrame(float deltaTime) override final
@@ -105,12 +98,13 @@ private:
 	 *  OnStart()에서 호출될 메소드들...
 	 ******/
 	void OnStart_InitRendererProperties();
-	void OnStart_CreateTransforms();
+	void OnStart_InitTransformComponents();
 
 
 	/********************************************
 	 *   OnFileDropped()에서 호출될 메소드들...
 	 *******/
+	void OnFileDropped_Internal(const wchar_t* filePath);
 	void OnFileDropped_LoadPmx(const wchar_t* filePath);
 	void OnFileDropped_LoadVmd(const wchar_t* filePath);
 

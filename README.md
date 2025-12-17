@@ -20,8 +20,6 @@
 
 ●```pmxImporter::Import()```를 통해 ```.pmx``` 모델링 파일을 로드할 때, 기본적으로 그 모델링에서 사용되는 모든 ```.png``` 확장명의 텍스쳐 파일을 읽어들이려고 시도합니다. 이 과정에서 ```.pmx``` 모델링이 요구하는 모든 텍스쳐 파일을 읽어들이지 않으면 실패하기 때문에, 사용자는 Import할 ```.pmx``` 모델링에서 사용하는 모든 텍스쳐 파일을 ```.png``` 확장명으로 미리 변환해놓아야 합니다.
 
-●```pmx``` 모델링을 로드할 때, 해당 모델링에서 사용하는 모든 텍스쳐 파일이 존재하지 않으면 실패합니다. 또한 ```hyunwoo's RenderEngine```은 오직 ```.Png``` 확장명의 이미지 파일만 지원하기 때문에, ```PmxImporter```는 
-
 ●최종 개발한 각종 모듈들을 활용하여 구현된 컨텐츠의 소스는 ```hyunwoo-RenderEngine/RendererApp.h```,  ```hyunwoo-RenderEngine/RendererApp.cpp```를 통해 확인할 수 있으며, 빌드된 프로그램은 ```hyunwoo-RenderEngine/x64/Release/hyunwoos-RenderEngine.exe``` 를 실행하면 됩니다.
 
 

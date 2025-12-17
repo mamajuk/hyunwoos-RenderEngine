@@ -6,7 +6,7 @@
 
 
 /*============================================================================================================
- *
+ *   삼각형 서술자를 초기화하는 메소드들을 모음.....
  ********************/
 inline void hyunwoo::Renderer::TriangleDescription::SetScreenPositions(const Vector2& screenPos1, const Vector2& screenPos2, const Vector2& screenPos3) {
     ScreenPositions[0] = screenPos1;

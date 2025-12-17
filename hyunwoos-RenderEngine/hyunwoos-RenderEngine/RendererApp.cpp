@@ -385,7 +385,7 @@ void RendererApp::OnEnterFrame_ControlsAndRender(float deltaTime)
 		L"\n-use WireFrame Mode(1): ", (int)renderer.UseWireFrameMode,
 		L"\n-use Backface Culling(2): ", (int)renderer.UseBackfaceCulling,
 		L"\n-use ik(3): ", (int)m_useIK,
-		L"\n-set control transform - renderMesh(4)",
+		L"\n-set control transform - animateMesh(4)",
 		L"\n-set control transform - camera(5)",
 		L"\n-show bone transforms(6): ", (int)m_showBones,
 		L"\n(click the highlighted bone to manipulate it.)",

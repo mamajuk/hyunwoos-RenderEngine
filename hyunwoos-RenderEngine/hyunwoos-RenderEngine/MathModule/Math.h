@@ -113,13 +113,6 @@ public:
 		return Symbol;
 	}
 
-	static const float Repeat(const float symbol, const float min, const float max) {
-		if (symbol > max) return (symbol - max);
-		if (symbol < min) return symbol;
-
-		return symbol;
-	}
-
 	template<typename T, typename...Tn>
 	static const T Max(const T lhs, Tn... args) {
 		float max = lhs;

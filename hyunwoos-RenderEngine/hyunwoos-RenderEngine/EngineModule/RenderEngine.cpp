@@ -323,7 +323,7 @@ LRESULT hyunwoo::RenderEngine::WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARA
 		case(WM_MOUSEMOVE): 
 		{
 			engine.m_inputManager.SetMouseScreenPosition(Vector2(
-				GET_X_LPARAM(lParam), GET_X_LPARAM(lParam))
+				GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam))
 			);
 
 			break;

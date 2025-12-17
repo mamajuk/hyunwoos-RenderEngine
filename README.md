@@ -13,9 +13,9 @@
 
 ```Quaternion``` 의 회전 합성은 오른손 좌표계 규약을 따릅니다. 다만 ```Quaternion::AngleAxis()``` 는 내부적으로 사용자가 카타시안(Cartesian) 좌표계에서의 벡터 회전(active rotation)과 동일한 감각으로 사용할 수 있도록 인자로 받은 각도를 반전시켜 처리합니다. (e.g 30º -> -30º)
 
-최종 개발한 각종 모듈들을 활용하여 구현된 컨텐츠에 대한 구현은 ```hyunwoo-RenderEngine/RendererApp.h```,  ```hyunwoo-RenderEngine/RendererApp.cpp```를 통해 확인할 수 있으며, 빌드된 프로그램은 ```hyunwoo-RenderEngine/x64/Release/hyunwoos-RenderEngine.exe``` 를 실행할 수 있습니다. 
+최종 개발한 각종 모듈들을 활용하여 구현된 컨텐츠의 소스는 ```hyunwoo-RenderEngine/RendererApp.h```,  ```hyunwoo-RenderEngine/RendererApp.cpp```를 통해 확인할 수 있으며, 빌드된 프로그램은 ```hyunwoo-RenderEngine/x64/Release/hyunwoos-RenderEngine.exe``` 를 실행하면 됩니다.
 
-마지막으로, 좋은 ```pmx```모델링 및 ```vmd```모션 작업물을 공유해주신 [Hoyoverse](https://www.mihoyo.com/) 와 [tweekcrystal](http://tweekcrystal.deviantart.com/), [PiT_shan](https://bowlroll.net/file/33936) 님 정말 감사합니다. 그리고 ```이득우의 게임수학``` 이라는 좋은 책을 써주신 [이득우 교수님](https://www.youtube.com/channel/UCt_fa1d5aHEl69_Bll0w1Ww/videos)께 큰 감사를 드립니다. 특히 개발하면서 많은 조언을 해준 [teumal](https://github.com/teumal) 정말 고맙다구!
+마지막으로, 개발하면서 사용된 ```pmx``` 모델링 및 ```vmd``` 모션 작업물을 공유해주신 [Hoyoverse](https://www.mihoyo.com/), [tweekcrystal](http://tweekcrystal.deviantart.com/), [PiT_shan](https://bowlroll.net/file/33936), ```pmx```, ```vmd``` **file structure** 글을 공유해주신 [felixjones](https://gist.github.com/felixjones/f8a06bd48f9da9a4539f), [Nuthouse01](https://github.com/Nuthouse01/PMX-VMD-Scripting-Tools?utm_source=chatgpt.com), 특히 ```이득우의 게임수학``` 이라는 좋은 책을 써주신  [이득우 교수님](https://www.youtube.com/channel/UCt_fa1d5aHEl69_Bll0w1Ww/videos)과 개발하면서 많은 조언을 해준 [teumal](https://github.com/teumal)에게 정말 큰 감사를 드립니다.
 
 
 ## How to Load Models and Animations

@@ -18,6 +18,10 @@
 
 ●```pmx``` 모델링은 ```IK bone```과 ```display bone```이 따로 존재하며, IK 데이터의 각 링크본들은 IK 본을 사용합니다. 따라서 ```hyunwoo's RenderEngine```은 각 링크본에서 가장 가까운 다른 본을 찾아 교체하여, IK 적용시 디스플레이 본이 움직이도록 했습니다. 이는 ```pmx``` 모델링의 바인딩 포즈에서 display bone과 ik bone가 서로 비슷한 위치에 있다는 것을 가정하여 적용한 것이기 때문에, 일부 ```pmx``` 모델링에 IK를 적용할 경우 본이 뒤틀리는 경우가 있을 수 있습니다.
 
+●```pmxImporter::Import()```를 통해 ```.pmx``` 모델링 파일을 로드할 때, 기본적으로 그 모델링에서 사용되는 모든 ```.png``` 확장명의 텍스쳐 파일을 읽어들이려고 시도합니다. 이 과정에서 ```.pmx``` 모델링이 요구하는 모든 텍스쳐 파일을 읽어들이지 않으면 실패하기 때문에, 사용자는 Import할 ```.pmx``` 모델링에서 사용하는 모든 텍스쳐 파일을 ```.png``` 확장명으로 미리 변환해놓아야 합니다.
+
+●```pmx``` 모델링을 로드할 때, 해당 모델링에서 사용하는 모든 텍스쳐 파일이 존재하지 않으면 실패합니다. 또한 ```hyunwoo's RenderEngine```은 오직 ```.Png``` 확장명의 이미지 파일만 지원하기 때문에, ```PmxImporter```는 
+
 ●최종 개발한 각종 모듈들을 활용하여 구현된 컨텐츠의 소스는 ```hyunwoo-RenderEngine/RendererApp.h```,  ```hyunwoo-RenderEngine/RendererApp.cpp```를 통해 확인할 수 있으며, 빌드된 프로그램은 ```hyunwoo-RenderEngine/x64/Release/hyunwoos-RenderEngine.exe``` 를 실행하면 됩니다.
 
 

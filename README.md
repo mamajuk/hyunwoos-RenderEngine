@@ -9,7 +9,7 @@
 
 때문에 개발의 중간시점부터 오직 ***3D모델링 랜더링*** 및 ***스키닝 애니메이션의 구현*** 에만 충실하도록 설계 범위를 최소화했습니다. 일단 목표는 달성했기에 당분간은 확장할 예정은 없지만, 추후 ```.pmx```, ```.vmd```의 모프/카메라 모션을 구현하거나, ```.fbx```, ```.obj``` 와 같은 파일의 임포트를 지원하거나, ```Hiererchy Window``` 및 ```Multi ViewPort```등을 천천히 구현해볼 예정입니다.
 
-마지막으로 좋은 ```pmx``` 모델링 및 ```vmd``` 모션 작업물을 공유해주신 [Hoyoverse](https://www.mihoyo.com/), [tweekcrystal](http://tweekcrystal.deviantart.com/), [PiT_shan](https://bowlroll.net/file/33936). 그리고 ```pmx```, ```vmd``` **file structure** 글을 공유해주신 [felixjones](https://gist.github.com/felixjones/f8a06bd48f9da9a4539f), [Nuthouse01](https://github.com/Nuthouse01/PMX-VMD-Scripting-Tools?utm_source=chatgpt.com). 특히 ```이득우의 게임수학``` 이라는 좋은 책을 써주신  [이득우 교수님](https://www.youtube.com/channel/UCt_fa1d5aHEl69_Bll0w1Ww/videos)과 개발하면서 많은 조언을 해준 [teumal](https://github.com/teumal)에게 정말 큰 감사를 드립니다.
+마지막으로 좋은 ```pmx``` 모델링 및 ```vmd``` 모션 작업물을 공유해주신 [Hoyoverse](https://www.mihoyo.com/), [tweekcrystal](http://tweekcrystal.deviantart.com/), [PiT_shan](https://bowlroll.net/file/33936). 그리고 ```pmx```, ```vmd```, ```png``` **file structure** 글을 공유해주신 [felixjones](https://gist.github.com/felixjones/f8a06bd48f9da9a4539f), [Nuthouse01](https://github.com/Nuthouse01/PMX-VMD-Scripting-Tools?utm_source=chatgpt.com), [pyokagan](https://pyokagan.name/blog/2019-10-14-png/). 특히 ```이득우의 게임수학``` 이라는 좋은 책을 써주신  [이득우 교수님](https://www.youtube.com/channel/UCt_fa1d5aHEl69_Bll0w1Ww/videos)과 개발하면서 많은 조언을 해준 [teumal](https://github.com/teumal)에게 정말 큰 감사를 드립니다.
 
 ## Notes
 ●```hyunwoo's RenderEngine```은 기본적으로 왼손좌표계와, 열기반 행렬을 사용합니다. 그리고 실제 수학 연산과 비슷하게 코드를 작성할 수 있도록, ```Matrix4x4::operator*(const Matrix4x4& rhs)```, ```Quaternion::operator*(const Quaternion& rhs)``` 등의 연산자 오버로딩은 우측에 있는 변환이 먼저 적용됩니다. 

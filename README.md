@@ -16,7 +16,7 @@
 
 ●```Quaternion``` 의 회전 합성은 오른손 좌표계 규약을 따릅니다. 다만 ```Quaternion::AngleAxis()``` 는 내부적으로 사용자가 카타시안(Cartesian) 좌표계에서의 벡터 회전(active rotation)과 동일한 감각으로 사용할 수 있도록 인자로 받은 각도를 반전시켜 처리합니다. (e.g 30º -> -30º)
 
-●```pmx``` 모델링은 ```IK bone```과 ```display bone```이 따로 존재하며, IK 데이터의 각 링크본들은 IK 본을 사용합니다. 따라서 ```hyunwoo's RenderEngine```은 각 링크본들을 가장 가까운 다른 본을 찾아서 교체해 IK 적용시 디스플레이 본이 움직이도록 했습니다. 이는 ```pmx``` 모델링의 바인딩 포즈에서 display bone과 ik bone가 서로 비슷한 위치에 있다는 것을 가정하여 적용한 것이기 때문에, 일부 ```pmx``` 모델링에 IK를 적용할 경우 본이 뒤틀리는 경우가 있을 수 있습니다.
+●```pmx``` 모델링은 ```IK bone```과 ```display bone```이 따로 존재하며, IK 데이터의 각 링크본들은 IK 본을 사용합니다. 따라서 ```hyunwoo's RenderEngine```은 각 링크본에서 가장 가까운 다른 본을 찾아 교체하여, IK 적용시 디스플레이 본이 움직이도록 했습니다. 이는 ```pmx``` 모델링의 바인딩 포즈에서 display bone과 ik bone가 서로 비슷한 위치에 있다는 것을 가정하여 적용한 것이기 때문에, 일부 ```pmx``` 모델링에 IK를 적용할 경우 본이 뒤틀리는 경우가 있을 수 있습니다.
 
 ●최종 개발한 각종 모듈들을 활용하여 구현된 컨텐츠의 소스는 ```hyunwoo-RenderEngine/RendererApp.h```,  ```hyunwoo-RenderEngine/RendererApp.cpp```를 통해 확인할 수 있으며, 빌드된 프로그램은 ```hyunwoo-RenderEngine/x64/Release/hyunwoos-RenderEngine.exe``` 를 실행하면 됩니다.
 

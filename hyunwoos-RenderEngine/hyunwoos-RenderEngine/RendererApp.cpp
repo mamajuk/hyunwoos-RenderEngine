@@ -82,7 +82,7 @@ void hyunwoo::RendererApp::OnFileDropped_Internal(const wchar_t* filePath)
 	 *  지원하지 않는 파일인가..?
 	 ******/
 	else {
-		m_debugLog = (const wchar_t*)w$(L"'", extension.c_str(), L"' is not a supported file format.\nCurrently, only PMX and VMD formats are supported.");
+		m_debugLog = (const wchar_t*)w$(L"'", extension, L"' is not a supported file format.\nCurrently, only PMX and VMD formats are supported.");
 	}
 }
 

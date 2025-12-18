@@ -87,6 +87,7 @@ void hyunwoo::CCD_IKSolver::ResolveIK(const AnimateMesh& animateMesh)
 				Transform*  link_tr   = animateMesh.GetBoneTransformAt(link.Bone_idx).Get();
 
 
+				link_tr->SetLocalPosition(link_bone.BindingPose.LocalPosition);
 				link_tr->SetLocalRotation(link_bone.BindingPose.LocalRotation);
 
 				const Vector3 link2EndEffDir = (endEff_tr->GetWorldPosition() - link_tr->GetWorldPosition()).GetNormalized();

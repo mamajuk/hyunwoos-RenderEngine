@@ -48,10 +48,11 @@ hyunwoo::PngImporter::ImportResult hyunwoo::PngImporter::Import(Texture2D& outTe
 	 *   되는 확장명이기 때문. 따라서 1bytes보다 큰 정수값을 정상적으로 읽기 위해선 리틀 엔디안으로 
 	 *   순서를 재배치해야 한다.
 	 *********/
-	Chunk				 chunk;
-	IndexedRGB			 plteData[256];
-	IHDR_Data			 ihdrData;
-	std::vector<uint8_t> deflate_img_stream;
+	Chunk						chunk;
+	IndexedRGB					plteData[256];
+	IHDR_Data				    ihdrData;
+	static std::vector<uint8_t> deflate_img_stream;
+	deflate_img_stream.clear();
 
 	while (in)
 	{
